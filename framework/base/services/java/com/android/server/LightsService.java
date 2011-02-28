@@ -63,13 +63,20 @@ public class LightsService {
 
     private static final String FLASHLIGHT_FILE;
     private static final String FLASHLIGHT_FILE_SPOTLIGHT = "/sys/class/leds/spotlight/brightness";
+    private static final String FLASHLIGHT_FILE_FLED = "/sys/class/leds/lv5219lg:fled/brightness";
+
     static {
         File ff = new File(FLASHLIGHT_FILE_SPOTLIGHT);
-        if (ff.exists()) {
+        File fd = new File(FLASHLIGHT_FILE_FLED);
+         if (ff.exists()) {
+             FLASHLIGHT_FILE = FLASHLIGHT_FILE_FLED;
+ 	}else{
+	 if (ff.exists()) {
             FLASHLIGHT_FILE = FLASHLIGHT_FILE_SPOTLIGHT;
         } else {
             FLASHLIGHT_FILE = "/sys/class/leds/flashlight/brightness";
         }
+	}
     }
 
     public final class Light {
