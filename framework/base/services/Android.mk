@@ -19,6 +19,9 @@ endif
 ifeq ($(TARGET_HAS_FOXCONN_SENSORS),true)
     LOCAL_CFLAGS += -DFOXCONN_SENSORS
 endif
+ifeq ($(TARGET_HAS_INVERTED_SENSORS),true)
+    LOCAL_CFLAGS += -DINVERTED_SENSORS
+endif
 
 # need "-lrt" on Linux simulator to pick up clock_gettime
 ifeq ($(TARGET_SIMULATOR),true)
