@@ -207,21 +207,29 @@ board_property boardProperties[] = {
  */
 //sorted on column basis
 static const camera_size_type picture_sizes[] = {
-    { 2592, 1944 }, // 5MP
-    { 2560, 1920 }, // 5MP (slightly reduced)
-    { 2048, 1536 }, // 3MP QXGA
-    //{ 1920, 1080 }, //HD1080
-    { 1600, 1200 }, // 2MP UXGA
-    { 1280, 768 }, //WXGA
-    { 1280, 720 }, //HD720
-    { 1024, 768}, // 1MP XGA
-    { 800, 600 }, //SVGA
-    { 800, 480 }, // WVGA
-    { 640, 480 }, // VGA
-    { 352, 288 }, //CIF
-    { 320, 240 }, // QVGA
-    { 176, 144 } // QCIF
+    { 3264, 2448 }, 	// 8MP
+    { 2592, 1944 }, 	// 5MP
+    { 2560, 1920 }, 	// 5MP (slightly reduced)
+    { 2048, 1536 }, 	// 3MP QXGA
+    { 1920, 1200 }, 	// WUXGA
+    { 1920, 1080 }, 	// HD1080 - HDTV 
+    { 1600, 1200 }, 	// 2MP UXGA
+    { 1680, 1050 }, 	// WSXGA+
+    { 1600, 900 }, 	// HD+
+    { 1440, 900 }, 	// WSXGA
+    { 1280, 768 }, 	// WXGA
+    { 1280, 720 }, 	// HD720 (HDTV)
+    { 1152, 864 }, 	// XGA+
+    { 1024, 768}, 		// 1MP XGA
+    { 800, 600 }, 		// SVGA
+    { 800, 480 }, 		// WVGA
+    { 640, 480 }, 		// VGA
+    { 352, 288 }, 		// CIF
+    { 320, 240 }, 		// QVGA
+    { 176, 144 } 		// QCIF
 };
+
+
 static int PICTURE_SIZE_COUNT = sizeof(picture_sizes)/sizeof(camera_size_type);
 static const camera_size_type * picture_sizes_ptr;
 static int supportedPictureSizesCount;
@@ -615,7 +623,6 @@ struct SensorType {
 
 static SensorType sensorTypes[] = {
         { "5mp", 2608, 1960, true,  2592, 1944,0x00000fff },
-        { "5mp", 5184, 1944, false,  2592, 1944,0x00000fff },
         { "3mp", 2064, 1544, false, 2048, 1536,0x000007ff },
         { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff } };
 
