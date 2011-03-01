@@ -1,0 +1,204 @@
+format DATA:
+format CACHE:
+format SYSTEM:
+copy_dir PACKAGE:system SYSTEM:
+symlink toolbox SYSTEM:bin/getevent
+symlink toolbox SYSTEM:bin/getprop
+symlink toolbox SYSTEM:bin/hd
+symlink toolbox SYSTEM:bin/iftop
+symlink toolbox SYSTEM:bin/ioctl
+symlink toolbox SYSTEM:bin/ionice
+symlink toolbox SYSTEM:bin/log
+symlink toolbox SYSTEM:bin/nandread
+symlink toolbox SYSTEM:bin/newfs_msdos
+symlink toolbox SYSTEM:bin/notify
+symlink toolbox SYSTEM:bin/reboot
+symlink toolbox SYSTEM:bin/schedtop
+symlink toolbox SYSTEM:bin/sendevent
+symlink toolbox SYSTEM:bin/setconsole
+symlink toolbox SYSTEM:bin/setprop
+symlink toolbox SYSTEM:bin/smd
+symlink toolbox SYSTEM:bin/start
+symlink toolbox SYSTEM:bin/stop
+symlink toolbox SYSTEM:bin/vmstat
+symlink toolbox SYSTEM:bin/watchprops
+symlink toolbox SYSTEM:bin/wipe
+symlink busybox SYSTEM:bin/arp
+symlink busybox SYSTEM:bin/ash
+symlink busybox SYSTEM:bin/awk
+symlink busybox SYSTEM:bin/basename
+symlink busybox SYSTEM:bin/bbconfig
+symlink busybox SYSTEM:bin/brctl
+symlink busybox SYSTEM:bin/bunzip2
+symlink busybox SYSTEM:bin/bzcat
+symlink busybox SYSTEM:bin/bzip2
+symlink busybox SYSTEM:bin/cal
+symlink busybox SYSTEM:bin/cat
+symlink busybox SYSTEM:bin/catv
+symlink busybox SYSTEM:bin/chgrp
+symlink busybox SYSTEM:bin/chmod
+symlink busybox SYSTEM:bin/chown
+symlink busybox SYSTEM:bin/chroot
+symlink busybox SYSTEM:bin/cksum
+symlink busybox SYSTEM:bin/clear
+symlink busybox SYSTEM:bin/cmp
+symlink busybox SYSTEM:bin/cp
+symlink busybox SYSTEM:bin/cpio
+symlink busybox SYSTEM:bin/cut
+symlink busybox SYSTEM:bin/date
+symlink busybox SYSTEM:bin/dc
+symlink busybox SYSTEM:bin/dd
+symlink busybox SYSTEM:bin/depmod
+symlink busybox SYSTEM:bin/devmem
+symlink busybox SYSTEM:bin/df
+symlink busybox SYSTEM:bin/diff
+symlink busybox SYSTEM:bin/dirname
+symlink busybox SYSTEM:bin/dmesg
+symlink busybox SYSTEM:bin/dnsd
+symlink busybox SYSTEM:bin/dos2unix
+symlink busybox SYSTEM:bin/du
+symlink busybox SYSTEM:bin/echo
+symlink busybox SYSTEM:bin/ed
+symlink busybox SYSTEM:bin/egrep
+symlink busybox SYSTEM:bin/env
+symlink busybox SYSTEM:bin/expr
+symlink busybox SYSTEM:bin/false
+symlink busybox SYSTEM:bin/fdisk
+symlink busybox SYSTEM:bin/fgrep
+symlink busybox SYSTEM:bin/find
+symlink busybox SYSTEM:bin/fold
+symlink busybox SYSTEM:bin/free
+symlink busybox SYSTEM:bin/freeramdisk
+symlink busybox SYSTEM:bin/fuser
+symlink busybox SYSTEM:bin/getopt
+symlink busybox SYSTEM:bin/grep
+symlink busybox SYSTEM:bin/gunzip
+symlink busybox SYSTEM:bin/head
+symlink busybox SYSTEM:bin/hexdump
+symlink busybox SYSTEM:bin/id
+symlink busybox SYSTEM:bin/ifconfig
+symlink busybox SYSTEM:bin/insmod
+symlink busybox SYSTEM:bin/install
+symlink busybox SYSTEM:bin/ip
+symlink iwmulticall SYSTEM:xbin/iwconfig
+symlink iwmulticall SYSTEM:xbin/iwgetid
+symlink iwmulticall SYSTEM:xbin/iwlist
+symlink iwmulticall SYSTEM:xbin/iwpriv
+symlink iwmulticall SYSTEM:xbin/iwspy
+symlink busybox SYSTEM:bin/kill
+symlink busybox SYSTEM:bin/killall
+symlink busybox SYSTEM:bin/killall5
+symlink busybox SYSTEM:bin/length
+symlink busybox SYSTEM:bin/less
+symlink busybox SYSTEM:bin/ln
+symlink busybox SYSTEM:bin/losetup
+symlink busybox SYSTEM:bin/ls
+symlink busybox SYSTEM:bin/lsmod
+symlink busybox SYSTEM:bin/lspci
+symlink busybox SYSTEM:bin/lsusb
+symlink busybox SYSTEM:bin/lzop
+symlink busybox SYSTEM:bin/lzopcat
+symlink busybox SYSTEM:bin/md5sum
+symlink busybox SYSTEM:bin/mkdir
+symlink busybox SYSTEM:bin/mkfifo
+symlink busybox SYSTEM:bin/mkfs.ext2
+symlink busybox SYSTEM:bin/mknod
+symlink busybox SYSTEM:bin/mkswap
+symlink busybox SYSTEM:bin/mktemp
+symlink busybox SYSTEM:bin/modprobe
+symlink busybox SYSTEM:bin/more
+symlink busybox SYSTEM:bin/mount
+symlink busybox SYSTEM:bin/mountpoint
+symlink busybox SYSTEM:bin/mv
+symlink busybox SYSTEM:bin/netstat
+symlink busybox SYSTEM:bin/nice
+symlink busybox SYSTEM:bin/nohup
+symlink busybox SYSTEM:bin/nslookup
+symlink busybox SYSTEM:bin/ntpd
+symlink busybox SYSTEM:bin/od
+symlink busybox SYSTEM:bin/patch
+symlink busybox SYSTEM:bin/pgrep
+symlink busybox SYSTEM:bin/pidof
+symlink busybox SYSTEM:bin/pkill
+symlink busybox SYSTEM:bin/printenv
+symlink busybox SYSTEM:bin/printf
+symlink busybox SYSTEM:bin/ps
+symlink busybox SYSTEM:bin/pwd
+symlink busybox SYSTEM:bin/rdev
+symlink busybox SYSTEM:bin/readlink
+symlink busybox SYSTEM:bin/realpath
+symlink busybox SYSTEM:bin/renice
+symlink busybox SYSTEM:bin/reset
+symlink busybox SYSTEM:bin/rm
+symlink busybox SYSTEM:bin/rmdir
+symlink busybox SYSTEM:bin/rmmod
+symlink busybox SYSTEM:bin/route
+symlink busybox SYSTEM:bin/run-parts
+symlink busybox SYSTEM:bin/sed
+symlink busybox SYSTEM:bin/seq
+symlink busybox SYSTEM:bin/setsid
+symlink busybox SYSTEM:bin/sha1sum
+symlink busybox SYSTEM:bin/sha256sum
+symlink busybox SYSTEM:bin/sha512sum
+symlink busybox SYSTEM:bin/sleep
+symlink busybox SYSTEM:bin/sort
+symlink busybox SYSTEM:bin/split
+symlink busybox SYSTEM:bin/stat
+symlink busybox SYSTEM:bin/strings
+symlink busybox SYSTEM:bin/stty
+symlink busybox SYSTEM:bin/swapoff
+symlink busybox SYSTEM:bin/swapon
+symlink busybox SYSTEM:bin/sync
+symlink busybox SYSTEM:bin/sysctl
+symlink busybox SYSTEM:bin/tac
+symlink busybox SYSTEM:bin/tail
+symlink busybox SYSTEM:bin/tar
+symlink busybox SYSTEM:bin/tee
+symlink busybox SYSTEM:bin/telnet
+symlink busybox SYSTEM:bin/test
+symlink busybox SYSTEM:bin/tftp
+symlink busybox SYSTEM:bin/time
+symlink busybox SYSTEM:bin/top
+symlink busybox SYSTEM:bin/touch
+symlink busybox SYSTEM:bin/tr
+symlink busybox SYSTEM:bin/traceroute
+symlink busybox SYSTEM:bin/true
+symlink busybox SYSTEM:bin/tty
+symlink busybox SYSTEM:bin/umount
+symlink busybox SYSTEM:bin/uname
+symlink busybox SYSTEM:bin/uniq
+symlink busybox SYSTEM:bin/unix2dos
+symlink busybox SYSTEM:bin/unlzop
+symlink busybox SYSTEM:bin/unzip
+symlink busybox SYSTEM:bin/uptime
+symlink busybox SYSTEM:bin/usleep
+symlink busybox SYSTEM:bin/uudecode
+symlink busybox SYSTEM:bin/uuencode
+symlink busybox SYSTEM:bin/vi
+symlink busybox SYSTEM:bin/watch
+symlink busybox SYSTEM:bin/wc
+symlink busybox SYSTEM:bin/wget
+symlink busybox SYSTEM:bin/which
+symlink busybox SYSTEM:bin/whoami
+symlink busybox SYSTEM:bin/xargs
+symlink busybox SYSTEM:bin/yes
+symlink busybox SYSTEM:bin/zcat
+symlink busybox SYSTEM:bin/[
+symlink busybox SYSTEM:bin/[[
+set_perm_recursive 0 0 0755 0644 SYSTEM:
+set_perm_recursive 0 2000 0755 0755 SYSTEM:bin
+set_perm 0 3003 02750 SYSTEM:bin/netcfg
+set_perm 0 3004 02755 SYSTEM:bin/ping
+set_perm 0 2000 06750 SYSTEM:bin/run-as
+set_perm_recursive 1002 1002 0755 0440 SYSTEM:etc/bluetooth
+set_perm 0 0 0755 SYSTEM:etc/bluetooth
+set_perm 1000 1000 0640 SYSTEM:etc/bluetooth/auto_pairing.conf
+set_perm 3002 3002 0444 SYSTEM:etc/bluetooth/blacklist.conf
+set_perm 1002 1002 0440 SYSTEM:etc/dbus.conf
+set_perm 1014 2000 0550 SYSTEM:etc/dhcpcd/dhcpcd-run-hooks
+set_perm 0 2000 0550 SYSTEM:etc/init.goldfish.sh
+set_perm 0 0 04755 SYSTEM:xbin/bash
+set_perm 0 0 04755 SYSTEM:xbin/nano
+set_perm 0 0 04755 SYSTEM:xbin/su
+symlink /system/xbin/su SYSTEM:bin/su
+set_perm_recursive 0 0 0755 0555 SYSTEM:etc/ppp

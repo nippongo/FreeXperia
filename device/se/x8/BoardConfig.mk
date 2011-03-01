@@ -9,11 +9,11 @@ BOARD_HAVE_FM_RADIO := true
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
 BOARD_WLAN_DEVICE           := wl1271
-BOARD_SOFTAP_DEVICE         := wl1271
-WPA_SUPPLICANT_VERSION      := VER_0_6_X
+#BOARD_SOFTAP_DEVICE         := wl1271
+WPA_SUPPLICANT_VERSION      := VER_0_5_X
 WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
-WIFI_DRIVER_MODULE_ARG      := ""
 WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
+WIFI_DRIVER_MODULE_ARG      := ""
 WIFI_EXT_MODULE_PATH        := "/system/lib/modules/sdio.ko"
 WIFI_EXT_MODULE_NAME        := "sdio"
 WIFI_FIRMWARE_LOADER        := "wlan_loader"
@@ -62,7 +62,7 @@ TARGET_PROVIDES_LIBAUDIO := true
 TARGET_PROVIDES_LIBRIL := true
 
 TARGET_USES_OLD_LIBSENSORS_HAL:=true
-TARGET_HAS_FOXCONN_SENSORS:=true
+TARGET_HAS_INVERTED_SENSORS:=true
 
 # to enable the GPS HAL
 BOARD_USES_QCOM_GPS := true

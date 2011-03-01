@@ -8,14 +8,16 @@ DEVICE_PACKAGE_OVERLAYS += device/se/x8/overlay
 # HAL libs and other system binaries
 PRODUCT_PACKAGES += \
     gps.shakira \
-    lights.shakira \
     copybit.shakira \
     gralloc.shakira \
     libOmxCore
+#    lights.shakira \
+
+
 
 # Extra apps
-PRODUCT_PACKAGES += \
-	Torch
+#PRODUCT_PACKAGES += \
+#	Torch
 
 #ifeq ($(TARGET_PREBUILT_KERNEL),)
 #    LOCAL_KERNEL := device/commtiva/z71/kernel
@@ -63,10 +65,10 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/lib/libpbmlib.so:system/lib/libpbmlib.so \
     vendor/se/x8/proprietary/lib/libqmi.so:system/lib/libqmi.so \
     vendor/se/x8/proprietary/lib/libqueue.so:system/lib/libqueue.so \
-    vendor/se/x8/proprietary/lib/libril.so:system/lib/libril.so \
     vendor/se/x8/proprietary/lib/libril-qc-1.so:system/lib/libril-qc-1.so \
     vendor/se/x8/proprietary/lib/libwms.so:system/lib/libwms.so \
     vendor/se/x8/proprietary/lib/libwmsts.so:system/lib/libwmsts.so 
+#    vendor/se/x8/proprietary/lib/libril.so:system/lib/libril.so \
 
 
 ## OMX proprietaries
@@ -92,13 +94,13 @@ PRODUCT_COPY_FILES += \
 ## Hardware properties 
 PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
-    frameworks/base/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
     frameworks/base/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml \
     frameworks/base/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
     frameworks/base/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
     frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
     frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
     frameworks/base/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml
+#    frameworks/base/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
 
 ## Camera proprietaries
 PRODUCT_COPY_FILES += \
@@ -110,17 +112,29 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/lib/modules/sdio.ko:system/lib/modules/sdio.ko \
     vendor/se/x8/proprietary/lib/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko \
-
+    device/se/x8/prebuilt/tiwlan.ini:system/etc/tiwlan.ini \
+    device/se/x8/prebuilt/tiwlan_firmware.bin:system/etc/tiwlan_firmware.bin
+ 
 
 ## Other libraries and proprietary binaries
 PRODUCT_COPY_FILES += \
+    vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
+    vendor/se/x8/proprietary/bin/hciattach:system/bin/hciattach \
+    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
+    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
+    vendor/se/x8/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.shakira.so \
+    vendor/se/x8/proprietary/lib/hw/lights.default.so:system/lib/hw/lights.shakira.so \
     device/se/x8/prebuilt/sensors.conf:system/etc/sensors.conf \
     vendor/se/x8/proprietary/bin/akmd2:system/bin/akmd2 \
     vendor/se/x8/proprietary/bin/updatemiscta:system/bin/updatemiscta \
     vendor/se/x8/proprietary/lib/libmiscta.so:system/lib/libmiscta.so \
+    device/se/x8/prebuilt/cyttsp_fwloader:system/bin/cyttsp_fwloader \
+    device/se/x8/prebuilt/semc_chargalg:system/bin/semc_chargalg \
+    device/se/x8/prebuilt/nvimport:system/bin/nvimport \
     device/se/x8/prebuilt/busybox:system/bin/busybox \
     device/se/x8/prebuilt/chargemon:system/bin/chargemon \
-    device/se/x8/prebuilt/xrecovery.tar:system/bin/xrecovery.tar \
+    device/se/x8/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
+    device/se/x8/prebuilt/xrecovery.tar.bz2:system/bin/xrecovery.tar.bz2 \
     device/se/x8/prebuilt/charger:system/bin/charger \
     device/se/x8/prebuilt/hw_config.sh:system/etc/hw_config.sh \
     vendor/se/x8/proprietary/etc/semc/chargemon/anim1.rle:system/etc/semc/chargemon/anim1.rle \
@@ -132,8 +146,7 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/etc/semc/chargemon/anim7.rle:system/etc/semc/chargemon/anim7.rle \
     vendor/se/x8/proprietary/etc/semc/chargemon/anim8.rle:system/etc/semc/chargemon/anim8.rle \
     vendor/se/x8/proprietary/etc/AudioFilterProduct.csv:system/etc/AudioFilterProduct.csv \
-    vendor/se/x8/proprietary/etc/AudioFilterPlatform.csv:system/etc/AudioFilterPlatform.csv \
-    vendor/se/x8/proprietary/lib/liba2dp.so:system/lib/liba2dp.so \
+    vendor/se/x8/proprietary/etc/AudioFilterPlatform.csv:system/etc/AudioFilter.csv \
     vendor/se/x8/proprietary/lib/libaudioeq.so:system/lib/libaudioeq.so \
     vendor/se/x8/proprietary/lib/egl/egl.cfg:system/lib/egl/egl.cfg \
     vendor/se/x8/proprietary/lib/egl/libGLESv1_CM_adreno200.so:system/lib/egl/libGLESv1_CM_adreno200.so \
@@ -143,7 +156,7 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/etc/firmware/yamato_pfp.fw:system/etc/firmware/yamato_pfp.fw \
     vendor/se/x8/proprietary/etc/firmware/yamato_pm4.fw:system/etc/firmware/yamato_pm4.fw \
     vendor/se/x8/proprietary/lib/libgsl.so:system/lib/libgsl.so
-#    device/se/x8/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
+#    vendor/se/x8/proprietary/lib/liba2dp.so:system/lib/liba2dp.so \
 
 PRODUCT_COPY_FILES += \
     device/se/x8/media_profiles.xml:system/etc/media_profiles.xml \

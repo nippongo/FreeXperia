@@ -21,10 +21,29 @@ dev=/sys/devices/platform/proximity-sensor/semc/proximity-sensor
 echo  15 > $dev/led_on_ms         # sensor LED on time in ms
 echo  35 > $dev/led_off_ms       # sensor LED off time in ms
 
-# Flash LED configuration
-dev=/sys/devices/platform/msm_pmic_flash_led
-echo 80 > $dev/spotlight::current_ma # spotlight current
-echo 4700 > $dev/spotlight::boost_mv # spotlight boost voltage
-echo 480 > $dev/cmaflash::current_ma # camera flash current
-echo 5000 > $dev/cmaflash::boost_mv # camera flash  voltage
+echo "ondemand" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+echo 90 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold
+echo 30 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/down_differential
+echo 500000 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate
+echo 245760 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+
+
+
+# Needed by radio
+mkdir /data/radio
+chmod 0777 /data/radio
+
+
+
+chmod 777 /dev/msm*
+chmod 777 /dev/pmem_adsp
+chmod 777 /dev/msm_camera/*
+chmod 777 /dev/graphics/*
+chmod 777 /dev/oncrpc/*
+
+sleep 60
+if [ ! -e /data/boot_complete ]; then
+    echo >/data/boot_complete
+    killall servicemanager
+fi
 
