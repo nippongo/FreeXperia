@@ -14,6 +14,8 @@ for DIR in $DIRS; do
 done
 
 FILES="
+app/SystemConnector.apk
+
 bin/akmd2
 bin/dhcpcd
 bin/hciattach
@@ -116,6 +118,8 @@ lib/libqmi.so
 lib/libqueue.so
 lib/libril.so
 lib/libril-qc-1.so
+lib/libsystemconnector/libuinputdevicejni.so
+lib/libsystemconnector_hal_jni.so
 lib/libwms.so
 lib/libwmsts.so
 "
