@@ -183,6 +183,7 @@ PRODUCT_COPY_FILES += \
     device/se/x8/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko 
 
 #crappy headset
+PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/app/SystemConnector.apk:system/app/SystemConnector.apk \
     vendor/se/x8/proprietary/lib/libsystemconnector/libuinputdevicejni.so:system/lib/libsystemconnector/libuinputdevicejni.so \
     vendor/se/x8/proprietary/lib/libsystemconnector_hal_jni.so:system/lib/libsystemconnector_hal_jni.so
