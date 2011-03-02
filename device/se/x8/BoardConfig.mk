@@ -1,10 +1,10 @@
 USE_CAMERA_STUB:= false
+#BUILD_WITH_FULL_STAGEFRIGHT := true
 
 BOARD_USES_QCOM_HARDWARE := true
 BOARD_USES_QCOM_LIBS := true
 BOARD_USES_QCOM_LIBRPC := true
 BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_FM_RADIO := true
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
@@ -13,52 +13,36 @@ BOARD_WLAN_DEVICE           := wl1271
 WPA_SUPPLICANT_VERSION      := VER_0_5_X
 WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
 WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
-WIFI_DRIVER_MODULE_ARG      := ""
-WIFI_EXT_MODULE_PATH        := "/system/lib/modules/sdio.ko"
-WIFI_EXT_MODULE_NAME        := "sdio"
+#WIFI_DRIVER_MODULE_ARG      := ""
+#WIFI_EXT_MODULE_PATH        := "/system/lib/modules/sdio.ko"
+#WIFI_EXT_MODULE_NAME        := "sdio"
 WIFI_FIRMWARE_LOADER        := "wlan_loader"
 
+BOARD_USE_USB_MASS_STORAGE_SWITCH := true
+TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun
 
 # inherit from the proprietary version
 -include vendor/se/x8/BoardConfigVendor.mk
 
-TARGET_NO_BOOTLOADER := true
-#TARGET_NO_RECOVERY := true
-TARGET_CPU_ABI := armeabi
-TARGET_ARCH_VARIANT := armv6-vfp
 TARGET_BOARD_PLATFORM := msm7k
-TARGET_CPU_ABI := armeabi
-TARGET_BOOTLOADER_BOARD_NAME := shakira
-
+TARGET_ARCH_VARIANT := armv6-vfp
+TARGET_CPU_ABI := armeabi-v6l
+TARGET_CPU_ABI2 := armeabi
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
-#TARGET_USES_2G_VM_SPLIT := true
 
-#TARGET_OTA_ASSERT_DEVICE := x8
+TARGET_BOOTLOADER_BOARD_NAME := shakira
 
 BOARD_KERNEL_CMDLINE := mem=210M console=null androidboot.hardware=qcom no_console_suspend
 BOARD_KERNEL_BASE := 0x12e00000
 BOARD_PAGE_SIZE := 0x00000800
 
-# fix this up by examining /proc/mtd on a running device
-#BOARD_BOOTIMAGE_PARTITION_SIZE := 0x00380000
-#BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x00480000
-#BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x08c60000
-#BOARD_USERDATAIMAGE_PARTITION_SIZE := 0x105c0000
-#BOARD_FLASH_BLOCK_SIZE := 131072
-
-#TARGET_PREBUILT_KERNEL := device/commtiva/z71/kernel
-
-#BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/commtiva/z71/recovery_ui.c
-
 BOARD_NO_RGBX_8888 := true
-
-#BOARD_GPS_LIBRARIES := libloc_api
 
 TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
 
 JS_ENGINE := v8
 
-TARGET_PROVIDES_LIBAUDIO := true
+#TARGET_PROVIDES_LIBAUDIO := true
 TARGET_PROVIDES_LIBRIL := true
 
 TARGET_USES_OLD_LIBSENSORS_HAL:=true
@@ -67,9 +51,10 @@ TARGET_HAS_INVERTED_SENSORS:=true
 # to enable the GPS HAL
 BOARD_USES_QCOM_GPS := true
 BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := shakira
-# AMSS version to use for GPS
 BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 1240
 
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RECOVERY := true
 TARGET_NO_KERNEL := true
+
+WITH_DEXPREOPT := true

@@ -1,3 +1,5 @@
+#!/system/bin/busybox sh
+
 # Vibrator configuration
 dev=/sys/devices/platform/msm_pmic_vibrator
 echo 2400 > $dev/voltage_mv
@@ -27,13 +29,17 @@ echo 30 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/down_differential
 echo 500000 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate
 echo 245760 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 
+# mising modules
+insmod /system/lib/modules/dm-mod.ko
+insmod /system/lib/modules/dm-crypt.ko
+insmod /system/lib/modules/twofish_common.ko
+insmod /system/lib/modules/twofish.ko
+insmod /system/lib/modules/tun.ko
 
 
 # Needed by radio
 mkdir /data/radio
 chmod 0777 /data/radio
-
-
 
 chmod 777 /dev/msm*
 chmod 777 /dev/pmem_adsp
@@ -41,9 +47,9 @@ chmod 777 /dev/msm_camera/*
 chmod 777 /dev/graphics/*
 chmod 777 /dev/oncrpc/*
 
-sleep 60
-if [ ! -e /data/boot_complete ]; then
-    echo >/data/boot_complete
-    killall servicemanager
-fi
+#sleep 60
+#if [ ! -e /data/boot_complete ]; then
+#    echo >/data/boot_complete
+#    killall servicemanager
+#fi
 
