@@ -34,7 +34,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PACKAGES += \
     AndroidTerm \
     FileManager \
-    CMParts \
+    SEParts \
     CMStats \
     CMUpdateNotify \
     CMWallpapers \

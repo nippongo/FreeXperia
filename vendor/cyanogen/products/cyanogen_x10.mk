@@ -17,7 +17,7 @@ PRODUCT_MODEL := x10
 PRODUCT_MANUFACTURER := SonyEricsson
 PRODUCT_BUILD_PROP_OVERRIDES += PRODUCT_NAME=SonyEricsson_x10 BUILD_ID=FRG83 BUILD_DISPLAY_ID=GRH78C BUILD_FINGERPRINT=google/passion/passion/mahimahi:2.2.1/FRG83/60505:user/release-keys PRIVATE_BUILD_DESC="passion-user 2.2.1 FRG83 60505 release-keys"
 
-#PRODUCT_SPECIFIC_DEFINES += TARGET_PRELINKER_MAP=$(TOP)/device/se/x10/prelink-linux-arm-x10.map
+PRODUCT_SPECIFIC_DEFINES += TARGET_PRELINKER_MAP=$(TOP)/device/se/x10/prelink-linux-arm-x10.map
 
 #
 # Set ro.modversion
@@ -31,7 +31,7 @@ else
             ro.modversion=CyanogenMod-7.0.0-RC1-X10
     else
         PRODUCT_PROPERTY_OVERRIDES += \
-            ro.modversion=CyanogenMod-7.0.0-RC1-X10-J003
+            ro.modversion=CyanogenMod-7.0.0-RC1-X10-J005
     endif
 endif
 
