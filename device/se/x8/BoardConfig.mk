@@ -1,22 +1,19 @@
 USE_CAMERA_STUB:= false
-#BUILD_WITH_FULL_STAGEFRIGHT := true
 
 BOARD_USES_QCOM_HARDWARE := true
 BOARD_USES_QCOM_LIBS := true
 BOARD_USES_QCOM_LIBRPC := true
 BOARD_HAVE_BLUETOOTH := true
 
-# Wifi related defines
+# Wifi
+USES_TI_WL1271 := true
 BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
 BOARD_WLAN_DEVICE           := wl1271
-#BOARD_SOFTAP_DEVICE         := wl1271
-WPA_SUPPLICANT_VERSION      := VER_0_5_X
-WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
+WPA_SUPPLICANT_VERSION      := VER_0_6_X
+WIFI_DRIVER_MODULE_PATH     := "/system/etc/wifi/tiwlan_drv.ko"
 WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
-#WIFI_DRIVER_MODULE_ARG      := ""
-#WIFI_EXT_MODULE_PATH        := "/system/lib/modules/sdio.ko"
-#WIFI_EXT_MODULE_NAME        := "sdio"
 WIFI_FIRMWARE_LOADER        := "wlan_loader"
+
 
 BOARD_USE_USB_MASS_STORAGE_SWITCH := true
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun
@@ -31,6 +28,10 @@ TARGET_CPU_ABI2 := armeabi
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
 
 TARGET_BOOTLOADER_BOARD_NAME := shakira
+
+WITH_JIT := true
+ENABLE_JSC_JIT:=true
+
 
 BOARD_KERNEL_CMDLINE := mem=210M console=null androidboot.hardware=qcom no_console_suspend
 BOARD_KERNEL_BASE := 0x12e00000

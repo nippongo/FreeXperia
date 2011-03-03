@@ -35,31 +35,6 @@ else
     endif
 endif
 
-PRODUCT_PROPERTY_OVERRIDES += \
-ro.media.enc.file.format=3gp,mp4
-ro.media.enc.vid.codec=m4v,h263
-ro.media.enc.vid.h263.width=176,352
-ro.media.enc.vid.h263.height=144,288
-ro.media.enc.vid.h263.bps=64000,800000
-ro.media.enc.vid.h263.fps=1,30
-ro.media.enc.vid.m4v.width=176,352
-ro.media.enc.vid.m4v.height=144,288
-ro.media.enc.vid.m4v.bps=64000,800000
-ro.media.enc.vid.m4v.fps=1,30
-ro.media.dec.aud.wma.enabled=1
-ro.media.dec.vid.wmv.enabled=1
-settings.display.autobacklight=1
-media.stagefright.enable-player=true
-media.stagefright.enable-meta=true
-media.stagefright.enable-scan=true
-media.stagefright.enable-http=true
-keyguard.no_require_sim=true
-ro.sf.lcd_density=160
-dalvik.vm.execution-mode=int:jit
-dalvik.vm.heapsize=32m
-
-
-
 #
 # Copy specific prebuilt files
 #
