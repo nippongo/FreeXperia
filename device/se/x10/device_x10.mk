@@ -81,14 +81,15 @@ PRODUCT_COPY_FILES += \
 
 ## OMX proprietaries
 PRODUCT_COPY_FILES += \
-    vendor/se/x10/proprietary/lib/libOmxVdec.so:system/lib/libOmxVdec.so \
-    vendor/se/x10/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
-    vendor/se/x10/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
-    vendor/se/x10/proprietary/lib/libOmxEvrcEnc.so:system/lib/libOmxEvrcEnc.so \
-    vendor/se/x10/proprietary/lib/libOmxMp3Dec.so:system/lib/libOmxMp3Dec.so \
-    vendor/se/x10/proprietary/lib/libOmxQcelp13Dec.so:system/lib/libOmxQcelp13Dec.so \
-    vendor/se/x10/proprietary/lib/libOmxQcelp13Enc.so:system/lib/libOmxQcelp13Enc.so 
-#    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so 
+    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so 
+#    vendor/se/x10/proprietary/lib/libOmxVdec.so:system/lib/libOmxVdec.so 
+#    vendor/se/x10/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
+#    vendor/se/x10/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
+#    vendor/se/x10/proprietary/lib/libOmxEvrcEnc.so:system/lib/libOmxEvrcEnc.so \
+#    vendor/se/x10/proprietary/lib/libOmxMp3Dec.so:system/lib/libOmxMp3Dec.so \
+#    vendor/se/x10/proprietary/lib/libOmxQcelp13Dec.so:system/lib/libOmxQcelp13Dec.so \
+#    vendor/se/x10/proprietary/lib/libOmxQcelp13Enc.so:system/lib/libOmxQcelp13Enc.so 
+#
 
 ## Hardware properties 
 PRODUCT_COPY_FILES += \
@@ -193,6 +194,6 @@ $(call inherit-product, build/target/product/full_base.mk)
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 PRODUCT_NAME := x10
 PRODUCT_DEVICE := x10
-PRODUCT_MODEL := Xperia X10
+PRODUCT_MODEL := Xperia x10
 
 CYANOGEN_WITH_GOOGLE := true

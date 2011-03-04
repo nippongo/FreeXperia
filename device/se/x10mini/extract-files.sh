@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mkdir -p ../../../vendor/se/x8/proprietary
+mkdir -p ../../../vendor/se/x10mini/proprietary
 
 DIRS="
 bin
@@ -10,7 +10,7 @@ lib/hw
 "
 
 for DIR in $DIRS; do
-	mkdir -p ../../../vendor/se/x8/proprietary/$DIR
+	mkdir -p ../../../vendor/se/x10mini/proprietary/$DIR
 done
 
 FILES="
@@ -123,6 +123,6 @@ lib/libwmsts.so
 "
 
 for FILE in $FILES; do
-	adb pull system/$FILE ../../../vendor/se/x8/proprietary/$FILE
+	adb pull system/$FILE ../../../vendor/se/x10mini/proprietary/$FILE
 done
 

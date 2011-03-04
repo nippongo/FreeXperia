@@ -120,11 +120,11 @@ PRODUCT_COPY_FILES += \
 ## Other libraries and proprietary binaries
 PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/bin/akmd2:system/bin/akmd2 \
+    vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
     vendor/se/x8/proprietary/bin/nvimport:system/bin/nvimport \
     vendor/se/x8/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.shakira.so \
     vendor/se/x8/proprietary/lib/hw/lights.default.so:system/lib/hw/lights.shakira.so 
 #    vendor/se/x8/proprietary/lib/liba2dp.so:system/lib/liba2dp.so \
-#    vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
 
 #xrecovery
 PRODUCT_COPY_FILES += \

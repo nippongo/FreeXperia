@@ -27,4 +27,3 @@ PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/cyanogen_x10mini.mk \
     $(LOCAL_DIR)/cyanogen_x8.mk
 #    $(LOCAL_DIR)/cyanogen_dream_sapphire.mk \
-

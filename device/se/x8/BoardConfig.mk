@@ -12,7 +12,7 @@ BOARD_WLAN_DEVICE           := wl1271
 WPA_SUPPLICANT_VERSION      := VER_0_6_X
 WIFI_DRIVER_MODULE_PATH     := "/system/etc/wifi/tiwlan_drv.ko"
 WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
-WIFI_FIRMWARE_LOADER        := "wlan_loader"
+#WIFI_FIRMWARE_LOADER        := "wlan_loader"
 
 
 BOARD_USE_USB_MASS_STORAGE_SWITCH := true
