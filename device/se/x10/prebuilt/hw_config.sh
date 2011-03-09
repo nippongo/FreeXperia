@@ -26,7 +26,8 @@ echo 90 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold
 echo 30 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/down_differential
 echo 500000 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate
 
-# Z: native app2sd fix
+# modules
+insmod /system/lib/modules/tun.ko
 insmod /system/lib/modules/dm-mod.ko
 insmod /system/lib/modules/dm-crypt.ko
 insmod /system/lib/modules/twofish_common.ko
@@ -45,7 +46,7 @@ chmod 777 /dev/cpu_*
 chmod 777 /dev/msm_camera/control0
 chmod 777 /dev/graphics/fb0
 
-sleep 30
+sleep 15
 if [ ! -e /data/boot_complete ]; then
     echo >/data/boot_complete
     killall servicemanager

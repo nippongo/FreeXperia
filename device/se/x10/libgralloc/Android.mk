@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),es209ra)
 
 LOCAL_PATH := $(call my-dir)
@@ -20,8 +19,8 @@ LOCAL_PATH := $(call my-dir)
 # HAL module implemenation, not prelinked and stored in
 # hw/<OVERLAY_HARDWARE_MODULE_ID>.<ro.product.board>.so
 include $(CLEAR_VARS)
-LOCAL_MODULE_TAGS := optional
 LOCAL_PRELINK_MODULE := false
+LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_SHARED_LIBRARIES := liblog libcutils libGLESv1_CM
 
@@ -35,18 +34,12 @@ LOCAL_SRC_FILES := 	\
 	
 LOCAL_MODULE := gralloc.es209ra
 LOCAL_CFLAGS:= -DLOG_TAG=\"$(TARGET_BOARD_PLATFORM).gralloc\"
-include $(BUILD_SHARED_LIBRARY)
 
-# Build a host library for testing
-ifeq ($(HOST_OS),linux)
-include $(CLEAR_VARS)
-LOCAL_SRC_FILES :=		\
-    gpu.cpp				\
-	pmemalloc.cpp
+#LOCAL_CFLAGS += -DTARGET_MSM7x27
 
-LOCAL_MODULE_TAGS := tests
-LOCAL_MODULE := libgralloc_es209_host
-LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc-qsd8k\"
-include $(BUILD_HOST_STATIC_LIBRARY)
+
+ifeq ($(TARGET_GRALLOC_USES_ASHMEM),true)
+LOCAL_CFLAGS += -DUSE_ASHMEM
 endif
+include $(BUILD_SHARED_LIBRARY)
 endif

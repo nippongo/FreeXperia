@@ -463,7 +463,7 @@ status_t AudioHardware::setVoiceVolume(float v)
 {
     if (mMode != AudioSystem::MODE_IN_CALL)
     {
-        LOGE("setVoiceVolume called in wrong mode. Rejecting the call");
+//        LOGE("setVoiceVolume called in wrong mode. Rejecting the call");
         return NO_ERROR;
     }
 

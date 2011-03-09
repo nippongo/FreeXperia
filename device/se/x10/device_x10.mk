@@ -11,10 +11,13 @@ DEVICE_PACKAGE_OVERLAYS += device/se/x10/overlay
 PRODUCT_PACKAGES += \
     gps.qsd8k \
     lights.es209ra \
-    gralloc.es209ra \
-    libOmxCore \
-    libOmxVidEnc \
-    libmm-omxcore 
+    gralloc.es209ra 
+
+# not ready yet
+#    sensors.es209ra \ 
+#    libOmxCore \
+#    libOmxVidEnc \
+#    libmm-omxcore 
 
 # Extra apps
 PRODUCT_PACKAGES += \
@@ -79,7 +82,11 @@ PRODUCT_COPY_FILES += \
 
 ## OMX proprietaries
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so 
+    device/se/x10/prebuilt/libmm-omxcore.so:system/lib/libmm-omxcore.so \
+    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so \
+    device/se/x10/prebuilt/libOmxVidEnc.so:system/lib/libOmxVidEnc.so \
+    device/se/x10/prebuilt/libOmxCore.so:system/lib/libOmxCore.so \
+    device/se/x10/prebuilt/libstagefrighthw.so:system/lib/libstagefrighthw.so 
 #    vendor/se/x10/proprietary/lib/libOmxVdec.so:system/lib/libOmxVdec.so 
 #    vendor/se/x10/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
 #    vendor/se/x10/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
@@ -142,20 +149,20 @@ PRODUCT_COPY_FILES += \
 
 #kernel modules
 PRODUCT_COPY_FILES += \
-    vendor/se/x10/proprietary/lib/hw/copybit.qsd8k.so:system/lib/hw/copybit.es209ra.so \
-    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so \
     device/se/x10/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
     device/se/x10/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
     device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
-    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko 
+    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
+    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so 
+#    vendor/se/x10/proprietary/lib/hw/copybit.qsd8k.so:system/lib/hw/copybit.es209ra.so \
 
 
 ## Other libraries and proprietary binaries
 PRODUCT_COPY_FILES += \
+    vendor/se/x10/proprietary/bin/dhcpcd:system/bin/dhcpcd \
     vendor/se/x10/proprietary/etc/DualMicControl.txt:system/etc/DualMicControl.txt \
     vendor/se/x10/proprietary/etc/sensors.conf:system/etc/sensors.conf \
     vendor/se/x10/proprietary/bin/akmd2:system/bin/akmd2 \
-    vendor/se/x10/proprietary/bin/dhcpcd:system/bin/dhcpcd \
     vendor/se/x10/proprietary/bin/updatemiscta:system/bin/updatemiscta \
     vendor/se/x10/proprietary/lib/libmiscta.so:system/lib/libmiscta.so \
     device/se/x10/prebuilt/busybox:system/bin/busybox \
@@ -176,7 +183,11 @@ PRODUCT_COPY_FILES += \
 #    vendor/se/x10/proprietary/lib/libspeech.so:system/lib/libspeech.so \
 
 
+
+
+
 PRODUCT_COPY_FILES += \
+    device/se/x10/prebuilt/bladewififix.apk:system/app/bladewififix.apk \
     device/se/x10/media_profiles.xml:system/etc/media_profiles.xml \
     device/se/x10/vold.fstab:system/etc/vold.fstab \
     device/se/x10/prebuilt/hosts:system/etc/hosts \

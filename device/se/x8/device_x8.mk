@@ -101,6 +101,13 @@ PRODUCT_COPY_FILES += \
 
 ## FM & BT
 PRODUCT_COPY_FILES += \
+    vendor/se/x8/proprietary/bin/hciattach:system/bin/hciattach \
+    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
+    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
+    vendor/se/x8/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
+    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/tiwlan.ini \
+    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/tiwlan_firmware.bin \
+    vendor/se/x8/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.1.bts:system/etc/firmware/fm_rx_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.2.bts:system/etc/firmware/fm_rx_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_tx_init_1273.1.bts:system/etc/firmware/fm_tx_init_1273.1.bts \
@@ -108,13 +115,9 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.1.bts:system/etc/firmware/fmc_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.2.bts:system/etc/firmware/fmc_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/TIInit_7.2.31.bts:system/etc/firmware/TIInit_7.2.31.bts \
-    vendor/se/x8/proprietary/bin/hciattach:system/bin/hciattach 
-#    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
-#    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
-#    vendor/se/x8/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
-#    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/tiwlan.ini \
-#    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/tiwlan_firmware.bin \
-#    vendor/se/x8/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf 
+    vendor/se/x8/proprietary/lib/modules/sdio.ko:system/lib/modules/sdio.ko \
+    vendor/se/x8/proprietary/lib/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
+
  
 
 ## Other libraries and proprietary binaries
@@ -187,9 +190,9 @@ PRODUCT_COPY_FILES += \
     device/se/x8/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
     device/se/x8/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
     device/se/x8/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
-    device/se/x8/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
-    device/se/x8/prebuilt/sdio.ko:system/lib/modules/sdio.ko \
-    device/se/x8/prebuilt/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
+    device/se/x8/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko 
+#    device/se/x8/prebuilt/sdio.ko:system/lib/modules/sdio.ko \
+#    device/se/x8/prebuilt/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
 
 #crappy headset
 PRODUCT_COPY_FILES += \
@@ -204,3 +207,5 @@ PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 PRODUCT_NAME := x8
 PRODUCT_DEVICE := x8
 PRODUCT_MODEL := SonyEricsson X8
+
+CYANOGEN_WITH_GOOGLE := true

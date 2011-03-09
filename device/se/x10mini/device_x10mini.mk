@@ -11,9 +11,9 @@ PRODUCT_PROPERTY_OVERRIDES += \
     
 # HAL libs and other system binaries
 PRODUCT_PACKAGES += \
-    gps.shakira \
-    gralloc.shakira \
-    copybit.shakira \
+    gps.robyn \
+    gralloc.robyn \
+    copybit.robyn \
     libOmxCore \
     libmm-omxcore
 

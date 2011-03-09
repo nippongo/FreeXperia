@@ -23,7 +23,7 @@
 ** Please do not change the EXIF header without asking me first.
 */
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_NIDEBUG 0
 #define LOG_TAG "QualcommCameraHardware"
 #include <utils/Log.h>
@@ -162,8 +162,8 @@ union zoomimage
     struct mdp_blit_req_list list;
 } zoomImage;
 
-//Default to VGA
-#define DEFAULT_PREVIEW_WIDTH 640
+//Default to WVGA
+#define DEFAULT_PREVIEW_WIDTH 800
 #define DEFAULT_PREVIEW_HEIGHT 480
 
 /*
@@ -207,29 +207,22 @@ board_property boardProperties[] = {
  */
 //sorted on column basis
 static const camera_size_type picture_sizes[] = {
-    { 3264, 2448 }, 	// 8MP
-    { 2592, 1944 }, 	// 5MP
-    { 2560, 1920 }, 	// 5MP (slightly reduced)
-    { 2048, 1536 }, 	// 3MP QXGA
-    { 1920, 1200 }, 	// WUXGA
-    { 1920, 1080 }, 	// HD1080 - HDTV 
-    { 1600, 1200 }, 	// 2MP UXGA
-    { 1680, 1050 }, 	// WSXGA+
-    { 1600, 900 }, 	// HD+
-    { 1440, 900 }, 	// WSXGA
-    { 1280, 768 }, 	// WXGA
-    { 1280, 720 }, 	// HD720 (HDTV)
-    { 1152, 864 }, 	// XGA+
-    { 1024, 768}, 		// 1MP XGA
-    { 800, 600 }, 		// SVGA
-    { 800, 480 }, 		// WVGA
-    { 640, 480 }, 		// VGA
-    { 352, 288 }, 		// CIF
-    { 320, 240 }, 		// QVGA
-    { 176, 144 } 		// QCIF
+    { 3264, 2448 }, // 8MP
+    { 2592, 1944 }, // 5MP
+    { 2560, 1920 }, // 5MP (slightly reduced)
+    { 2048, 1536 }, // 3MP QXGA
+    //{ 1920, 1080 }, //HD1080
+    { 1600, 1200 }, // 2MP UXGA
+    { 1280, 768 }, //WXGA
+    { 1280, 720 }, //HD720
+    { 1024, 768}, // 1MP XGA
+    { 800, 600 }, //SVGA
+    { 800, 480 }, // WVGA
+    { 640, 480 }, // VGA
+    { 352, 288 }, //CIF
+    { 320, 240 }, // QVGA
+    { 176, 144 } // QCIF
 };
-
-
 static int PICTURE_SIZE_COUNT = sizeof(picture_sizes)/sizeof(camera_size_type);
 static const camera_size_type * picture_sizes_ptr;
 static int supportedPictureSizesCount;
@@ -246,8 +239,7 @@ static const target_map targetList [] = {
     { "qsd8250", TARGET_QSD8250 },
     { "msm7630", TARGET_MSM7630 }
 };
-//static targetType mCurrentTarget = TARGET_MSM7627;
-static targetType mCurrentTarget = TARGET_QSD8250;
+static targetType mCurrentTarget = TARGET_MSM7625;
 
 typedef struct {
     uint32_t aspect_ratio;
@@ -622,7 +614,9 @@ struct SensorType {
 };
 
 static SensorType sensorTypes[] = {
-        { "5mp", 2608, 1960, true,  2592, 1944,0x00000fff },
+        { "8mp", 3264, 2448, true,  3264, 2448,0x00000fff },
+        { "5mp", 2608, 1960, false,  2592, 1944,0x00000fff },
+        { "5mp", 5184, 1944, false,  2592, 1944,0x00000fff },
         { "3mp", 2064, 1544, false, 2048, 1536,0x000007ff },
         { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff } };
 
@@ -810,7 +804,7 @@ void QualcommCameraHardware::storeTargetType(void) {
             break;
         }
     }
-    mCurrentTarget = TARGET_MSM7627;
+    mCurrentTarget = TARGET_MSM7625;
     LOGV(" Storing the current target type as %d ", mCurrentTarget );
     return;
 }
@@ -1038,8 +1032,7 @@ void QualcommCameraHardware::initDefaultParameters()
             DEFAULT_FPS);
     }
     mParameters.setPreviewFormat("yuv420sp"); // informative
-//    mParameters.setPreviewFormat("rgb565"); // informative
-    
+
     mParameters.setPictureSize(DEFAULT_PICTURE_WIDTH, DEFAULT_PICTURE_HEIGHT);
     mParameters.setPictureFormat("jpeg"); // informative
 
@@ -1065,7 +1058,6 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_FOCUS_MODE,
                     CameraParameters::FOCUS_MODE_AUTO);
     mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS,
-//                    "rgb565");
                     "yuv420sp");
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_SIZES,
@@ -1373,6 +1365,9 @@ status_t QualcommCameraHardware::dump(int fd,
     }
     if (mJpegHeap != 0) {
         mJpegHeap->dump(fd, args);
+    }
+    if(mRawSnapshotAshmemHeap != 0 ){
+        mRawSnapshotAshmemHeap->dump(fd, args);
     }
     mParameters.dump(fd, args);
     return NO_ERROR;
@@ -1810,9 +1805,8 @@ void QualcommCameraHardware::setGpsParameters() {
     str = NULL;
     str = mParameters.get(CameraParameters::KEY_GPS_ALTITUDE);
     if(str != NULL) {
-        double value = atoi(str);
-        uint32_t value_meter = value * 1000;
-        rat_t alt_value = {value_meter, 1000};
+        int value = atoi(str);
+        rat_t alt_value = {value, 1000};
         memcpy(&altitude, &alt_value, sizeof(altitude));
         addExifTag(EXIFTAGID_GPS_ALTITUDE, EXIF_RATIONAL, 1,
                     1, (void *)&altitude);
@@ -2464,6 +2458,7 @@ void QualcommCameraHardware::deinitRawSnapshot()
 {
     LOGV("deinitRawSnapshot E");
     mRawSnapShotPmemHeap.clear();
+    mRawSnapshotAshmemHeap.clear();
     LOGV("deinitRawSnapshot X");
 }
 
@@ -3058,7 +3053,7 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     status_t rc, final_rc = NO_ERROR;
 
     if ((rc = setPreviewSize(params))) final_rc = rc;
-    if ((rc = setPreviewFrameRate(params))) final_rc = rc;
+    //if ((rc = setPreviewFrameRate(params))) final_rc = rc;
     if ((rc = setPictureSize(params)))  final_rc = rc;
     if ((rc = setJpegQuality(params)))  final_rc = rc;
     if ((rc = setAntibanding(params)))  final_rc = rc;
@@ -3642,8 +3637,29 @@ void QualcommCameraHardware::receiveRawSnapshot(){
          */
         notifyShutter(&mCrop);
 
+        //Create a Ashmem heap to copy data from PMem heap for application layer
+        if(mRawSnapshotAshmemHeap != NULL){
+            LOGV("receiveRawSnapshot: clearing old mRawSnapShotAshmemHeap.");
+            mRawSnapshotAshmemHeap.clear();
+        }
+        mRawSnapshotAshmemHeap = new AshmemPool(
+                                        mRawSnapShotPmemHeap->mBufferSize,
+                                        mRawSnapShotPmemHeap->mNumBuffers,
+                                        mRawSnapShotPmemHeap->mFrameSize,
+                                        "raw ashmem snapshot camera"
+                                        );
+
+        if(!mRawSnapshotAshmemHeap->initialized()){
+            LOGE("receiveRawSnapshot X: error initializing mRawSnapshotHeap");
+            deinitRawSnapshot();
+            return;
+        }
+
+        memcpy(mRawSnapshotAshmemHeap->mHeap->base(),
+                mRawSnapShotPmemHeap->mHeap->base(),
+                mRawSnapShotPmemHeap->mHeap->getSize());
        if (mDataCallback && (mMsgEnabled & CAMERA_MSG_COMPRESSED_IMAGE))
-           mDataCallback(CAMERA_MSG_COMPRESSED_IMAGE, mRawSnapShotPmemHeap->mBuffers[0],
+           mDataCallback(CAMERA_MSG_COMPRESSED_IMAGE, mRawSnapshotAshmemHeap->mBuffers[0],
                 mCallbackCookie);
 
     }
