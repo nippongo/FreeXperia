@@ -14,9 +14,7 @@ PRODUCT_PACKAGES += \
     gralloc.es209ra \
     libOmxCore \
     libOmxVidEnc \
-    libmm-omxcore
-#    abtfilt
-#    libril
+    libmm-omxcore 
 
 # Extra apps
 PRODUCT_PACKAGES += \
@@ -104,17 +102,19 @@ PRODUCT_COPY_FILES += \
 
 ## Camera proprietaries
 PRODUCT_COPY_FILES += \
+    vendor/se/x10/proprietary/lib/liboemcamera.so:system/lib/liboemcamera.so \
     vendor/se/x10/proprietary/lib/libmmjpeg.so:system/lib/libmmjpeg.so \
     vendor/se/x10/proprietary/lib/libmmipl.so:system/lib/libmmipl.so \
     vendor/se/x10/proprietary/etc/firmware/yamato_pfp.fw:system/etc/firmware/yamato_pfp.fw \
     vendor/se/x10/proprietary/etc/firmware/yamato_pm4.fw:system/etc/firmware/yamato_pm4.fw \
     vendor/se/x10/proprietary/etc/firmware/camfirm.bin:system/etc/firmware/camfirm.bin 
-#    vendor/se/x10/proprietary/lib/liboemcamera.so:system/lib/liboemcamera.so \
+#    device/se/x10/prebuilt/arc/libcamera.so:obj/lib/libcamera.so \
 
 
 ## Atheros AR6002 firmware
 PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/wifi.ko:system/lib/modules/wifi.ko \
+    device/se/x10/prebuilt/tun.ko:system/lib/modules/tun.ko \
     vendor/se/x10/proprietary/bin/eeprom.AR6002:system/bin/eeprom.AR6002 \
     vendor/se/x10/proprietary/bin/wlan_mac:system/bin/wlan_mac \
     vendor/se/x10/proprietary/bin/wlan_tool:system/bin/wlan_tool \
@@ -142,8 +142,8 @@ PRODUCT_COPY_FILES += \
 
 #kernel modules
 PRODUCT_COPY_FILES += \
-    vendor/se/x10/proprietary/lib/hw/copybit.qsd8k.so:system/lib/hw/copybit.qsd8k.so \
-    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.default.so \
+    vendor/se/x10/proprietary/lib/hw/copybit.qsd8k.so:system/lib/hw/copybit.es209ra.so \
+    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so \
     device/se/x10/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
     device/se/x10/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
     device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
@@ -163,7 +163,6 @@ PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
     device/se/x10/prebuilt/xrecovery.tar.bz2:system/bin/xrecovery.tar.bz2 \
     device/se/x10/prebuilt/charger:system/bin/charger \
-    vendor/se/x10/proprietary/lib/libaudio.so:system/lib/libaudio.so \
     device/se/x10/prebuilt/hw_config.sh:system/etc/hw_config.sh \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim1.rle:system/etc/semc/chargemon/anim1.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim2.rle:system/etc/semc/chargemon/anim2.rle \
@@ -173,6 +172,8 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim6.rle:system/etc/semc/chargemon/anim6.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim7.rle:system/etc/semc/chargemon/anim7.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim8.rle:system/etc/semc/chargemon/anim8.rle 
+#    vendor/se/x10/proprietary/lib/libaudio.so:system/lib/libaudio.so \
+#    vendor/se/x10/proprietary/lib/libspeech.so:system/lib/libspeech.so \
 
 
 PRODUCT_COPY_FILES += \
