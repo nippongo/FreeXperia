@@ -1,0 +1,42 @@
+#!/system/recovery/sh
+
+	cat /dev/input/event2 > /dev/keycheck&
+	sleep 3
+	kill -9 $!
+	if [ -s /dev/keycheck ]
+	then
+
+	# remount rootfs rw
+	mount -o remount,rw rootfs /
+
+	# Umount MTDs
+	umount -l /data
+	umount -l /cache
+
+	# Extract recovery
+	cd /
+	rm -r /sbin
+	rm -f etc
+	tar -xjf /system/recovery/recovery.tar.bz2
+
+	# Umount system
+	umount -l /system
+
+	chroot / /init
+
+	fi
+
+	/system/bin/charger
+
+	# remount rw
+	mount -o remount,rw rootfs /
+
+	cd /
+	rm -r /sdcard
+	rm init*
+	rm logo.rle
+	rm default.prop
+	tar -xf /system/bin/ramdisk.tar
+
+
+	chroot / /init
