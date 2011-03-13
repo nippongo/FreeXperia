@@ -36,7 +36,6 @@ PRODUCT_COPY_FILES += \
 
 ## RIL related stuff
 PRODUCT_COPY_FILES += \
-    vendor/se/x8/proprietary/bin/rild:system/bin/rild \
     vendor/se/x8/proprietary/bin/port-bridge:system/bin/port-bridge \
     vendor/se/x8/proprietary/bin/qmuxd:system/bin/qmuxd \
     vendor/se/x8/proprietary/lib/libauth.so:system/lib/libauth.so \
@@ -57,27 +56,28 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/lib/libril-qc-1.so:system/lib/libril-qc-1.so \
     vendor/se/x8/proprietary/lib/libwms.so:system/lib/libwms.so \
     vendor/se/x8/proprietary/lib/libwmsts.so:system/lib/libwmsts.so 
+#    vendor/se/x8/proprietary/bin/rild:system/bin/rild \
 
 
 ## OMX proprietaries
-#PRODUCT_COPY_FILES += \
-#    vendor/se/x8/proprietary/lib/libmm-adspsvc.so:system/lib/libmm-adspsvc.so \
-#    vendor/se/x8/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
-#    vendor/se/x8/proprietary/lib/libOmxAmrRtpDec.so:system/lib/libOmxAmrRtpDec.so \
-#    vendor/se/x8/proprietary/lib/libOmxH264Dec.so:system/lib/libOmxH264Dec.so \
-#    vendor/se/x8/proprietary/lib/libOmxQcelpDec.so:system/lib/libOmxQcelpDec.so \
-#    vendor/se/x8/proprietary/lib/libOmxAacEnc.so:system/lib/libOmxAacEnc.so \
-#    vendor/se/x8/proprietary/lib/libOmxAmrwbDec.so:system/lib/libOmxAmrwbDec.so \
-#    vendor/se/x8/proprietary/lib/libOmxMp3Dec.so:system/lib/libOmxMp3Dec.so \
-#    vendor/se/x8/proprietary/lib/libOmxVidEnc.so:system/lib/libOmxVidEnc.so \
-#    vendor/se/x8/proprietary/lib/libOmxAmrDec.so:system/lib/libOmxAmrDec.so \
-#    vendor/se/x8/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
-#    vendor/se/x8/proprietary/lib/libOmxMpeg4Dec.so:system/lib/libOmxMpeg4Dec.so \
-#    vendor/se/x8/proprietary/lib/libOmxWmaDec.so:system/lib/libOmxWmaDec.so \
-#    vendor/se/x8/proprietary/lib/libOmxAmrEnc.so:system/lib/libOmxAmrEnc.so \
-#    vendor/se/x8/proprietary/lib/libOmxEvrcEnc.so:system/lib/libOmxEvrcEnc.so \
-#    vendor/se/x8/proprietary/lib/libOmxQcelp13Enc.so:system/lib/libOmxQcelp13Enc.so \
-#    vendor/se/x8/proprietary/lib/libOmxWmvDec.so:system/lib/libOmxWmvDec.so
+PRODUCT_COPY_FILES += \
+    vendor/se/x8/proprietary/lib/libmm-adspsvc.so:system/lib/libmm-adspsvc.so \
+    vendor/se/x8/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
+    vendor/se/x8/proprietary/lib/libOmxAmrRtpDec.so:system/lib/libOmxAmrRtpDec.so \
+    vendor/se/x8/proprietary/lib/libOmxH264Dec.so:system/lib/libOmxH264Dec.so \
+    vendor/se/x8/proprietary/lib/libOmxQcelpDec.so:system/lib/libOmxQcelpDec.so \
+    vendor/se/x8/proprietary/lib/libOmxAacEnc.so:system/lib/libOmxAacEnc.so \
+    vendor/se/x8/proprietary/lib/libOmxAmrwbDec.so:system/lib/libOmxAmrwbDec.so \
+    vendor/se/x8/proprietary/lib/libOmxMp3Dec.so:system/lib/libOmxMp3Dec.so \
+    vendor/se/x8/proprietary/lib/libOmxVidEnc.so:system/lib/libOmxVidEnc.so \
+    vendor/se/x8/proprietary/lib/libOmxAmrDec.so:system/lib/libOmxAmrDec.so \
+    vendor/se/x8/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
+    vendor/se/x8/proprietary/lib/libOmxMpeg4Dec.so:system/lib/libOmxMpeg4Dec.so \
+    vendor/se/x8/proprietary/lib/libOmxWmaDec.so:system/lib/libOmxWmaDec.so \
+    vendor/se/x8/proprietary/lib/libOmxAmrEnc.so:system/lib/libOmxAmrEnc.so \
+    vendor/se/x8/proprietary/lib/libOmxEvrcEnc.so:system/lib/libOmxEvrcEnc.so \
+    vendor/se/x8/proprietary/lib/libOmxQcelp13Enc.so:system/lib/libOmxQcelp13Enc.so \
+    vendor/se/x8/proprietary/lib/libOmxWmvDec.so:system/lib/libOmxWmvDec.so
 
 ## Hardware properties 
 PRODUCT_COPY_FILES += \
@@ -155,10 +155,10 @@ PRODUCT_COPY_FILES += \
 
 #audio
 PRODUCT_COPY_FILES += \
+    vendor/se/x8/proprietary/lib/libaudio.so:system/lib/libaudio.so \
     vendor/se/x8/proprietary/lib/libaudioeq.so:system/lib/libaudioeq.so \
     vendor/se/x8/proprietary/etc/AudioFilterProduct.csv:system/etc/AudioFilterProduct.csv \
     vendor/se/x8/proprietary/etc/AudioFilterPlatform.csv:system/etc/AudioFilterPlatform.csv 
-#    vendor/se/x8/proprietary/lib/libaudio.so:system/lib/libaudio.so \
 
 #2D & 3D
 PRODUCT_COPY_FILES += \

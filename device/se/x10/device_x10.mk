@@ -48,13 +48,6 @@ PRODUCT_COPY_FILES += \
     device/se/x10/ueventd.qct.rc:root/ueventd.qct.rc \
     device/se/x10/init.es209ra.rc:root/init.es209ra.rc
 
-# OMX TESTS
-#PRODUCT_COPY_FILES += \
-#    device/se/x10/prebuilt/omx_tests:system/bin/omx_tests \
-#    device/se/x10/prebuilt/mm-venc-omx-test:system/bin/mm-venc-omx-test 
-
-
-
 ## RIL related stuff
 PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/bin/isp_fw_update:system/bin/isp_fw_update \
@@ -78,8 +71,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/lib/libril-qc-1.so:system/lib/libril-qc-1.so \
     vendor/se/x10/proprietary/lib/libwms.so:system/lib/libwms.so \
     vendor/se/x10/proprietary/lib/libwmsts.so:system/lib/libwmsts.so 
-#    vendor/se/x10/proprietary/lib/libril.so:system/lib/libril.so \
-#    vendor/se/x10/proprietary/bin/rild:system/bin/rild \
 
 
 ## OMX proprietaries
@@ -117,7 +108,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/etc/firmware/yamato_pfp.fw:system/etc/firmware/yamato_pfp.fw \
     vendor/se/x10/proprietary/etc/firmware/yamato_pm4.fw:system/etc/firmware/yamato_pm4.fw \
     vendor/se/x10/proprietary/etc/firmware/camfirm.bin:system/etc/firmware/camfirm.bin 
-#    device/se/x10/prebuilt/arc/libcamera.so:obj/lib/libcamera.so \
 
 
 ## Atheros AR6002 firmware
@@ -129,16 +119,11 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/bin/wlan_tool:system/bin/wlan_tool \
     vendor/se/x10/proprietary/lib/modules/data.patch.hw2_0.bin:system/lib/modules/data.patch.hw2_0.bin \
     vendor/se/x10/proprietary/lib/modules/athwlan.bin.z77:system/lib/modules/athwlan.bin.z77 
-#    vendor/se/x10/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
 
 ## BT proprietary
 PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/bin/hci_qcomm_init:system/bin/hci_qcomm_init \
     device/se/x10/prebuilt/init.bt.sh:system/etc/init.bt.sh 
-#    vendor/se/x10/proprietary/bin/bmiloader:system/bin/bmiloader \
-#    vendor/se/x10/proprietary/bin/abtfilt:system/bin/abtfilt \
-#    vendor/se/x10/proprietary/bin/hciattach:system/bin/hciattach \
-#    vendor/se/x10/proprietary/etc/init.es209ra.bt.sh:system/etc/init.es209ra.bt.sh 
 
 
 ## Adreno 200 files
@@ -157,7 +142,6 @@ PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
     device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
     vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so 
-#    vendor/se/x10/proprietary/lib/hw/copybit.qsd8k.so:system/lib/hw/copybit.es209ra.so \
 
 
 ## Other libraries and proprietary binaries
@@ -182,9 +166,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim6.rle:system/etc/semc/chargemon/anim6.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim7.rle:system/etc/semc/chargemon/anim7.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim8.rle:system/etc/semc/chargemon/anim8.rle 
-#    vendor/se/x10/proprietary/lib/libaudio.so:system/lib/libaudio.so \
-#    vendor/se/x10/proprietary/lib/libspeech.so:system/lib/libspeech.so \
-#    vendor/se/x10/proprietary/bin/dhcpcd:system/bin/dhcpcd \
 
 
 
