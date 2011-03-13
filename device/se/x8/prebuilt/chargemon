@@ -1,4 +1,4 @@
-#!/system/bin/busybox sh
+#!/system/recovery/sh
 
 	cat /dev/input/event1 > /dev/keycheck&
 	sleep 3
@@ -17,7 +17,7 @@
 	# Mount recovery partition
 	rm -r /sbin
 	rm -f etc
-	tar -xjf /system/bin/xrecovery.tar.bz2
+	tar -xjf /system/recovery/recovery.tar.bz2
 
 	# Umount /system
 	umount -l /dev/block/mtdblock0

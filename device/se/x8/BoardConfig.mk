@@ -1,20 +1,34 @@
 USE_CAMERA_STUB:= false
 
-BOARD_HAVE_FM_READIO := true
-BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
 BOARD_USES_QCOM_HARDWARE := true
 BOARD_USES_QCOM_LIBS := true
 BOARD_USES_QCOM_LIBRPC := true
 BOARD_HAVE_BLUETOOTH := true
+BOARD_USES_GENERIC_AUDIO := false
 
-# Wifi
-USES_TI_WL1271 := true
+BOARD_HAVE_FM_RADIO := true
+BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
+
 BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
-BOARD_WLAN_DEVICE           := wl1271
-WPA_SUPPLICANT_VERSION      := VER_0_6_X
-WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
-WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
-WIFI_FIRMWARE_LOADER        := "tiwlan_loader"
+BOARD_WLAN_DEVICE := wl1271
+BOARD_SOFTAP_DEVICE := wl1271
+WPA_SUPPLICANT_VERSION := VER_0_6_X
+WIFI_DRIVER_MODULE_PATH := /system/lib/modules/tiwlan_drv.ko
+WIFI_DRIVER_MODULE_NAME := tiwlan_drv
+WIFI_FIRMWARE_LOADER := wlan_loader
+#WIFI_EXT_MODULE_PATH := /system/lib/modules/sdio.ko
+#WIFI_EXT_MODULE_NAME := sdio
+
+# Wifi related defines
+#BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
+#BOARD_WPA_SUPPLICANT_PRIVATE_LIB := libCustomWifi
+#WPA_SUPPLICANT_VERSION      := VER_0_6_X
+#BOARD_WLAN_DEVICE           := wlan0
+#WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
+#BOARD_WLAN_TI_STA_DK_ROOT   := system/wlan/ti/wilink_6_1
+#WIFI_DRIVER_MODULE_ARG      := ""
+#WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
+#WIFI_FIRMWARE_LOADER        := "wlan_loader"
 
 
 BOARD_USE_USB_MASS_STORAGE_SWITCH := true

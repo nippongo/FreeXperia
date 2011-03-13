@@ -32,7 +32,7 @@ PRODUCT_COPY_FILES += \
 # Board-specific init
 PRODUCT_COPY_FILES += \
     device/se/x8/ueventd.qct.rc:root/ueventd.qct.rc \
-    device/se/x8/init.qcom.rc:root/init.qcom.rc
+    device/se/x8/init.delta.rc:root/init.delta.rc
 
 ## RIL related stuff
 PRODUCT_COPY_FILES += \
@@ -57,28 +57,27 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/lib/libril-qc-1.so:system/lib/libril-qc-1.so \
     vendor/se/x8/proprietary/lib/libwms.so:system/lib/libwms.so \
     vendor/se/x8/proprietary/lib/libwmsts.so:system/lib/libwmsts.so 
-#    vendor/se/x8/proprietary/lib/libril.so:system/lib/libril.so \
 
 
 ## OMX proprietaries
-PRODUCT_COPY_FILES += \
-    vendor/se/x8/proprietary/lib/libmm-adspsvc.so:system/lib/libmm-adspsvc.so \
-    vendor/se/x8/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
-    vendor/se/x8/proprietary/lib/libOmxAmrRtpDec.so:system/lib/libOmxAmrRtpDec.so \
-    vendor/se/x8/proprietary/lib/libOmxH264Dec.so:system/lib/libOmxH264Dec.so \
-    vendor/se/x8/proprietary/lib/libOmxQcelpDec.so:system/lib/libOmxQcelpDec.so \
-    vendor/se/x8/proprietary/lib/libOmxAacEnc.so:system/lib/libOmxAacEnc.so \
-    vendor/se/x8/proprietary/lib/libOmxAmrwbDec.so:system/lib/libOmxAmrwbDec.so \
-    vendor/se/x8/proprietary/lib/libOmxMp3Dec.so:system/lib/libOmxMp3Dec.so \
-    vendor/se/x8/proprietary/lib/libOmxVidEnc.so:system/lib/libOmxVidEnc.so \
-    vendor/se/x8/proprietary/lib/libOmxAmrDec.so:system/lib/libOmxAmrDec.so \
-    vendor/se/x8/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
-    vendor/se/x8/proprietary/lib/libOmxMpeg4Dec.so:system/lib/libOmxMpeg4Dec.so \
-    vendor/se/x8/proprietary/lib/libOmxWmaDec.so:system/lib/libOmxWmaDec.so \
-    vendor/se/x8/proprietary/lib/libOmxAmrEnc.so:system/lib/libOmxAmrEnc.so \
-    vendor/se/x8/proprietary/lib/libOmxEvrcEnc.so:system/lib/libOmxEvrcEnc.so \
-    vendor/se/x8/proprietary/lib/libOmxQcelp13Enc.so:system/lib/libOmxQcelp13Enc.so \
-    vendor/se/x8/proprietary/lib/libOmxWmvDec.so:system/lib/libOmxWmvDec.so
+#PRODUCT_COPY_FILES += \
+#    vendor/se/x8/proprietary/lib/libmm-adspsvc.so:system/lib/libmm-adspsvc.so \
+#    vendor/se/x8/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
+#    vendor/se/x8/proprietary/lib/libOmxAmrRtpDec.so:system/lib/libOmxAmrRtpDec.so \
+#    vendor/se/x8/proprietary/lib/libOmxH264Dec.so:system/lib/libOmxH264Dec.so \
+#    vendor/se/x8/proprietary/lib/libOmxQcelpDec.so:system/lib/libOmxQcelpDec.so \
+#    vendor/se/x8/proprietary/lib/libOmxAacEnc.so:system/lib/libOmxAacEnc.so \
+#    vendor/se/x8/proprietary/lib/libOmxAmrwbDec.so:system/lib/libOmxAmrwbDec.so \
+#    vendor/se/x8/proprietary/lib/libOmxMp3Dec.so:system/lib/libOmxMp3Dec.so \
+#    vendor/se/x8/proprietary/lib/libOmxVidEnc.so:system/lib/libOmxVidEnc.so \
+#    vendor/se/x8/proprietary/lib/libOmxAmrDec.so:system/lib/libOmxAmrDec.so \
+#    vendor/se/x8/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
+#    vendor/se/x8/proprietary/lib/libOmxMpeg4Dec.so:system/lib/libOmxMpeg4Dec.so \
+#    vendor/se/x8/proprietary/lib/libOmxWmaDec.so:system/lib/libOmxWmaDec.so \
+#    vendor/se/x8/proprietary/lib/libOmxAmrEnc.so:system/lib/libOmxAmrEnc.so \
+#    vendor/se/x8/proprietary/lib/libOmxEvrcEnc.so:system/lib/libOmxEvrcEnc.so \
+#    vendor/se/x8/proprietary/lib/libOmxQcelp13Enc.so:system/lib/libOmxQcelp13Enc.so \
+#    vendor/se/x8/proprietary/lib/libOmxWmvDec.so:system/lib/libOmxWmvDec.so
 
 ## Hardware properties 
 PRODUCT_COPY_FILES += \
@@ -89,7 +88,6 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
     frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
     frameworks/base/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml
-#    frameworks/base/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
 
 ## Camera proprietaries
 PRODUCT_COPY_FILES += \
@@ -101,13 +99,7 @@ PRODUCT_COPY_FILES += \
 
 ## FM & BT
 PRODUCT_COPY_FILES += \
-    vendor/se/x8/proprietary/bin/hciattach:system/bin/hciattach \
-    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
-    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
-    vendor/se/x8/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
-    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/tiwlan.ini \
-    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/tiwlan_firmware.bin \
-    vendor/se/x8/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
+    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/wifi/tiwlan_firmware.bin \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.1.bts:system/etc/firmware/fm_rx_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.2.bts:system/etc/firmware/fm_rx_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_tx_init_1273.1.bts:system/etc/firmware/fm_tx_init_1273.1.bts \
@@ -115,8 +107,17 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.1.bts:system/etc/firmware/fmc_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.2.bts:system/etc/firmware/fmc_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/TIInit_7.2.31.bts:system/etc/firmware/TIInit_7.2.31.bts \
-    vendor/se/x8/proprietary/lib/modules/sdio.ko:system/lib/modules/sdio.ko \
-    vendor/se/x8/proprietary/lib/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
+    device/se/x8/prebuilt/sdio.ko:system/lib/modules/sdio.ko \
+    device/se/x8/prebuilt/tiap_drv.ko:system/lib/modules/tiap_drv.ko \
+    device/se/x8/prebuilt/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
+#    vendor/se/x8/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
+#    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/wifi/tiwlan.ini \
+#    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
+#    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
+#    vendor/se/x8/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
+#    vendor/se/x8/proprietary/bin/hciattach:system/bin/hciattach \
+#    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/tiwlan.ini \
+#    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/tiwlan_firmware.bin \
 
  
 
@@ -127,14 +128,15 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/bin/nvimport:system/bin/nvimport \
     vendor/se/x8/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.shakira.so \
     vendor/se/x8/proprietary/lib/hw/lights.default.so:system/lib/hw/lights.shakira.so 
-#    vendor/se/x8/proprietary/lib/liba2dp.so:system/lib/liba2dp.so \
+#    vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
 
 #xrecovery
 PRODUCT_COPY_FILES += \
     device/se/x8/prebuilt/busybox:system/bin/busybox \
     device/se/x8/prebuilt/chargemon:system/bin/chargemon \
     device/se/x8/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
-    device/se/x8/prebuilt/xrecovery.tar.bz2:system/bin/xrecovery.tar.bz2 
+    device/se/x8/prebuilt/sh:system/recovery/sh \
+    device/se/x8/prebuilt/recovery.tar.bz2:system/recovery/recovery.tar.bz2 
 
 #offline charger
 PRODUCT_COPY_FILES += \
@@ -153,10 +155,10 @@ PRODUCT_COPY_FILES += \
 
 #audio
 PRODUCT_COPY_FILES += \
-    vendor/se/x8/proprietary/lib/libaudio.so:system/lib/libaudio.so \
     vendor/se/x8/proprietary/lib/libaudioeq.so:system/lib/libaudioeq.so \
     vendor/se/x8/proprietary/etc/AudioFilterProduct.csv:system/etc/AudioFilterProduct.csv \
     vendor/se/x8/proprietary/etc/AudioFilterPlatform.csv:system/etc/AudioFilterPlatform.csv 
+#    vendor/se/x8/proprietary/lib/libaudio.so:system/lib/libaudio.so \
 
 #2D & 3D
 PRODUCT_COPY_FILES += \
@@ -191,8 +193,6 @@ PRODUCT_COPY_FILES += \
     device/se/x8/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
     device/se/x8/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
     device/se/x8/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko 
-#    device/se/x8/prebuilt/sdio.ko:system/lib/modules/sdio.ko \
-#    device/se/x8/prebuilt/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
 
 #crappy headset
 PRODUCT_COPY_FILES += \
