@@ -59,9 +59,9 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define CM_DEVICE_NAME      "/dev/es209ra_proximity"
 #define LS_DEVICE_NAME      "/dev/lightsensor"
 
-#define EVENT_TYPE_ACCEL_X          ABS_X
-#define EVENT_TYPE_ACCEL_Y          ABS_Z
-#define EVENT_TYPE_ACCEL_Z          ABS_Y
+#define EVENT_TYPE_ACCEL_X          ABS_Y
+#define EVENT_TYPE_ACCEL_Y          ABS_X
+#define EVENT_TYPE_ACCEL_Z          ABS_Z
 #define EVENT_TYPE_ACCEL_STATUS     ABS_WHEEL
 
 #define EVENT_TYPE_YAW              ABS_RX
@@ -84,8 +84,8 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 
 // conversion of acceleration data to SI units (m/s^2)
 #define CONVERT_A                   (GRAVITY_EARTH / LSG)
-#define CONVERT_A_X                 (-CONVERT_A)
-#define CONVERT_A_Y                 (CONVERT_A)
+#define CONVERT_A_X                 (CONVERT_A)
+#define CONVERT_A_Y                 (-CONVERT_A)
 #define CONVERT_A_Z                 (-CONVERT_A)
 
 // conversion of magnetic data to uT units
@@ -106,3 +106,4 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 __END_DECLS
 
 #endif  // ANDROID_SENSORS_H
+

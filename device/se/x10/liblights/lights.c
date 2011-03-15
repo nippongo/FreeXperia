@@ -54,6 +54,18 @@ char const*const BLUE_LED_FILE
 char const*const LCD_FILE
         = "/sys/class/leds/lv5219lg:mled/brightness";
 
+char const*const RED_FREQ_FILE
+        = "/sys/class/leds/lv5219lg:rgb1:red/blink_on";
+
+char const*const RED_PWM_FILE
+        = "/sys/class/leds/lv5219lg:rgb1:red/blink_off";
+
+char const*const GREEN_FREQ_FILE
+        = "/sys/class/leds/lv5219lg:rgb1:green/blink_on";
+
+char const*const GREEN_PWM_FILE
+        = "/sys/class/leds/lv5219lg:rgb1:green/blink_off";
+
 char const*const BLUE_FREQ_FILE
         = "/sys/class/leds/lv5219lg:rgb1:blue/blink_on";
 
@@ -193,10 +205,16 @@ set_speaker_light_locked(struct light_device_t* dev,
     }
 
         if (blink) {
+            write_int(RED_FREQ_FILE, freq);
+            write_int(RED_PWM_FILE, pwm);
+            write_int(GREEN_FREQ_FILE, freq);
+            write_int(GREEN_PWM_FILE, pwm);
             write_int(BLUE_FREQ_FILE, freq);
             write_int(BLUE_PWM_FILE, pwm);
         }
         else{ 
+        write_int(RED_FREQ_FILE, blink);
+        write_int(GREEN_FREQ_FILE, blink);
         write_int(BLUE_FREQ_FILE, blink);
         }
 

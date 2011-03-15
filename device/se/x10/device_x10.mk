@@ -12,12 +12,12 @@ PRODUCT_PACKAGES += \
     gps.qsd8k \
     lights.es209ra \
     gralloc.es209ra \
+    sensors.es209ra \
     libOmxCore \
     libOmxVidEnc \
-    libmm-omxcore 
+    libmm-omxcore
 
 # not ready yet
-#    sensors.es209ra \ 
 
 # Extra apps
 PRODUCT_PACKAGES += \
@@ -112,13 +112,13 @@ PRODUCT_COPY_FILES += \
 
 ## Atheros AR6002 firmware
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/wifi.ko:system/lib/modules/wifi.ko \
-    device/se/x10/prebuilt/tun.ko:system/lib/modules/tun.ko \
     vendor/se/x10/proprietary/bin/eeprom.AR6002:system/bin/eeprom.AR6002 \
-    vendor/se/x10/proprietary/bin/wlan_mac:system/bin/wlan_mac \
-    vendor/se/x10/proprietary/bin/wlan_tool:system/bin/wlan_tool \
-    vendor/se/x10/proprietary/lib/modules/data.patch.hw2_0.bin:system/lib/modules/data.patch.hw2_0.bin \
-    vendor/se/x10/proprietary/lib/modules/athwlan.bin.z77:system/lib/modules/athwlan.bin.z77 
+    device/se/x10/prebuilt/wifi.ko:system/lib/modules/wifi.ko \
+    device/se/x10/prebuilt/tun.ko:system/lib/modules/tun.ko 
+#    vendor/se/x10/proprietary/bin/wlan_mac:system/bin/wlan_mac \
+#    vendor/se/x10/proprietary/bin/wlan_tool:system/bin/wlan_tool \
+#    vendor/se/x10/proprietary/lib/modules/data.patch.hw2_0.bin:system/lib/modules/data.patch.hw2_0.bin \
+#    vendor/se/x10/proprietary/lib/modules/athwlan.bin.z77:system/lib/modules/athwlan.bin.z77 
 
 ## BT proprietary
 PRODUCT_COPY_FILES += \
@@ -129,19 +129,19 @@ PRODUCT_COPY_FILES += \
 ## Adreno 200 files
 PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/lib/libgsl.so:system/lib/libgsl.so \
-    vendor/se/x10/proprietary/lib/egl/egl.cfg:system/lib/egl/egl.cfg \
     vendor/se/x10/proprietary/lib/egl/libGLESv1_CM_adreno200.so:system/lib/egl/libGLESv1_CM_adreno200.so \
     vendor/se/x10/proprietary/lib/egl/libq3dtools_adreno200.so:system/lib/egl/libq3dtools_adreno200.so \
     vendor/se/x10/proprietary/lib/egl/libEGL_adreno200.so:system/lib/egl/libEGL_adreno200.so \
     vendor/se/x10/proprietary/lib/egl/libGLESv2_adreno200.so:system/lib/egl/libGLESv2_adreno200.so 
+#    vendor/se/x10/proprietary/lib/egl/egl.cfg:system/lib/egl/egl.cfg \
 
 #kernel modules
 PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
     device/se/x10/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
     device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
-    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
-    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so 
+    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko 
+#    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so 
 
 
 ## Other libraries and proprietary binaries
@@ -167,10 +167,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim7.rle:system/etc/semc/chargemon/anim7.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim8.rle:system/etc/semc/chargemon/anim8.rle 
 
-
-
-
-
 PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/bladewififix.apk:system/app/bladewififix.apk \
     device/se/x10/media_profiles.xml:system/etc/media_profiles.xml \
@@ -185,6 +181,11 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/usr/keylayout/es209ra_keypad.kl:system/usr/keylayout/es209ra_keypad.kl \
     vendor/se/x10/proprietary/usr/keylayout/es209ra_handset.kl:system/usr/keychars/es209ra_handset.kl \
     vendor/se/x10/proprietary/usr/keychars/es209ra_keypad.kcm.bin:system/usr/keychars/es209ra_keypad.kcm.bin 
+
+#testing Su
+PRODUCT_COPY_FILES += \
+    device/se/x10/prebuilt/su:system/xbin/su \
+    device/se/x10/prebuilt/superuser.apk:system/app/superuser.apk 
 
 $(call inherit-product, build/target/product/full_base.mk)
 

@@ -33,9 +33,10 @@ LOCAL_SRC_FILES := 						\
 				nusensors.cpp 			\
 				InputEventReader.cpp	\
 				SensorBase.cpp			\
+				LightSensor.cpp			\
+				ProximitySensor.cpp		\
 				AkmSensor.cpp
-#				LightSensor.cpp			\
-#				ProximitySensor.cpp		\
+
 				
 LOCAL_SHARED_LIBRARIES := liblog libcutils
 LOCAL_PRELINK_MODULE := false

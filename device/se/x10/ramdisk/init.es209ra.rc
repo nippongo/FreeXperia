@@ -28,9 +28,9 @@ on property:dev.bootcomplete=1
 #    disabled
 #    oneshot
 
-#service abtfilt /system/bin/abtfilt -d -z -n
-#    disabled
-#    oneshot
+service abtfilt /system/bin/abtfilt -d -z -n
+    disabled
+    oneshot
 
 on early-init
     # Add qualcomm devices

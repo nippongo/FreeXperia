@@ -43,10 +43,8 @@ on boot
     chown bluetooth bluetooth /dev/ttyHS0
     chmod 0660 /dev/ttyHS0
     chown system system /sys/bus/platform/devices/msm_sdcc.1/polling
-    # USB Function framework
-    #chown system system /sys/devices/platform/msm_hsusb_periphera/composition
-    # USB Gadget framework
     chown system system /sys/devices/platform/android_usb/composition
+    write /sys/class/semc/proximity-sensor/sensor 1
 
     #WIFI
     mkdir /data/misc/wifi 0770 wifi wifi
@@ -59,11 +57,8 @@ on boot
     chown system system /sys/class/power_supply/battery/disable_charging
     chown system system /sys/devices/platform/i2c-adapter/i2c-0/0-0036/br::suspend
     chown system system /sys/devices/platform/i2c-adapter/i2c-0/0-0036/mode
-    chown system system /sys/devices/platform/mddi_hitachi_qvga/power_ctrl
-    chown system system /sys/devices/platform/mddi_samsung_qvga/power_ctrl
     chown system system /sys/devices/platform/mddi_toshiba_hvga/power_ctrl
     chown system system /sys/devices/platform/mddi_hitachi_hvga/power_ctrl
-    chown system system /sys/devices/platform/msm_pmic_misc_led.0/control::mode
     chown root system /proc/sysrq-trigger
     chmod 0220 /proc/sysrq-trigger
 
@@ -121,7 +116,7 @@ on early-init
 service dhcp-service /system/bin/netcfg wlan0 dhcp
     oneshot
 
-service wlan_loader /system/bin/wlan_loader \
+service wlan_loader /system/bin/tiwlan_loader \
     -i /system/etc/wifi/tiwlan.ini \
     -f /system/etc/wifi/tiwlan_firmware.bin \
     -e /data/etc/wifi/fw

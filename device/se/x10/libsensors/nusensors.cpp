@@ -29,8 +29,8 @@
 #include <cutils/log.h>
 
 #include "nusensors.h"
-//#include "LightSensor.h"
-//#include "ProximitySensor.h"
+#include "LightSensor.h"
+#include "ProximitySensor.h"
 #include "AkmSensor.h"
 
 /*****************************************************************************/
@@ -46,8 +46,8 @@ struct sensors_poll_context_t {
 
 private:
     enum {
-//        light           = 0,
-//        proximity       = 1,
+        light           = 0,
+        proximity       = 1,
         akm             = 2,
         numSensorDrivers,
         numFds,
@@ -65,10 +65,10 @@ private:
             case ID_M:
             case ID_O:
                 return akm;
-//            case ID_P:
-//                return proximity;
-//            case ID_L:
-//                return light;
+            case ID_P:
+                return proximity;
+            case ID_L:
+                return light;
         }
         return -EINVAL;
     }
@@ -78,15 +78,15 @@ private:
 
 sensors_poll_context_t::sensors_poll_context_t()
 {
-//    mSensors[light] = new LightSensor();
-//    mPollFds[light].fd = mSensors[light]->getFd();
-//    mPollFds[light].events = POLLIN;
-//    mPollFds[light].revents = 0;
+    mSensors[light] = new LightSensor();
+    mPollFds[light].fd = mSensors[light]->getFd();
+    mPollFds[light].events = POLLIN;
+    mPollFds[light].revents = 0;
 
-//    mSensors[proximity] = new ProximitySensor();
-//    mPollFds[proximity].fd = mSensors[proximity]->getFd();
-//    mPollFds[proximity].events = POLLIN;
-//    mPollFds[proximity].revents = 0;
+    mSensors[proximity] = new ProximitySensor();
+    mPollFds[proximity].fd = mSensors[proximity]->getFd();
+    mPollFds[proximity].events = POLLIN;
+    mPollFds[proximity].revents = 0;
 
     mSensors[akm] = new AkmSensor();
     mPollFds[akm].fd = mSensors[akm]->getFd();

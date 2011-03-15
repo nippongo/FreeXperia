@@ -14,6 +14,8 @@ PRODUCT_PACKAGES += \
     gps.shakira \
     gralloc.shakira \
     copybit.shakira \
+    sensors.shakira \
+    lights.shakira \
     libOmxCore \
     libmm-omxcore
 
@@ -99,7 +101,6 @@ PRODUCT_COPY_FILES += \
 
 ## FM & BT
 PRODUCT_COPY_FILES += \
-    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/wifi/tiwlan_firmware.bin \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.1.bts:system/etc/firmware/fm_rx_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.2.bts:system/etc/firmware/fm_rx_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_tx_init_1273.1.bts:system/etc/firmware/fm_tx_init_1273.1.bts \
@@ -107,17 +108,21 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.1.bts:system/etc/firmware/fmc_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.2.bts:system/etc/firmware/fmc_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/TIInit_7.2.31.bts:system/etc/firmware/TIInit_7.2.31.bts \
-    device/se/x8/prebuilt/sdio.ko:system/lib/modules/sdio.ko \
-    device/se/x8/prebuilt/tiap_drv.ko:system/lib/modules/tiap_drv.ko \
-    device/se/x8/prebuilt/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
-#    vendor/se/x8/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
-#    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/wifi/tiwlan.ini \
-#    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
-#    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
-#    vendor/se/x8/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
+    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/wifi/tiwlan.ini \
+    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/wifi/tiwlan_firmware.bin \
+    vendor/se/x8/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
+    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
+    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
+    vendor/se/x8/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
+    vendor/se/x8/proprietary/lib/modules/sdio.ko:system/lib/modules/sdio.ko \
+    vendor/se/x8/proprietary/lib/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
+
 #    vendor/se/x8/proprietary/bin/hciattach:system/bin/hciattach \
 #    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/tiwlan.ini \
 #    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/tiwlan_firmware.bin \
+#    device/se/x8/prebuilt/sdio.ko:system/lib/modules/sdio.ko \
+#    device/se/x8/prebuilt/tiap_drv.ko:system/lib/modules/tiap_drv.ko \
+#    device/se/x8/prebuilt/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko \
 
  
 
@@ -125,9 +130,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/bin/akmd2:system/bin/akmd2 \
     vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
-    vendor/se/x8/proprietary/bin/nvimport:system/bin/nvimport \
-    vendor/se/x8/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.shakira.so \
-    vendor/se/x8/proprietary/lib/hw/lights.default.so:system/lib/hw/lights.shakira.so 
+    vendor/se/x8/proprietary/bin/nvimport:system/bin/nvimport 
+#    vendor/se/x8/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.shakira.so
+#    vendor/se/x8/proprietary/lib/hw/lights.default.so:system/lib/hw/lights.shakira.so 
 #    vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
 
 #xrecovery
@@ -155,10 +160,12 @@ PRODUCT_COPY_FILES += \
 
 #audio
 PRODUCT_COPY_FILES += \
-    vendor/se/x8/proprietary/lib/libaudio.so:system/lib/libaudio.so \
     vendor/se/x8/proprietary/lib/libaudioeq.so:system/lib/libaudioeq.so \
-    vendor/se/x8/proprietary/etc/AudioFilterProduct.csv:system/etc/AudioFilterProduct.csv \
-    vendor/se/x8/proprietary/etc/AudioFilterPlatform.csv:system/etc/AudioFilterPlatform.csv 
+    device/se/x8/prebuilt/AudioFilter.csv:system/etc/AudioFilter.csv \
+    device/se/x8/prebuilt/AutoVolumeControl.txt:system/etc/AutoVolumeControl.txt
+#    vendor/se/x8/proprietary/etc/AudioFilterProduct.csv:system/etc/AudioFilterProduct.csv \
+#    vendor/se/x8/proprietary/etc/AudioFilterPlatform.csv:system/etc/AudioFilterPlatform.csv 
+#    vendor/se/x8/proprietary/lib/libaudio.so:system/lib/libaudio.so \
 
 #2D & 3D
 PRODUCT_COPY_FILES += \
