@@ -22,7 +22,7 @@
 #include <dirent.h>
 #include <sys/select.h>
 
-#include <linux/lightsensor.h>
+#include <leds-lv5219lg.h>
 
 #include <cutils/log.h>
 
@@ -44,16 +44,16 @@ LightSensor::LightSensor()
      open_device();
 
     int flags = 0;
-    if (!ioctl(dev_fd, LIGHTSENSOR_IOCTL_GET_ENABLED, &flags)) {
-        if (flags) {
-            mEnabled = 1;
-            setInitialState();
-        }
+//    if (!ioctl(dev_fd, LIGHTSENSOR_GET_CONFIG, &flags)) {
+//        if (flags) {
+//            mEnabled = 1;
+//            setInitialState();
+//        }
     }
 
-    if (!mEnabled) {
-        close_device();
-    }
+//    if (!mEnabled) {
+//        close_device();
+//    }
 }
 
 LightSensor::~LightSensor() {
@@ -75,7 +75,7 @@ int LightSensor::enable(int32_t, int en) {
         if (!mEnabled) {
             open_device();
         }
-        err = ioctl(dev_fd, LIGHTSENSOR_IOCTL_ENABLE, &flags);
+        err = ioctl(dev_fd, LIGHTSENSOR_SET_ENABLE, &flags);
         err = err<0 ? -errno : 0;
         LOGE_IF(err, "LIGHTSENSOR_IOCTL_ENABLE failed (%s)", strerror(-err));
         if (!err) {
