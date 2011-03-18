@@ -31,11 +31,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml
 
-# Board-specific init
-PRODUCT_COPY_FILES += \
-    device/se/x8/ueventd.qct.rc:root/ueventd.qct.rc \
-    device/se/x8/init.delta.rc:root/init.delta.rc
-
 ## RIL related stuff
 PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/bin/port-bridge:system/bin/port-bridge \
@@ -58,7 +53,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/lib/libril-qc-1.so:system/lib/libril-qc-1.so \
     vendor/se/x8/proprietary/lib/libwms.so:system/lib/libwms.so \
     vendor/se/x8/proprietary/lib/libwmsts.so:system/lib/libwmsts.so 
-#    vendor/se/x8/proprietary/bin/rild:system/bin/rild \
 
 
 ## OMX proprietaries
@@ -101,6 +95,11 @@ PRODUCT_COPY_FILES += \
 
 ## FM & BT
 PRODUCT_COPY_FILES += \
+    device/se/x8/prebuilt/modules/sdio.ko:system/lib/modules/sdio.ko \
+    device/se/x8/prebuilt/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko \
+    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
+    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/wifi/tiwlan.ini \
+    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.1.bts:system/etc/firmware/fm_rx_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.2.bts:system/etc/firmware/fm_rx_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_tx_init_1273.1.bts:system/etc/firmware/fm_tx_init_1273.1.bts \
@@ -108,40 +107,22 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.1.bts:system/etc/firmware/fmc_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.2.bts:system/etc/firmware/fmc_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/TIInit_7.2.31.bts:system/etc/firmware/TIInit_7.2.31.bts \
-    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/wifi/tiwlan.ini \
-    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/wifi/tiwlan_firmware.bin \
-    vendor/se/x8/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
-    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
-    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
-    vendor/se/x8/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant \
-    vendor/se/x8/proprietary/lib/modules/sdio.ko:system/lib/modules/sdio.ko \
-    vendor/se/x8/proprietary/lib/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko 
+    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/wifi/wl1271.bin
 
-#    vendor/se/x8/proprietary/bin/hciattach:system/bin/hciattach \
-#    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/tiwlan.ini \
-#    vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/tiwlan_firmware.bin \
-#    device/se/x8/prebuilt/sdio.ko:system/lib/modules/sdio.ko \
-#    device/se/x8/prebuilt/tiap_drv.ko:system/lib/modules/tiap_drv.ko \
-#    device/se/x8/prebuilt/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko \
-
- 
 
 ## Other libraries and proprietary binaries
 PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/bin/akmd2:system/bin/akmd2 \
     vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
     vendor/se/x8/proprietary/bin/nvimport:system/bin/nvimport 
-#    vendor/se/x8/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.shakira.so
-#    vendor/se/x8/proprietary/lib/hw/lights.default.so:system/lib/hw/lights.shakira.so 
-#    vendor/se/x8/proprietary/bin/dhcpcd:system/bin/dhcpcd \
 
 #xrecovery
 PRODUCT_COPY_FILES += \
-    device/se/x8/prebuilt/busybox:system/bin/busybox \
     device/se/x8/prebuilt/chargemon:system/bin/chargemon \
     device/se/x8/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
     device/se/x8/prebuilt/sh:system/recovery/sh \
     device/se/x8/prebuilt/recovery.tar.bz2:system/recovery/recovery.tar.bz2 
+#    device/se/x8/prebuilt/busybox:system/bin/busybox \
 
 #offline charger
 PRODUCT_COPY_FILES += \
@@ -192,12 +173,8 @@ PRODUCT_COPY_FILES += \
 #Kernel modules
 PRODUCT_COPY_FILES += \
     device/se/x8/prebuilt/hosts:system/etc/hosts \
-    device/se/x8/prebuilt/ext3.ko:system/lib/modules/ext3.ko \
-    device/se/x8/prebuilt/ext4.ko:system/lib/modules/ext4.ko \
-    device/se/x8/prebuilt/jbd.ko:system/lib/modules/jbd.ko \
-    device/se/x8/prebuilt/jbd2.ko:system/lib/modules/jbd2.ko \
-    device/se/x8/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
     device/se/x8/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
+    device/se/x8/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
     device/se/x8/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
     device/se/x8/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko 
 

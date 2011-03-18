@@ -117,13 +117,14 @@ service dhcp-service /system/bin/netcfg wlan0 dhcp
     oneshot
 
 service wlan_loader /system/bin/tiwlan_loader \
-    -i /system/etc/wifi/tiwlan.ini \
-    -f /system/etc/wifi/tiwlan_firmware.bin \
+    -i /etc/wifi/tiwlan.ini \
+    -f /etc/wifi/wl1271.bin \
     -e /data/etc/wifi/fw
     disabled
     oneshot
 
-service ifcfg_ti /system/bin/ifconfig wlan0 up
+
+service ifcfg_up /system/bin/ifconfig wlan0 up
     disabled
     oneshot
 
@@ -158,116 +159,3 @@ service hciattach /system/bin/hciattach \
 
 
 
-
-
-
-
-#service hciattach /system/bin/hciattach -n /dev/ttyHS0 texas_new 3000000
-#    user root
-#    # changing user to root from bluetooth is a potential security issue
-#    # service hciattach_legacy is used instead of hciattach because, we dont
-#    # have nodes named ttyHS0
-#    group bluetooth net_bt_admin misc
-#    disabled
-#    oneshot
-
-#service hciattach_legacy /system/bin/hciattach -n /dev/ttyHS0 texas_new 3000000
-#    user root
-#    # changing user to root from bluetooth is a potential security issue
-#    group bluetooth net_bt_admin misc
-#    disabled
-#    oneshot
-
-# SEMC: DRM key activation
-#service suntrolkac /system/bin/suntrolkac
-#  user root
-#  oneshot
-# SEMC: DRM key activation
-
-# Semc Discretix change start
-#service drmbackup /system/bin/drmdbbackup
-#    user system
-#    oneshot
-# Semc Discretix change end
-
-#service kexec-tool /system/bin/kexec-tool -p /system/xbin/capk --initrd=/system/xbin/capk_root
-#    user root
-#    group root
-#    oneshot
-
-# AT+CTSA and AT+CKPD support
-#service atfwd-daemon /system/bin/atfwd-daemon
-#    user root
-#    disabled
-
-#on property:dev.bootcomplete=1
-#    start atfwd-daemon
-
-#on property:kernel.log=logcat
-#   stop klogrouterd
-#   start klogrouterd
-
-#on property:kernel.log=uart
-#   stop klogrouterd
-#   exec /system/bin/klogrouter uart
-
-#on property:kernel.log=default
-#   stop klogrouterd
-#   exec /system/bin/klogrouter default
-
-#service klogrouterd /system/bin/klogrouter logcat
-#    oneshot
-#    disabled
-
-
-# Check and update (if required) touch FW
-#service cyttsp_fwloader /system/bin/cyttsp_fwloader -dev /sys/devices/platform/i2c-adapter/i2c-0/0-0024 -fw /system/etc/firmware/cyttspfw.hex
-#    user root
-#    oneshot
-
-# insert SDIO-driver used by wifi. This is _not_ the default SDIO driver
-# included in the kernel.
-#    insmod /system/lib/modules/sdio.ko
-
-#service dhcp-service /system/bin/netcfg wlan0 dhcp
-#    oneshot
-
-# Enabled port-bridge for 'eng' builds
-
-
-#service wlan_loader /system/bin/tiwlan_loader -i /etc/tiwlan.ini -f /etc/tiwlan_firmware.bin -e /data/etc/wifi/fw
-#    disabled
-#    oneshot
-
-#service ifcfg_ti /system/bin/ifconfig wlan0 up
-#    disabled
-#    oneshot
-
-#service wpa_supplicant /system/bin/wpa_supplicant -Dwlan0 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf -dd
-#    socket wpa_wlan0 dgram 660 wifi wifi
-#    disabled
-#    oneshot
-
-#service dhcpcd /system/bin/dhcpcd -BKL -d wlan0
-#    disabled
-#    oneshot
-
-#service iddd /system/bin/iddd
-#    user idd
-#    group idd log
-
-#service qcom-sh /system/bin/sh /init.delta.sh
-#    user root
-#    oneshot
-
-on init
-#    mkdir /data/misc/wifi/sockets 0771 wifi wifi
-#    mkdir /data/misc/dhcp 0777 wifi wifi
-
-    # In Device Diagnostics (IDD)
-#    mkdir /data/semc-checkin 0773 system system
-#    mkdir /data/semc-checkin/int 0773 system system
-#    mkdir /data/tombstones 0755 system system
-#    mkdir /data/crashsms 0777 system system
-#    mkdir /data/crashsms/crashes 0777 system system
-#    mkdir /data/idd 0755 idd idd

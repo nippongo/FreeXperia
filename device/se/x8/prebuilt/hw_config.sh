@@ -27,11 +27,6 @@ echo 500000 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate
 echo 245760 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 
 # mising modules
-//insmod /system/lib/modules/tun.ko
-//insmod /system/lib/modules/jbd.ko
-//insmod /system/lib/modules/jbd2.ko
-//insmod /system/lib/modules/ext3.ko
-//insmod /system/lib/modules/ext4.ko
 insmod /system/lib/modules/dm-mod.ko
 insmod /system/lib/modules/dm-crypt.ko
 insmod /system/lib/modules/twofish_common.ko
@@ -40,13 +35,13 @@ insmod /system/lib/modules/twofish.ko
 
 # Needed by radio
 mkdir /data/radio
-chmod 0666 /data/radio
+chmod 0777 /data/radio
 
-chmod 0666 /dev/msm*
-chmod 0666 /dev/pmem_adsp
-chmod 0666 /dev/msm_camera/*
-chmod 0666 /dev/graphics/*
-chmod 0666 /dev/oncrpc/*
-chmod 0666 /sys/class/semc/rgb_led/*
+chmod 0777 /dev/msm*
+chmod 0777 /dev/pmem_adsp
+chmod 0777 /dev/msm_camera/*
+chmod 0777 /dev/graphics/*
+chmod 0777 /dev/oncrpc/*
+chmod 0777 /sys/class/semc/rgb_led/*
 chmod 0666 /sys/devices/platform/i2c-adapter/i2c-0/0-0036/mode
 chmod 0666 /sys/devices/platform/i2c-adapter/i2c-0/0-0036/br::intensity

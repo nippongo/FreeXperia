@@ -31,7 +31,7 @@
 /*****************************************************************************/
 
 LightSensor::LightSensor()
-    : SensorBase(LS_DEVICE_NAME, "pmic-lightsensor"),
+    : SensorBase(LS_DEVICE_NAME, "lm3530"),
       mInputReader(4),
       mHasPendingEvent(false)
 {
