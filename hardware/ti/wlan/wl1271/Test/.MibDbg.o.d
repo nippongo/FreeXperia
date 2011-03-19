@@ -1,0 +1,39 @@
+MibDbg.o: \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../Test/MibDbg.c \
+ include/linux/autoconf.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../Test/MibDbg.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../platforms/os/linux/inc/osTIType.h \
+ include/linux/compiler.h include/linux/compiler-gcc.h \
+ include/linux/compiler-gcc4.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/tidef.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/TWDriver/TWDriver.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/802_11Defs.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/tidef.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/osDot11.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/tiQosTypes.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../platforms/os/linux/inc/osdot11nousermode.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/TWDriver/TWDriverMsr.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/TWDriver/TWDriverScan.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/TWDriver/TWDriverRate.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_commands.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_types.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_radio.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_radio.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FW_Transfer/Export_Inc/fwDebug_api.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/TwIf/TwIf.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/TWDriver/Device.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/TWDriver/Device1273.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../Txn/TxnDefs.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../Txn/BusDrv.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../Txn/TxnDefs.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/queue.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_event_mbox.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_commands.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_infoele.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_infoele.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_host_int.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../TWD/FirmwareApi/public_descriptors.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/report.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../platforms/os/common/inc/osApi.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../stad/Export_Inc/TI_IPC_Api.h \
+ /android/android-cm-g/hardware/ti/wlan/wl1271/stad/build/linux/../../../utils/commonTypes.h
