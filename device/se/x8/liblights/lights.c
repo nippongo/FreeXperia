@@ -32,8 +32,8 @@
 
 #include <hardware/lights.h>
 
-#define MANUAL         0 // i2c
-#define AUTOMATIC      1 // als
+#define MANUAL         "i2c"
+#define AUTOMATIC      "als"
 
 /******************************************************************************/
 

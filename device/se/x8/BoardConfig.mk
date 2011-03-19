@@ -6,32 +6,17 @@ BOARD_USES_QCOM_LIBRPC := true
 BOARD_HAVE_BLUETOOTH := true
 BOARD_USES_GENERIC_AUDIO := false
 
-
 #disabled for now
 BOARD_HAVE_FM_RADIO := true
 BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
 
 BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
 BOARD_WLAN_DEVICE := wl1271
-#BOARD_SOFTAP_DEVICE := wl1271
+BOARD_SOFTAP_DEVICE := 
 WPA_SUPPLICANT_VERSION := VER_0_6_X
 WIFI_DRIVER_MODULE_PATH := /system/lib/modules/tiwlan_drv.ko
 WIFI_DRIVER_MODULE_NAME := tiwlan_drv
 WIFI_FIRMWARE_LOADER := wlan_loader
-#WIFI_EXT_MODULE_PATH := /system/lib/modules/sdio.ko
-#WIFI_EXT_MODULE_NAME := sdio
-
-# Wifi related defines
-#BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
-#BOARD_WPA_SUPPLICANT_PRIVATE_LIB := libCustomWifi
-#WPA_SUPPLICANT_VERSION      := VER_0_6_X
-#BOARD_WLAN_DEVICE           := wlan0
-#WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
-#BOARD_WLAN_TI_STA_DK_ROOT   := system/wlan/ti/wilink_6_1
-#WIFI_DRIVER_MODULE_ARG      := ""
-#WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
-#WIFI_FIRMWARE_LOADER        := "wlan_loader"
-
 
 BOARD_USE_USB_MASS_STORAGE_SWITCH := true
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun
@@ -75,5 +60,7 @@ BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 1240
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RECOVERY := true
 TARGET_NO_KERNEL := true
+
+BUILD_WITHOUT_PV := true
 
 WITH_DEXPREOPT := true

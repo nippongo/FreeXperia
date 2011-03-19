@@ -95,11 +95,8 @@ PRODUCT_COPY_FILES += \
 
 ## FM & BT
 PRODUCT_COPY_FILES += \
-    device/se/x8/prebuilt/modules/sdio.ko:system/lib/modules/sdio.ko \
-    device/se/x8/prebuilt/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko \
-    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
-    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/wifi/tiwlan.ini \
-    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
+    device/se/x8/modules/sdio.ko:system/lib/modules/sdio.ko \
+    device/se/x8/modules/tiwlan_drv.ko:system/lib/modules/tiwlan_drv.ko \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.1.bts:system/etc/firmware/fm_rx_init_1273.1.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_rx_init_1273.2.bts:system/etc/firmware/fm_rx_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/fm_tx_init_1273.1.bts:system/etc/firmware/fm_tx_init_1273.1.bts \
@@ -108,6 +105,9 @@ PRODUCT_COPY_FILES += \
     vendor/se/x8/proprietary/etc/firmware/fmc_init_1273.2.bts:system/etc/firmware/fmc_init_1273.2.bts \
     vendor/se/x8/proprietary/etc/firmware/TIInit_7.2.31.bts:system/etc/firmware/TIInit_7.2.31.bts \
     vendor/se/x8/proprietary/etc/tiwlan_firmware.bin:system/etc/wifi/wl1271.bin
+#    vendor/se/x8/proprietary/bin/tiwlan_cu:system/bin/tiwlan_cu \
+#    vendor/se/x8/proprietary/etc/tiwlan.ini:system/etc/wifi/tiwlan.ini \
+#    vendor/se/x8/proprietary/bin/tiwlan_loader:system/bin/tiwlan_loader \
 
 
 ## Other libraries and proprietary binaries
@@ -126,7 +126,7 @@ PRODUCT_COPY_FILES += \
 
 #offline charger
 PRODUCT_COPY_FILES += \
-    device/se/x8/prebuilt/charger:system/bin/charger \
+    vendor/se/x8/proprietary/bin/chargemon:system/bin/charger \
     vendor/se/x8/proprietary/bin/updatemiscta:system/bin/updatemiscta \
     vendor/se/x8/proprietary/bin/semc_chargalg:system/bin/semc_chargalg \
     vendor/se/x8/proprietary/lib/libmiscta.so:system/lib/libmiscta.so \

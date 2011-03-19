@@ -122,6 +122,9 @@ AudioHardware::AudioHardware() :
                 CHECK_FOR(TTY_HEADSET);
                 CHECK_FOR(TTY_HCO);
                 CHECK_FOR(TTY_VCO);
+                CHECK_FOR(FM_HEADSET);
+                CHECK_FOR(FM_SPEAKER);
+                
 #undef CHECK_FOR
             }
         }
