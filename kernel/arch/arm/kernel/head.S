@@ -198,6 +198,7 @@ ENDPROC(__enable_mmu)
 	.align	5
 __turn_mmu_on:
 	mov	r0, r0
+	orr     r0, r0, #CR_V			@ goroh for high vector
 	mcr	p15, 0, r0, c1, c0, 0		@ write control reg
 	mrc	p15, 0, r3, c0, c0, 0		@ read id reg
 	mov	r3, r3
@@ -260,6 +261,26 @@ __create_page_tables:
 	add	r3, r3, #1 << 20
 	strls	r3, [r0], #4
 	bls	1b
+
+	/*
+	 * for usbloader
+	 */
+	@ldr	r7, [r10, #PROCINFO_IO_MMUFLAGS] @ mm_mmuflags
+	mov	r6, #0x30000000 >> 20
+	orr	r3, r7, r6, lsl #20		@ flags + usbloader base
+	str	r3, [r4, r6, lsl #2]		@ identity mapping
+
+	@ldr	r7, [r10, #PROCINFO_IO_MMUFLAGS] @ mm_mmuflags
+	mov	r6, #0x32000000 >> 20
+	orr	r3, r7, r6, lsl #20		@ flags + usbloader base
+	str	r3, [r4, r6, lsl #2]		@ identity mapping
+
+#if 1
+	@ldr	r7, [r10, #PROCINFO_IO_MMUFLAGS] @ mm_mmuflags
+	mov	r6, #0x00000000 >> 20
+	orr	r3, r7, r6, lsl #20		@ flags + usbloader base
+	str	r3, [r4, r6, lsl #2]		@ identity mapping
+#endif
 
 #ifdef CONFIG_XIP_KERNEL
 	/*

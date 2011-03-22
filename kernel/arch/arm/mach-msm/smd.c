@@ -203,11 +203,17 @@ static int check_for_modem_crash(void)
 		return 0;
 
 	if (readl(SMSM_STATE_ADDR(SMSM_MODEM_STATE)) & SMSM_RESET) {
-		handle_modem_crash();
-		return -1;
+	//	handle_modem_crash();
+	// 	Bin4ry test	
+		panic("Modem crashed, trying to reset...");
+		smsm_reset_modem(SMSM_RESET);
+		panic("Modem resetted....");
+		return 0;
+		//return -1;	
 	}
 	return 0;
 }
+
 
 /* the spinlock is used to synchronize between the
  * irq handler and code that mutates the channel
