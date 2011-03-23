@@ -278,11 +278,11 @@ static struct usb_mass_storage_lun_config mass_storage_lun_config[] = {
 		.shift_size = 9,
 		.can_stall = true,
 	},
-	{   /*lun#1*/
-		.is_cdrom = true,
-		.shift_size = 11,
-		.can_stall = false,
-	},
+//	{   /*lun#1*/
+//		.is_cdrom = true,
+//		.shift_size = 11,
+//		.can_stall = false,
+//	},
 };
 
 static struct usb_mass_storage_platform_data usb_mass_storage_pdata = {
@@ -2237,14 +2237,14 @@ static struct mmc_platform_data es209ra_sdcc_data1 = {
 #endif
 };
 
-static struct mmc_platform_data es209ra_sdcc_data2 = {
-	.ocr_mask	= MMC_VDD_27_28 | MMC_VDD_28_29,
-	.translate_vdd	= msm_sdcc_setup_power,
-	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
-#ifdef CONFIG_MMC_MSM_SDC2_DUMMY52_REQUIRED
-	.dummy52_required = 1,
-#endif
-};
+//static struct mmc_platform_data es209ra_sdcc_data2 = {
+//	.ocr_mask	= MMC_VDD_27_28 | MMC_VDD_28_29,
+//	.translate_vdd	= msm_sdcc_setup_power,
+//	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
+//#ifdef CONFIG_MMC_MSM_SDC2_DUMMY52_REQUIRED
+//	.dummy52_required = 1,
+//#endif
+//};
 
 static void __init es209ra_init_mmc(void)
 {
