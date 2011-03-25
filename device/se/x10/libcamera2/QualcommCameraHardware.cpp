@@ -72,13 +72,13 @@ extern "C" {
 
 #include <msm_camera.h>
 
-#define DEFAULT_PICTURE_WIDTH  1024
-#define DEFAULT_PICTURE_HEIGHT 768
+#define DEFAULT_PICTURE_WIDTH  640
+#define DEFAULT_PICTURE_HEIGHT 480
 #define THUMBNAIL_BUFFER_SIZE (THUMBNAIL_WIDTH * THUMBNAIL_HEIGHT * 3/2)
 #define MAX_ZOOM_LEVEL 5
 #define NOT_FOUND -1
 // Number of video buffers held by kernal (initially 1,2 &3)
-#define ACTIVE_VIDEO_BUFFERS 3
+#define ACTIVE_VIDEO_BUFFERS 1
 
 #if DLOPEN_LIBMMCAMERA
 #include <dlfcn.h>
@@ -163,7 +163,7 @@ union zoomimage
 } zoomImage;
 
 //Default to WVGA
-#define DEFAULT_PREVIEW_WIDTH 800
+#define DEFAULT_PREVIEW_WIDTH 640
 #define DEFAULT_PREVIEW_HEIGHT 480
 
 /*
@@ -173,17 +173,17 @@ union zoomimage
 
 static const camera_size_type preview_sizes[] = {
 //    { 1280, 720 }, // 720P, reserved
-    { 800, 480 }, // WVGA
-    { 768, 432 },
-    { 720, 480 },
+//    { 854, 480 }, // WVGA
+//    { 768, 432 },
+//    { 720, 480 },
     { 640, 480 }, // VGA
-    { 576, 432 },
-    { 480, 320 }, // HVGA
-    { 384, 288 },
-    { 352, 288 }, // CIF
-    { 320, 240 }, // QVGA
-    { 240, 160 }, // SQVGA
-    { 176, 144 }, // QCIF
+//    { 576, 432 },
+//    { 480, 320 }, // HVGA
+//    { 384, 288 },
+//    { 352, 288 }, // CIF
+//    { 320, 240 }, // QVGA
+//    { 240, 160 }, // SQVGA
+//    { 176, 144 }, // QCIF
 };
 #define PREVIEW_SIZE_COUNT (sizeof(preview_sizes)/sizeof(camera_size_type))
 
@@ -208,20 +208,18 @@ board_property boardProperties[] = {
 //sorted on column basis
 static const camera_size_type picture_sizes[] = {
     { 3280, 2464 }, // 8MP
-    { 3280, 616 }, // 2MP
-    { 820, 616 }, // 8MP
-//    { 2592, 1944 }, // 5MP
+    { 2592, 1944 }, // 5MP
 //    { 2560, 1920 }, // 5MP (slightly reduced)
-//    { 2048, 1536 }, // 3MP QXGA
-//    //{ 1920, 1080 }, //HD1080
-//    { 1600, 1200 }, // 2MP UXGA
+    { 2048, 1536 }, // 3MP QXGA
+    //{ 1920, 1080 }, //HD1080
+    { 1600, 1200 }, // 2MP UXGA
 //    { 1280, 768 }, //WXGA
 //    { 1280, 720 }, //HD720
-//    { 1024, 768}, // 1MP XGA
-//    { 800, 600 }, //SVGA
+    { 1024, 768}, // 1MP XGA
+    { 800, 600 }, //SVGA
 //    { 800, 480 }, // WVGA
-//    { 640, 480 }, // VGA
-//    { 352, 288 }, //CIF
+    { 640, 480 }, // VGA
+    { 352, 288 }, //CIF
 //    { 320, 240 }, // QVGA
 //    { 176, 144 } // QCIF
 };
@@ -323,11 +321,11 @@ static const str_map effects[] = {
 };
 
 // from qcamera/common/camera.h
-//static const str_map autoexposure[] = {
-//    { CameraParameters::AUTO_EXPOSURE_FRAME_AVG,  CAMERA_AEC_FRAME_AVERAGE },
-//    { CameraParameters::AUTO_EXPOSURE_CENTER_WEIGHTED, CAMERA_AEC_CENTER_WEIGHTED },
-//    { CameraParameters::AUTO_EXPOSURE_SPOT_METERING, CAMERA_AEC_SPOT_METERING }
-//};
+static const str_map autoexposure[] = {
+    { CameraParameters::AUTO_EXPOSURE_FRAME_AVG,  CAMERA_AEC_FRAME_AVERAGE },
+    { CameraParameters::AUTO_EXPOSURE_CENTER_WEIGHTED, CAMERA_AEC_CENTER_WEIGHTED },
+    { CameraParameters::AUTO_EXPOSURE_SPOT_METERING, CAMERA_AEC_SPOT_METERING }
+};
 
 // from qcamera/common/camera.h
 static const str_map antibanding[] = {
@@ -582,14 +580,14 @@ static const str_map flash[] = {
 };
 
 // from mm-camera/common/camera.h.
-//static const str_map iso[] = {
-//    { CameraParameters::ISO_AUTO,  CAMERA_ISO_AUTO},
-//    { CameraParameters::ISO_HJR,   CAMERA_ISO_DEBLUR},
-//    { CameraParameters::ISO_100,   CAMERA_ISO_100},
-//    { CameraParameters::ISO_200,   CAMERA_ISO_200},
-//    { CameraParameters::ISO_400,   CAMERA_ISO_400},
-//    { CameraParameters::ISO_800,   CAMERA_ISO_800 }
-//};
+static const str_map iso[] = {
+    { CameraParameters::ISO_AUTO,  CAMERA_ISO_AUTO},
+    { CameraParameters::ISO_HJR,   CAMERA_ISO_DEBLUR},
+    { CameraParameters::ISO_100,   CAMERA_ISO_100},
+    { CameraParameters::ISO_200,   CAMERA_ISO_200},
+    { CameraParameters::ISO_400,   CAMERA_ISO_400},
+    { CameraParameters::ISO_800,   CAMERA_ISO_800 }
+};
 
 
 #define DONT_CARE 0
@@ -600,10 +598,6 @@ static const str_map focus_modes[] = {
     { CameraParameters::FOCUS_MODE_MACRO,    AF_MODE_MACRO }
 };
 
-//static const str_map lensshade[] = {
-//    { CameraParameters::LENSSHADE_ENABLE, TRUE },
-//    { CameraParameters::LENSSHADE_DISABLE, FALSE }
-//};
 
 struct SensorType {
     const char *name;
@@ -616,8 +610,8 @@ struct SensorType {
 };
 
 static SensorType sensorTypes[] = {
-//        { "8mp", 3264, 2448, true,  3264, 2448,0x00000fff },
-        { "5mp", 2608, 1960, true,  2592, 1944,0x00000fff },
+        { "8mp", 3280, 2464, true,  3279, 2463,0x0000ffff },
+        { "5mp", 2608, 1960, false,  2592, 1944,0x00000fff },
         { "5mp", 5184, 1944, false,  2592, 1944,0x00000fff },
         { "3mp", 2064, 1544, false, 2048, 1536,0x000007ff },
         { "2mp", 3200, 1200, false, 1600, 1200,0x000007ff } };
@@ -635,12 +629,11 @@ static String8 preview_size_values;
 static String8 picture_size_values;
 static String8 antibanding_values;
 static String8 effect_values;
-//static String8 autoexposure_values;
+static String8 autoexposure_values;
 static String8 whitebalance_values;
 static String8 flash_values;
 static String8 focus_mode_values;
-//static String8 iso_values;
-//static String8 lensshade_values;
+static String8 iso_values;
 static String8 picture_format_values;
 static String8 preview_frame_rate_values;
 
@@ -986,8 +979,8 @@ void QualcommCameraHardware::initDefaultParameters()
             antibanding, sizeof(antibanding) / sizeof(str_map));
         effect_values = create_values_str(
             effects, sizeof(effects) / sizeof(str_map));
-//        autoexposure_values = create_values_str(
-//            autoexposure, sizeof(autoexposure) / sizeof(str_map));
+        autoexposure_values = create_values_str(
+            autoexposure, sizeof(autoexposure) / sizeof(str_map));
         whitebalance_values = create_values_str(
             whitebalance, sizeof(whitebalance) / sizeof(str_map));
 
@@ -1006,10 +999,8 @@ void QualcommCameraHardware::initDefaultParameters()
             focus_mode_values = create_values_str(
                     focus_modes, sizeof(focus_modes) / sizeof(str_map));
         }
-//        iso_values = create_values_str(
-//            iso,sizeof(iso)/sizeof(str_map));
-//        lensshade_values = create_values_str(
-//            lensshade,sizeof(lensshade)/sizeof(str_map));
+        iso_values = create_values_str(
+            iso,sizeof(iso)/sizeof(str_map));
         picture_format_values = create_values_str(
             picture_formats, sizeof(picture_formats)/sizeof(str_map));
         preview_frame_rate_values = create_values_range_str(
@@ -1069,7 +1060,7 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_SUPPORTED_ANTIBANDING,
                     antibanding_values);
     mParameters.set(CameraParameters::KEY_SUPPORTED_EFFECTS, effect_values);
-//    mParameters.set(CameraParameters::KEY_SUPPORTED_AUTO_EXPOSURE, autoexposure_values);
+    mParameters.set(CameraParameters::KEY_SUPPORTED_AUTO_EXPOSURE, autoexposure_values);
     mParameters.set(CameraParameters::KEY_SUPPORTED_WHITE_BALANCE,
                     whitebalance_values);
     mParameters.set(CameraParameters::KEY_SUPPORTED_FOCUS_MODES,
@@ -1128,22 +1119,10 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_EXPOSURE_COMPENSATION,
                     CAMERA_DEF_EXPOSURE_COMPENSATION);
 
-//    mParameters.set(CameraParameters::KEY_ISO_MODE,
-//                    CameraParameters::ISO_AUTO);
-//    mParameters.set(CameraParameters::KEY_LENSSHADE,
-//                    CameraParameters::LENSSHADE_ENABLE);
-//    mParameters.set(CameraParameters::KEY_SUPPORTED_ISO_MODES,
-//                    iso_values);
-
-//    if( (!strcmp(sensorType->name, "2mp")) ||
-//        (!strcmp(mSensorInfo.name, "vx6953")) ||
-//		(!strcmp(mSensorInfo.name, "ov5642")) ||
-//		(!strcmp(mSensorInfo.name, "VX6953")) ) {
-//        LOGI("Parameter Rolloff is not supported for this sensor");
-//    } else {
-//        mParameters.set(CameraParameters::KEY_SUPPORTED_LENSSHADE_MODES,
-//                    lensshade_values);
-//    }
+    mParameters.set(CameraParameters::KEY_ISO_MODE,
+                    CameraParameters::ISO_AUTO);
+    mParameters.set(CameraParameters::KEY_SUPPORTED_ISO_MODES,
+                    iso_values);
 
     if (setParameters(mParameters) != NO_ERROR) {
         LOGE("Failed to set default parameters?!");
@@ -3059,7 +3038,7 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setPictureSize(params)))  final_rc = rc;
     if ((rc = setJpegQuality(params)))  final_rc = rc;
     if ((rc = setAntibanding(params)))  final_rc = rc;
-//    if ((rc = setAutoExposure(params))) final_rc = rc;
+    if ((rc = setAutoExposure(params))) final_rc = rc;
     if ((rc = setWhiteBalance(params))) final_rc = rc;
     if ((rc = setEffect(params)))       final_rc = rc;
     if ((rc = setFlash(params)))        final_rc = rc;
@@ -3070,8 +3049,7 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setOrientation(params)))  final_rc = rc;
     if ((rc = setBrightness(params)))   final_rc = rc;
     if ((rc = setExposureCompensation(params)))   final_rc = rc;
-//    if ((rc = setLensshadeValue(params)))  final_rc = rc;
-//    if ((rc = setISOValue(params)))  final_rc = rc;
+    if ((rc = setISOValue(params)))  final_rc = rc;
     if ((rc = setPictureFormat(params))) final_rc = rc;
     if ((rc = setSharpness(params)))    final_rc = rc;
     if ((rc = setContrast(params)))     final_rc = rc;
@@ -3945,25 +3923,25 @@ status_t QualcommCameraHardware::setEffect(const CameraParameters& params)
     return BAD_VALUE;
 }
 
-//status_t QualcommCameraHardware::setAutoExposure(const CameraParameters& params)
-//{
-//    if(!strcmp(sensorType->name, "2mp")) {
-//        LOGE("Auto Exposure not supported for this sensor");
-//        return NO_ERROR;
-//    }
-//    const char *str = params.get(CameraParameters::KEY_AUTO_EXPOSURE);
-//    if (str != NULL) {
-//        int32_t value = attr_lookup(autoexposure, sizeof(autoexposure) / sizeof(str_map), str);
-//        if (value != NOT_FOUND) {
-//            mParameters.set(CameraParameters::KEY_AUTO_EXPOSURE, str);
-//            bool ret = native_set_parm(CAMERA_SET_PARM_EXPOSURE, sizeof(value),
-//                                       (void *)&value);
-//            return ret ? NO_ERROR : UNKNOWN_ERROR;
-//        }
-//    }
-//    LOGE("Invalid auto exposure value: %s", (str == NULL) ? "NULL" : str);
-//    return BAD_VALUE;
-//}
+status_t QualcommCameraHardware::setAutoExposure(const CameraParameters& params)
+{
+    if(!strcmp(sensorType->name, "2mp")) {
+        LOGE("Auto Exposure not supported for this sensor");
+        return NO_ERROR;
+    }
+    const char *str = params.get(CameraParameters::KEY_AUTO_EXPOSURE);
+    if (str != NULL) {
+        int32_t value = attr_lookup(autoexposure, sizeof(autoexposure) / sizeof(str_map), str);
+        if (value != NOT_FOUND) {
+            mParameters.set(CameraParameters::KEY_AUTO_EXPOSURE, str);
+            bool ret = native_set_parm(CAMERA_SET_PARM_EXPOSURE, sizeof(value),
+                                       (void *)&value);
+            return ret ? NO_ERROR : UNKNOWN_ERROR;
+        }
+    }
+    LOGE("Invalid auto exposure value: %s", (str == NULL) ? "NULL" : str);
+    return BAD_VALUE;
+}
 
 status_t QualcommCameraHardware::setSharpness(const CameraParameters& params)
 {
@@ -4135,59 +4113,36 @@ status_t QualcommCameraHardware::setAntibanding(const CameraParameters& params)
     return BAD_VALUE;
 }
 
-//status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& params)
-//{
-//    if( (!strcmp(sensorType->name, "2mp")) ||
-//        (!strcmp(mSensorInfo.name, "vx6953")) ||
-//		(!strcmp(mSensorInfo.name, "ov5642")) ||
-//	(!strcmp(mSensorInfo.name, "VX6953")) ) {
-//        LOGI("Parameter Rolloff is not supported for this sensor");
-//        return NO_ERROR;
-//    }
-//    const char *str = params.get(CameraParameters::KEY_LENSSHADE);
-//    if (str != NULL) {
-//        int value = attr_lookup(lensshade,
-//                                    sizeof(lensshade) / sizeof(str_map), str);
-//        if (value != NOT_FOUND) {
-//            int8_t temp = (int8_t)value;
-//            mParameters.set(CameraParameters::KEY_LENSSHADE, str);
-//            native_set_parm(CAMERA_SET_PARM_ROLLOFF, sizeof(int8_t), (void *)&temp);
-//            return NO_ERROR;
-//        }
-//    }
-//    LOGE("Invalid lensShade value: %s", (str == NULL) ? "NULL" : str);
-//    return BAD_VALUE;
-//}
 
-//status_t  QualcommCameraHardware::setISOValue(const CameraParameters& params) {
-//    int8_t temp_hjr;
-//    const char *str = params.get(CameraParameters::KEY_ISO_MODE);
-//    if (str != NULL) {
-//        int value = (camera_iso_mode_type)attr_lookup(
-//          iso, sizeof(iso) / sizeof(str_map), str);
-//        if (value != NOT_FOUND) {
-//            camera_iso_mode_type temp = (camera_iso_mode_type) value;
-//            if (value == CAMERA_ISO_DEBLUR) {
-//               temp_hjr = true;
-//               native_set_parm(CAMERA_SET_PARM_HJR, sizeof(int8_t), (void*)&temp_hjr);
-//               mHJR = value;
-//            }
-//            else {
-//               if (mHJR == CAMERA_ISO_DEBLUR) {
-//                   temp_hjr = false;
-//                   native_set_parm(CAMERA_SET_PARM_HJR, sizeof(int8_t), (void*)&temp_hjr);
-//                   mHJR = value;
-//               }
-//            }
-//
-//            mParameters.set(CameraParameters::KEY_ISO_MODE, str);
-//            native_set_parm(CAMERA_SET_PARM_ISO, sizeof(camera_iso_mode_type), (void *)&temp);
-//            return NO_ERROR;
-//        }
-//    }
-//    LOGE("Invalid Iso value: %s", (str == NULL) ? "NULL" : str);
-//    return BAD_VALUE;
-//}
+status_t  QualcommCameraHardware::setISOValue(const CameraParameters& params) {
+    int8_t temp_hjr;
+    const char *str = params.get(CameraParameters::KEY_ISO_MODE);
+    if (str != NULL) {
+        int value = (camera_iso_mode_type)attr_lookup(
+          iso, sizeof(iso) / sizeof(str_map), str);
+        if (value != NOT_FOUND) {
+            camera_iso_mode_type temp = (camera_iso_mode_type) value;
+            if (value == CAMERA_ISO_DEBLUR) {
+               temp_hjr = true;
+               native_set_parm(CAMERA_SET_PARM_HJR, sizeof(int8_t), (void*)&temp_hjr);
+               mHJR = value;
+            }
+            else {
+               if (mHJR == CAMERA_ISO_DEBLUR) {
+                   temp_hjr = false;
+                   native_set_parm(CAMERA_SET_PARM_HJR, sizeof(int8_t), (void*)&temp_hjr);
+                   mHJR = value;
+               }
+            }
+
+            mParameters.set(CameraParameters::KEY_ISO_MODE, str);
+            native_set_parm(CAMERA_SET_PARM_ISO, sizeof(camera_iso_mode_type), (void *)&temp);
+            return NO_ERROR;
+        }
+    }
+    LOGE("Invalid Iso value: %s", (str == NULL) ? "NULL" : str);
+    return BAD_VALUE;
+}
 
 
 status_t QualcommCameraHardware::setGpsLocation(const CameraParameters& params)
