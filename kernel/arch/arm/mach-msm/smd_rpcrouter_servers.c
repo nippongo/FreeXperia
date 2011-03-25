@@ -118,6 +118,7 @@ int msm_rpc_create_server(struct msm_rpc_server *server)
 	mutex_lock(&rpc_server_list_lock);
 	list_add(&server->list, &rpc_server_list);
 	if (rpc_servers_active) {
+		printk(KERN_INFO "[rpcrouter_servers]: Server active\n");
 		rpc_server_register(server);
 		server->flags |= FLAG_REGISTERED;
 	}
@@ -593,10 +594,13 @@ static int rpcservers_probe(struct platform_device *pdev)
 	struct task_struct *server_thread;
 
 	endpoint = msm_rpc_open();
-	if (IS_ERR(endpoint))
+	if (IS_ERR(endpoint)) {
 		printk(KERN_ERR "[rpcrouter_servers]: msm_rpc_open failed\n");
 		return PTR_ERR(endpoint);
+	}
 
+	printk(KERN_INFO "[rpcrouter_servers]: msm_rpc_open OK\n");
+	
 	/* we're online -- register any servers installed beforehand */
 	rpc_servers_active = 1;
 	current_xid = 0;
@@ -605,10 +609,13 @@ static int rpcservers_probe(struct platform_device *pdev)
 	/* start the kernel thread */
 	printk(KERN_INFO "[rpcrouter_servers]: Trying to start krpcserversd thread\n");
 	server_thread = kthread_run(rpc_servers_thread, NULL, "krpcserversd");
-	if (IS_ERR(server_thread))
+	if (IS_ERR(server_thread)) {
 		printk(KERN_ERR "[rpcrouter_servers]: Cannot start krpcserversd thread!\n");
 		return PTR_ERR(server_thread);
+	}
 
+	printk(KERN_ERR "[rpcrouter_servers]: start krpcserversd thread OK!\n");
+	
 	return 0;
 }
 
