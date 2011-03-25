@@ -103,9 +103,10 @@ int msm_rpc_create_server(struct msm_rpc_server *server)
 		return -ENOMEM;
 
 	xdr_init_output(&server->cb_xdr, buf, MSM_RPC_MSGSIZE_MAX);
-	printk(KERN_ERR "[rpcrouter_servers]: Trying msm_rpc_open\n");
+	printk(KERN_INFO "[rpcrouter_servers]: Trying msm_rpc_open\n");
 	server->cb_ept = server->cb_xdr.ept = msm_rpc_open();
 	if (IS_ERR(server->cb_ept)) {
+		printk(KERN_ERR "[rpcrouter_servers]: msm_rpc_open failed!\n");
 		xdr_clean_output(&server->cb_xdr);
 		return PTR_ERR(server->cb_ept);
 	}
@@ -159,7 +160,7 @@ static int rpc_send_accepted_void_reply(struct msm_rpc_endpoint *client,
 	}
 	if (rc < 0)
 		printk(KERN_ERR
-		       "%s: could not write response: %d\n",
+		       "[rpcrouter_servers]: %s: could not write response: %d\n",
 		       __FUNCTION__, rc);
 
 	return rc;
@@ -302,6 +303,7 @@ int msm_rpc_server_cb_req(struct msm_rpc_server *server,
 	rc = msm_rpc_write(server->cb_ept, server->cb_xdr.out_buf,
 			   server->cb_xdr.out_index);
 	if (rc < 0) {
+		printk(KERN_ERR "[rpcrouter_servers]: %s: couldn't send RPC CB request:%d\n", __func__, rc); 
 		pr_err("%s: couldn't send RPC CB request:%d\n", __func__, rc);
 		goto release_locks;
 	} else
@@ -315,13 +317,16 @@ int msm_rpc_server_cb_req(struct msm_rpc_server *server,
 		xdr_init_input(&server->cb_xdr, buffer, rc);
 		if ((rc < ((int)(sizeof(uint32_t) * 2))) ||
 		    (be32_to_cpu(*((uint32_t *)buffer + 1)) != 1)) {
-			printk(KERN_ERR "%s: Invalid reply: %d\n",
+			printk(KERN_ERR "[rpcrouter_servers]: %s: Invalid reply: %d\n",
 			       __func__, rc);
 			goto free_and_release;
 		}
 
 		rpc_rsp = (struct rpc_reply_hdr *)server->cb_xdr.in_buf;
 		if (req_xid != rpc_rsp->xid) {
+			printk(KERN_INFO "[rpcrouter_servers]: %s: xid mismatch, req %d reply %d\n",
+				__func__, be32_to_cpu(req_xid),
+				be32_to_cpu(rpc_rsp->xid)); 
 			pr_info("%s: xid mismatch, req %d reply %d\n",
 				__func__, be32_to_cpu(req_xid),
 				be32_to_cpu(rpc_rsp->xid));
@@ -333,6 +338,8 @@ int msm_rpc_server_cb_req(struct msm_rpc_server *server,
 	} while (rc);
 
 	if (be32_to_cpu(rpc_rsp->reply_stat) != RPCMSG_REPLYSTAT_ACCEPTED) {
+		printk(KERN_ERR "[rpcrouter_servers]: %s: RPC cb req was denied! %d\n", __func__,
+		       be32_to_cpu(rpc_rsp->reply_stat)); 
 		pr_err("%s: RPC cb req was denied! %d\n", __func__,
 		       be32_to_cpu(rpc_rsp->reply_stat));
 		rc = -EPERM;
@@ -341,6 +348,8 @@ int msm_rpc_server_cb_req(struct msm_rpc_server *server,
 
 	if (be32_to_cpu(rpc_rsp->data.acc_hdr.accept_stat) !=
 	    RPC_ACCEPTSTAT_SUCCESS) {
+	   printk(KERN_ERR "[rpcrouter_servers]: %s: RPC cb req was not successful (%d)\n", __func__,
+		       be32_to_cpu(rpc_rsp->data.acc_hdr.accept_stat)); 
 		pr_err("%s: RPC cb req was not successful (%d)\n", __func__,
 		       be32_to_cpu(rpc_rsp->data.acc_hdr.accept_stat));
 		rc = -EINVAL;
@@ -425,6 +434,7 @@ int msm_rpc_server_cb_req2(struct msm_rpc_server *server,
 	server->cb_ept->dst_cid = clnt_info->cid;
 	rc = xdr_send_msg(&server->cb_xdr);
 	if (rc < 0) {
+		printk(KERN_ERR "[rpcrouter_servers]: %s: couldn't send RPC CB request:%d\n", __func__, rc); 
 		pr_err("%s: couldn't send RPC CB request:%d\n", __func__, rc);
 		goto release_locks;
 	} else
@@ -441,13 +451,15 @@ int msm_rpc_server_cb_req2(struct msm_rpc_server *server,
 		xdr_init_input(&server->cb_xdr, buffer, rc);
 		rc = xdr_recv_reply(&server->cb_xdr, &rpc_rsp);
 		if (rc || (rpc_rsp.type != 1)) {
-			printk(KERN_ERR "%s: Invalid reply :%d\n",
+			printk(KERN_ERR "[rpcrouter_servers]: %s: Invalid reply :%d\n",
 			       __func__, rc);
 			rc = -EINVAL;
 			goto free_and_release;
 		}
 
 		if (req_xid != rpc_rsp.xid) {
+			printk(KERN_INFO "[rpcrouter_servers]: %s: xid mismatch, req %d reply %d\n",
+				__func__, req_xid, rpc_rsp.xid); 
 			pr_info("%s: xid mismatch, req %d reply %d\n",
 				__func__, req_xid, rpc_rsp.xid);
 			xdr_clean_input(&server->cb_xdr);
@@ -459,6 +471,8 @@ int msm_rpc_server_cb_req2(struct msm_rpc_server *server,
 	} while (rc);
 
 	if (rpc_rsp.reply_stat != RPCMSG_REPLYSTAT_ACCEPTED) {
+		printk(KERN_ERR "[rpcrouter_servers]: %s: RPC cb req was denied! %d\n", __func__,
+		       rpc_rsp.reply_stat); 
 		pr_err("%s: RPC cb req was denied! %d\n", __func__,
 		       rpc_rsp.reply_stat);
 		rc = -EPERM;
@@ -466,6 +480,8 @@ int msm_rpc_server_cb_req2(struct msm_rpc_server *server,
 	}
 
 	if (rpc_rsp.data.acc_hdr.accept_stat != RPC_ACCEPTSTAT_SUCCESS) {
+		printk(KERN_ERR "[rpcrouter_servers]: %s: RPC cb req was not successful (%d)\n", __func__,
+		       rpc_rsp.data.acc_hdr.accept_stat); 
 		pr_err("%s: RPC cb req was not successful (%d)\n", __func__,
 		       rpc_rsp.data.acc_hdr.accept_stat);
 		rc = -EINVAL;
@@ -517,7 +533,7 @@ static int rpc_servers_thread(void *data)
 
 		rc = msm_rpc_read(endpoint, &buffer, -1, -1);
 		if (rc < 0) {
-			printk(KERN_ERR "%s: could not read: %d\n",
+			printk(KERN_ERR "[rpcrouter_servers]: %s: could not read: %d\n",
 			       __FUNCTION__, rc);
 			break;
 		}
