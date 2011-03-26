@@ -1,25 +1,3 @@
-/* SEMC:modified */
-/* 
-   ES209RA Board specific file.
-   Copyright (C) 2009 Sony Ericsson Mobile Communications Japan, Inc.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License, version 2, as
-   published by the Free Software Foundation.
-
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-   
-   This file is derived from
-      board-qsd8x50.c
-      QUALCOMM USA, INC.
-*/
 /* Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,13 +93,8 @@
 #include <mach/memory.h>
 #include <mach/msm_spi.h>
 #include <mach/msm_tsif.h>
-#ifdef CONFIG_MAX17040_FUELGAUGE
 #include <linux/max17040.h>
-#endif
-#ifdef CONFIG_SENSORS_AK8973
 #include <linux/akm8973.h>
-#endif
-
 #include "devices.h"
 #include "timer.h"
 #include "socinfo.h"
@@ -135,20 +108,14 @@
 #endif /* CONFIG_USB_ANDROID */
 #include "board-es209ra.h"
 #include "board-es209ra-keypad.h"
-#ifdef CONFIG_ES209RA_HEADSET
 #include "es209ra_headset.h"
-#endif
 #include <linux/spi/es209ra_touch.h>
 #include <asm/setup.h>
 #include "qdsp6/q6audio.h"
 #include <../../../drivers/video/msm/mddi_tmd_nt35580.h>
-#ifdef CONFIG_SEMC_LOW_BATT_SHUTDOWN
 #include <mach/semc_low_batt_shutdown.h>
-#endif /* CONFIG_SEMC_LOW_BATT_SHUTDOWN */
 
-#ifdef CONFIG_SEMC_MSM_PMIC_VIBRATOR
 #include  <linux/semc/msm_pmic_vibrator.h>
-#endif
 
 /* MDDI includes */
 #include "../../../drivers/video/msm/msm_fb_panel.h"
@@ -157,54 +124,21 @@
 #define TOUCHPAD_SUSPEND 	34
 #define TOUCHPAD_IRQ 		38
 
-#define MSM_PMEM_MDP_SIZE	0x1C91000
 
-#define SMEM_SPINLOCK_I2C	"S:6"
+//#ifdef CONFIG_ANDROID_RAM_CONSOLE 
+//#define MSM_RAM_CONSOLE_START   0x38000000 - MSM_RAM_CONSOLE_SIZE
+//#define MSM_RAM_CONSOLE_SIZE    128 * SZ_1K
+//#endif
 
-#define MSM_PMEM_ADSP_SIZE	0x2196000
-#define MSM_FB_SIZE		0x500000
-#define MSM_AUDIO_SIZE		0x80000
-#define MSM_GPU_PHYS_SIZE 	SZ_2M
+//#ifdef CONFIG_CAPTURE_KERNEL
+//#define AMSSCORE_RAM_START 0x00000000
+//#define AMSSCORE_RAM_END   0x03FFFFFF
+//#define SMEMCORE_RAM_START 0x00100000
+//#define SMEMCORE_RAM_END   0x001FFFFF
+//#define ADSPCORE_RAM_START 0x2E000000
+//#define ADSPCORE_RAM_END   0x2FFFFFFF
+//#endif
 
-#ifdef CONFIG_MSM_SOC_REV_A
-#define MSM_SMI_BASE		0xE0000000
-#else
-#define MSM_SMI_BASE		0x00000000
-#endif
-
-#define MSM_SHARED_RAM_PHYS	(MSM_SMI_BASE + 0x00100000)
-
-#define MSM_PMEM_SMI_BASE	(MSM_SMI_BASE + 0x02B00000)
-#define MSM_PMEM_SMI_SIZE	0x01500000
-
-#define MSM_FB_BASE		MSM_PMEM_SMI_BASE
-#define MSM_GPU_PHYS_BASE 	(MSM_FB_BASE + MSM_FB_SIZE)
-#define MSM_PMEM_SMIPOOL_BASE	(MSM_GPU_PHYS_BASE + MSM_GPU_PHYS_SIZE)
-#define MSM_PMEM_SMIPOOL_SIZE	(MSM_PMEM_SMI_SIZE - MSM_FB_SIZE \
-					- MSM_GPU_PHYS_SIZE)
-
-#define PMEM_KERNEL_EBI1_SIZE	0x28000
-
-#define PMIC_VREG_WLAN_LEVEL	2600
-#define PMIC_VREG_GP6_LEVEL	2850
-
-#define FPGA_SDCC_STATUS	0x70000280
-
-#ifdef CONFIG_ANDROID_RAM_CONSOLE 
-#define MSM_RAM_CONSOLE_START   0x38000000 - MSM_RAM_CONSOLE_SIZE
-#define MSM_RAM_CONSOLE_SIZE    128 * SZ_1K
-#endif
-
-#ifdef CONFIG_CAPTURE_KERNEL
-#define AMSSCORE_RAM_START 0x00000000
-#define AMSSCORE_RAM_END   0x03FFFFFF
-#define SMEMCORE_RAM_START 0x00100000
-#define SMEMCORE_RAM_END   0x001FFFFF
-#define ADSPCORE_RAM_START 0x2E000000
-#define ADSPCORE_RAM_END   0x2FFFFFFF
-#endif
-
-#ifdef CONFIG_SEMC_MSM_PMIC_VIBRATOR
 static int msm7227_platform_set_vib_voltage(u16 volt_mv)
 {
 	int rc = pmic_vib_mot_set_volt(volt_mv);
@@ -241,24 +175,23 @@ static struct platform_device vibrator_device = {
 		.platform_data = &vibrator_platform_data,
 	},
 };
-#endif
 
-#ifdef CONFIG_ANDROID_RAM_CONSOLE
-static struct resource ram_console_resources[] = {
-        [0] = {
-                .start  = MSM_RAM_CONSOLE_START,
-                .end    = MSM_RAM_CONSOLE_START+MSM_RAM_CONSOLE_SIZE-1,
-                .flags  = IORESOURCE_MEM,
-        },
-};
+//#ifdef CONFIG_ANDROID_RAM_CONSOLE
+//static struct resource ram_console_resources[] = {
+//        [0] = {
+//                .start  = MSM_RAM_CONSOLE_START,
+//                .end    = MSM_RAM_CONSOLE_START+MSM_RAM_CONSOLE_SIZE-1,
+//                .flags  = IORESOURCE_MEM,
+//        },
+//};
 
-static struct platform_device ram_console_device = {
-        .name           = "ram_console",
-        .id             = -1,
-        .num_resources  = ARRAY_SIZE(ram_console_resources),
-        .resource       = ram_console_resources,
-};
-#endif
+//static struct platform_device ram_console_device = {
+//        .name           = "ram_console",
+//        .id             = -1,
+//        .num_resources  = ARRAY_SIZE(ram_console_resources),
+//        .resource       = ram_console_resources,
+//};
+//#endif
 
 #ifdef CONFIG_SMC91X
 static struct resource smc91x_resources[] = {
@@ -716,35 +649,6 @@ static struct android_pmem_platform_data android_pmem_kernel_smi_pdata = {
 
 #endif
 
-#ifdef CONFIG_CAPTURE_KERNEL
-static struct resource kdump_amsscoredump_resources[] = {
-	{
-		.name   = "amsscore0",
-		.start  = AMSSCORE_RAM_START,
-		.end    = AMSSCORE_RAM_END,
-		.flags  = IORESOURCE_MEM,
-	},
-	{
-		.name   = "smemcore0",
-		.start  = SMEMCORE_RAM_START,
-		.end    = SMEMCORE_RAM_END,
-		.flags  = IORESOURCE_MEM,
-	},
-	{
-		.name   = "adspcore0",
-		.start  = ADSPCORE_RAM_START,
-		.end    = ADSPCORE_RAM_END,
-		.flags  = IORESOURCE_MEM,
-	},
-};
-
-static struct platform_device kdump_amsscoredump_device = {
-	.name           = "amsscoredump",
-	.id             = -1,
-	.num_resources  = ARRAY_SIZE(kdump_amsscoredump_resources),
-	.resource       = kdump_amsscoredump_resources,
-};
-#endif
 
 static struct android_pmem_platform_data android_pmem_pdata = {
 	.name = "pmem",
@@ -1480,7 +1384,7 @@ static struct platform_device msm_device_kgsl = {
 	},
 };
 
-#ifdef CONFIG_ES209RA_HEADSET
+////////////////////////CONFIG_ES209RA_HEADSET///////////////////////
 struct es209ra_headset_platform_data es209ra_headset_data = {
 	.keypad_name = "es209ra_keypad",
 	.gpio_detout = 114,
@@ -1494,7 +1398,6 @@ static struct platform_device es209ra_audio_jack_device = {
         .platform_data = &es209ra_headset_data,
     },
 };
-#endif
 
 /* TSIF begin */
 #if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
@@ -1540,12 +1443,12 @@ static int qsd8x50_tps65023_set_dcdc1(int mVolts)
 	 */
 	if (rc == -ENODEV && mVolts <= CONFIG_QSD_PMIC_DEFAULT_DCDC1)
 		rc = 0;
-#else
+//#else
 	/* Disallow frequencies not supported in the default PMIC
 	 * output voltage.
 	 */
-	if (mVolts > CONFIG_QSD_PMIC_DEFAULT_DCDC1)
-		rc = -EFAULT;
+//	if (mVolts > CONFIG_QSD_PMIC_DEFAULT_DCDC1)
+//		rc = -EFAULT;
 #endif
 	return rc;
 }
@@ -1559,17 +1462,11 @@ static struct msm_acpu_clock_platform_data qsd8x50_clock_data = {
 };
 
 
-#ifdef CONFIG_MAX17040_FUELGAUGE
 static struct max17040_i2c_platform_data max17040_platform_data = {
 	.data = &max17040_dev_data
 };
-#endif
 
-#ifdef CONFIG_SENSORS_AK8973
 
-#define AKM8973_GPIO_RESET_PIN 2
-#define AKM8973_GPIO_RESET_ON 0
-#define AKM8973_GPIO_RESET_OFF 1
 
 static int ak8973_gpio_config(int enable)
 {
@@ -1611,18 +1508,15 @@ static struct akm8973_i2c_platform_data akm8973_platform_data = {
 	.gpio_config = ak8973_gpio_config,
 	.xres = ak8973_xres
 };
-#endif /* CONFIG_SENSORS_AK8973 */
 
 static struct i2c_board_info msm_i2c_board_info[] __initdata = {
 	{
 		I2C_BOARD_INFO("tps65023", 0x48),
 	},
-#ifdef CONFIG_MAX17040_FUELGAUGE
 	{
 		I2C_BOARD_INFO("max17040_fuel_gauge", 0x36),
 		.platform_data = &max17040_platform_data,
 	},
-#endif
 	{
 		I2C_BOARD_INFO("lv5219lg", 0x74),
 	},
@@ -1642,7 +1536,7 @@ static struct i2c_board_info msm_i2c_board_info[] __initdata = {
 	},
 };
 
-#ifdef CONFIG_MSM_CAMERA
+/////////////////////////////////////////msm_camera//////////////////////////////////////
 static uint32_t camera_off_gpio_table[] = {
 	/* parallel CAMERA interfaces */
 	GPIO_CFG(0,  0, GPIO_OUTPUT, GPIO_PULL_DOWN, GPIO_2MA),/* DAT0 */
@@ -1760,7 +1654,7 @@ static struct msm_camera_sensor_flash_src msm_flash_src = {
 	._fsrc.pmic_src.high_current = 100,
 };
 
-#ifdef CONFIG_SEMC_IMX046_CAMERA
+/////////////////////////////////////////CONFIG_SEMC_IMX046_CAMERA//////////////////////////////
 static struct msm_camera_sensor_flash_data flash_semc_imx046_camera = {
 	.flash_type = MSM_CAMERA_FLASH_NONE,
 	.flash_src  = &msm_flash_src
@@ -1792,9 +1686,7 @@ static struct platform_device msm_camera_sensor_semc_imx046_camera = {
 		.platform_data = &msm_camera_sensor_semc_imx046_camera_data,
 	},
 };
-#endif
 
-#endif /*CONFIG_MSM_CAMERA*/
 
 static struct platform_device msm_wlan_ar6000_pm_device = {
         .name           = "wlan_ar6000_pm_dev",
@@ -1827,7 +1719,7 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 
 static struct msm_hsusb_gadget_platform_data msm_gadget_pdata;
 
-#ifdef CONFIG_SEMC_LOW_BATT_SHUTDOWN
+///////////////////////////////// CONFIG_SEMC_LOW_BATT_SHUTDOWN//////////////////////
 static struct lbs_platform_data lbs_data = {
 	.threshold_vol = 3500,
 };
@@ -1839,7 +1731,7 @@ static struct platform_device lbs_device = {
 		.platform_data = &lbs_data,
 	},
 };
-#endif /* CONFIG_SEMC_LOW_BATT_SHUTDOWN */
+
 
 #ifdef CONFIG_PMIC_TIME
 static struct platform_device pmic_time_device = {
@@ -1887,24 +1779,13 @@ static struct platform_device *devices[] __initdata = {
 #if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
 	&msm_device_tsif,
 #endif
-#ifdef CONFIG_SEMC_IMX046_CAMERA
 	&msm_camera_sensor_semc_imx046_camera,
-#endif
-#ifdef CONFIG_SEMC_MSM_PMIC_VIBRATOR
 	&vibrator_device,
-#endif
-#ifdef CONFIG_ANDROID_RAM_CONSOLE
-	&ram_console_device,
-#endif
-#ifdef CONFIG_ES209RA_HEADSET
+//#ifdef CONFIG_ANDROID_RAM_CONSOLE
+//	&ram_console_device,
+//#endif
 	&es209ra_audio_jack_device,
-#endif
-#ifdef CONFIG_SEMC_LOW_BATT_SHUTDOWN
 	&lbs_device,
-#endif /* CONFIG_SEMC_LOW_BATT_SHUTDOWN */
-#ifdef CONFIG_CAPTURE_KERNEL
-	&kdump_amsscoredump_device,
-#endif
 #ifdef CONFIG_PMIC_TIME
 	&pmic_time_device,
 #endif
@@ -2094,14 +1975,14 @@ static struct mmc_platform_data es209ra_sdcc_data1 = {
 #endif
 };
 
-//static struct mmc_platform_data es209ra_sdcc_data2 = {
-//	.ocr_mask	= MMC_VDD_27_28 | MMC_VDD_28_29,
-//	.translate_vdd	= msm_sdcc_setup_power,
-//	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
-//#ifdef CONFIG_MMC_MSM_SDC2_DUMMY52_REQUIRED
-//	.dummy52_required = 1,
-//#endif
-//};
+static struct mmc_platform_data es209ra_sdcc_data2 = {
+	.ocr_mask	= MMC_VDD_27_28 | MMC_VDD_28_29,
+	.translate_vdd	= msm_sdcc_setup_power,
+	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
+#ifdef CONFIG_MMC_MSM_SDC2_DUMMY52_REQUIRED
+	.dummy52_required = 1,
+#endif
+};
 
 static void __init es209ra_init_mmc(void)
 {
