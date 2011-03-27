@@ -1,5 +1,5 @@
-/* Copyright (c) 2008-2009, Code Aurora Forum. All rights reserved.
- *
+
+ /*
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -61,9 +61,6 @@
 #include <linux/platform_device.h>
 #include <linux/android_pmem.h>
 #include <linux/bootmem.h>
-#ifdef CONFIG_USB_FUNCTION
-#include <linux/usb/mass_storage_function.h>
-#endif
 #include <linux/i2c.h>
 #include <linux/spi/spi.h>
 #include <linux/delay.h>
@@ -103,9 +100,7 @@
 #include "smd_private.h"
 #include "proc_comm.h"
 #include <linux/msm_kgsl.h>
-#ifdef CONFIG_USB_ANDROID
 #include <linux/usb/android.h>
-#endif /* CONFIG_USB_ANDROID */
 #include "board-es209ra.h"
 #include "board-es209ra-keypad.h"
 #include "board-es209ra-headset.h"
@@ -202,41 +197,17 @@ static struct resource smc91x_resources[] = {
 		.flags  = IORESOURCE_IRQ,
 	},
 };
-#endif
 
-#ifdef CONFIG_USB_FUNCTION
-static struct usb_mass_storage_lun_config mass_storage_lun_config[] = {
-	{	/*lun#0*/
-		.is_cdrom = false,
-		.shift_size = 9,
-		.can_stall = true,
-	},
-//	{   /*lun#1*/
-//		.is_cdrom = true,
-//		.shift_size = 11,
-//		.can_stall = false,
-//	},
+static struct platform_device smc91x_device = {
+	.name           = "smc91x",
+	.id             = 0,
+	.num_resources  = ARRAY_SIZE(smc91x_resources),
+	.resource       = smc91x_resources,
 };
+#endif /* CONFIG_SMC91X */
 
-static struct usb_mass_storage_platform_data usb_mass_storage_pdata = {
-	.nluns          = ARRAY_SIZE(mass_storage_lun_config),
-	.buf_size       = 16384,
-	.vendor         = "SEMC",
-	.product        = "Mass storage",
-	.release        = 0xffff,
-	.lun_conf       = mass_storage_lun_config,
-};
 
-static struct platform_device mass_storage_device = {
-	.name           = "usb_mass_storage",
-	.id             = -1,
-	.dev            = {
-		.platform_data          = &usb_mass_storage_pdata,
-	},
-};
-#endif /* CONFIG_USB_FUNCTION */
 
-#ifdef CONFIG_USB_ANDROID
 /* dynamic composition */
 static struct usb_composition usb_func_composition[] = {
 	{
@@ -277,32 +248,34 @@ static struct usb_mass_storage_lun_config msc_lun_config = {
 	.product	= "Mass Storage",
 	.release	= 0x0001,
 };
-static struct usb_mass_storage_lun_config cdrom_lun_config = {
-	.is_cdrom	= true,
-	.shift_size	= 11,
-	.can_stall	= false,
-	.vendor		= "SEMC",
-	.product	= "CD-ROM",
-	.release	= 0x0001,
-};
-static struct usb_mass_storage_lun_config msc_cdrom_lun_config[] = {
-	{
-		.is_cdrom	= false,
-		.shift_size	= 9,
-		.can_stall	= true,
-		.vendor		= "SEMC",
-		.product	= "Mass Storage",
-		.release	= 0x0001,
-	},
-	{
-		.is_cdrom	= true,
-		.shift_size	= 11,
-		.can_stall	= false,
-		.vendor		= "SEMC",
-		.product	= "CD-ROM",
-		.release	= 0x0001,
-	},
-};
+//static struct usb_mass_storage_lun_config cdrom_lun_config = {
+//	.is_cdrom	= true,
+//	.shift_size	= 11,
+//	.can_stall	= false,
+//	.vendor		= "SEMC",
+//	.product	= "CD-ROM",
+//	.release	= 0x0001,
+//};
+
+//static struct usb_mass_storage_lun_config msc_cdrom_lun_config[] = {
+//	{
+//		.is_cdrom	= false,
+//		.shift_size	= 9,
+//		.can_stall	= true,
+//		.vendor		= "SEMC",
+//		.product	= "Mass Storage",
+//		.release	= 0x0001,
+//	},
+//	{
+//		.is_cdrom	= true,
+//		.shift_size	= 11,
+//		.can_stall	= false,
+//		.vendor		= "SEMC",
+//		.product	= "CD-ROM",
+//		.release	= 0x0001,
+//	},
+//};
+
 static struct android_usb_platform_data android_usb_pdata = {
 	.vendor_id		= 0x0FCE,
 	.version		= 0x0100,
@@ -312,9 +285,9 @@ static struct android_usb_platform_data android_usb_pdata = {
 	.product_name		= "SEMC HSUSB Device",
 	.manufacturer_name	= "SEMC",
 	.nluns			= 1,
-	.cdrom_lun_conf		= &cdrom_lun_config,
+//	.cdrom_lun_conf		= &cdrom_lun_config,
 	.msc_lun_conf		= &msc_lun_config,
-	.msc_cdrom_lun_conf	= msc_cdrom_lun_config,
+//	.msc_cdrom_lun_conf	= msc_cdrom_lun_config,
 };
 static struct platform_device android_usb_device = {
 	.name	= "android_usb",
@@ -323,83 +296,10 @@ static struct platform_device android_usb_device = {
 		.platform_data = &android_usb_pdata,
 	},
 };
-#endif
 
-#ifdef CONFIG_SMC91X
-static struct platform_device smc91x_device = {
-	.name           = "smc91x",
-	.id             = 0,
-	.num_resources  = ARRAY_SIZE(smc91x_resources),
-	.resource       = smc91x_resources,
-};
-#endif /* CONFIG_SMC91X */
 
-#ifdef CONFIG_USB_FUNCTION
-static struct usb_function_map usb_functions_map[] = {
-	{"mass_storage", 0},
-	{"adb", 1},
-	{"modem", 2},
-	{"nmea", 3},
-	{"diag", 4},
-	{"ethernet", 5},
-#ifdef CONFIG_USB_FUNCTION_GG
-	{"gg", 6},
-#endif
-};
 
-/* dynamic composition */
-static struct usb_composition usb_func_composition[] = {
-#if defined(CONFIG_MACH_ES209RA)
-	{	/*  (ms) */
-		.product_id         = 0xE12E,
-		.functions	    = 0x01, /* 00001 */
-	},
-
-	{	/* (ms+adb+modem+nmea+diag) */
-		.product_id         = 0xD12E,
-		.functions	    = 0x1F, /* 11111 */
-	},
-#endif
-	{	/* (ms+nmea+modem+diag) */
-		.product_id         = 0x0146,
-		.functions	    = 0x1D, /* 11101 */
-	},
-
-	{	/* (ms+nmea+modem+adb+diag) */
-		.product_id         = 0x2146,
-		.functions	    = 0x1F, /* 11111 */
-	},
-
-	{	/* (eth+ms+adb) */
-		.product_id         = 0x3146,
-		.functions	    = 0x32, /* 110010 */
-	},
-
-	{	/* (eth+ms+nmea+modem+diag) */
-		.product_id         = 0xD146,
-		.functions	    = 0x3D, /* 111101 */
-	},
-
-	{	/* (eth+ms+nmea+modem+adb+diag) */
-		.product_id         = 0xE146,
-		.functions	    = 0x3F, /* 111111 */
-	},
-#ifdef CONFIG_USB_FUNCTION_GG
-	{
-		.product_id         = 0xADDE,
-		.functions	    = 0x40, /* 1000010 */
-	},
-#endif
-};
-#endif /* CONFIG_USB_FUNCTION */
  
-static struct platform_device hs_device = {
-	.name   = "msm-handset",
-	.id     = -1,
-	.dev    = {
-		.platform_data = "8k_handset",
-	},
-};
 
 #ifdef CONFIG_USB_FS_HOST
 static struct msm_gpio fsusb_config[] = {
@@ -598,21 +498,6 @@ static int msm_hsusb_native_phy_reset(void __iomem *addr)
 }
 
 static struct msm_hsusb_platform_data msm_hsusb_pdata = {
-#ifdef CONFIG_USB_FUNCTION
-	.version	= 0x0100,
-	.phy_info	= (USB_PHY_INTEGRATED | USB_PHY_MODEL_180NM),
-	.vendor_id          = 0x0FCE,
-	.product_name       = "Sony Ericsson X10",
-	.serial_number      = "1234567890ABCDEF",
-	.manufacturer_name  = "Sony Ericsson, Inc.",
-	.compositions	= usb_func_composition,
-	.num_compositions = ARRAY_SIZE(usb_func_composition),
-	.function_map   = usb_functions_map,
-	.num_functions	= ARRAY_SIZE(usb_functions_map),
-	.config_gpio    = NULL,
-
-	.phy_reset = msm_hsusb_native_phy_reset,
-#endif
 };
 
 #ifdef CONFIG_USB_FS_HOST
@@ -1165,7 +1050,7 @@ static struct platform_device msm_bluesleep_device = {
 	.resource	= bluesleep_resources,
 };
 
-#ifdef CONFIG_BT
+//#ifdef CONFIG_BT
 static struct platform_device msm_bt_power_device = {
 	.name = "bt_power",
 };
@@ -1340,9 +1225,9 @@ static void __init bt_power_init(void)
 	msm_bt_power_device.dev.platform_data = &bluetooth_power;
 }
 #endif
-#else
-#define bt_power_init(x) do {} while (0)
-#endif
+//#else
+//#define bt_power_init(x) do {} while (0)
+//#endif
 
 static struct resource kgsl_resources[] = {
        {
@@ -1397,6 +1282,14 @@ static struct platform_device es209ra_audio_jack_device = {
 	.dev = {
         .platform_data = &es209ra_headset_data,
     },
+};
+
+static struct platform_device hs_device = {
+	.name   = "msm-handset",
+	.id     = -1,
+	.dev    = {
+		.platform_data = "8k_handset",
+	},
 };
 
 /* TSIF begin */
@@ -1757,23 +1650,18 @@ static struct platform_device *devices[] __initdata = {
 	&msm_device_nand,
 	&msm_device_i2c,
 	&qsd_device_spi,
-#ifdef CONFIG_USB_FUNCTION
-	&mass_storage_device,
-#endif
-#ifdef CONFIG_USB_ANDROID
 	&android_usb_device,
-#endif
 	&msm_device_tssc,
 	&msm_audio_device,
 	&msm_device_uart1,
 	&msm_bluesleep_device,
-#ifdef CONFIG_BT
+//#ifdef CONFIG_BT
 	&msm_bt_power_device,
 	&msm_device_uart_dm2,
-#endif
-#if !defined(CONFIG_MSM_SERIAL_DEBUGGER)
-	/* &msm_device_uart3, */
-#endif
+//#endif
+//#if !defined(CONFIG_MSM_SERIAL_DEBUGGER)
+//	/* &msm_device_uart3, */
+//#endif
 	&msm_device_kgsl,
 	&hs_device,
 #if defined(CONFIG_TSIF) || defined(CONFIG_TSIF_MODULE)
@@ -2190,9 +2078,9 @@ int set_predecode_repair_cache(void);
 static void __init es209ra_init(void)
 {
 //#ifdef CONFIG_CAPTURE_KERNEL
-	smsm_wait_for_modem_reset();
+//	smsm_wait_for_modem_reset();
 //#else
-//	smsm_wait_for_modem();
+	smsm_wait_for_modem();
 //#endif
 	if (socinfo_init() < 0)
 		printk(KERN_ERR "%s: socinfo_init() failed!\n", __func__);
@@ -2219,9 +2107,7 @@ static void __init es209ra_init(void)
 #endif
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 	msm_fb_add_devices();
-#ifdef CONFIG_MSM_CAMERA
 	config_camera_off_gpios(); /* might not be necessary */
-#endif
 	es209ra_init_usb();
 	es209ra_init_mmc();
 	bt_power_init();
@@ -2238,7 +2124,6 @@ static void __init es209ra_init(void)
 	msm_mddi_tmd_fwvga_display_device_init();
 }
 
-//#ifndef CONFIG_CAPTURE_KERNEL
 static void __init es209ra_allocate_memory_regions(void)
 {
 	void *addr;
@@ -2316,28 +2201,19 @@ static void __init es209ra_fixup(struct machine_desc *desc, struct tag *tags,
 	mi->bank[1].size = (127*1024*1024);
 	mi->bank[1].node = PHYS_TO_NID(mi->bank[1].start);
 }
-//#endif
 
 static void __init es209ra_map_io(void)
 {
 	msm_shared_ram_phys = MSM_SHARED_RAM_PHYS;
 	msm_map_qsd8x50_io();
-//#ifndef CONFIG_CAPTURE_KERNEL
 	es209ra_allocate_memory_regions();
-//#endif
 	msm_clock_init(msm_clocks_8x50, msm_num_clocks_8x50);
 }
 
 static int __init board_serialno_setup(char *serialno)
 {
-#ifdef CONFIG_USB_ANDROID
 	android_usb_pdata.serial_number = serialno;
 	printk(KERN_INFO "USB serial number: %s\n", android_usb_pdata.serial_number);
-#endif
-#ifdef CONFIG_USB_FUNCTION
-	msm_hsusb_pdata.serial_number = serialno;
-	printk(KERN_INFO "USB serial number: %s\n", msm_hsusb_pdata.serial_number);
-#endif
 	return 1;
 }
 __setup_param("serialno=", board_serialno_setup_1, board_serialno_setup, 0);
