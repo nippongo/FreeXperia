@@ -163,7 +163,7 @@ union zoomimage
 } zoomImage;
 
 //Default to WVGA
-#define DEFAULT_PREVIEW_WIDTH 640
+#define DEFAULT_PREVIEW_WIDTH 854
 #define DEFAULT_PREVIEW_HEIGHT 480
 
 /*
@@ -172,18 +172,12 @@ union zoomimage
  */
 
 static const camera_size_type preview_sizes[] = {
-//    { 1280, 720 }, // 720P, reserved
-//    { 854, 480 }, // WVGA
-//    { 768, 432 },
-//    { 720, 480 },
-    { 640, 480 }, // VGA
-//    { 576, 432 },
-//    { 480, 320 }, // HVGA
-//    { 384, 288 },
-//    { 352, 288 }, // CIF
-//    { 320, 240 }, // QVGA
-//    { 240, 160 }, // SQVGA
-//    { 176, 144 }, // QCIF
+    { 1024, 480 },
+    { 864, 480 },
+    { 854, 480 },
+    { 800, 480 },
+    { 640, 480 },
+    { 320, 240 },
 };
 #define PREVIEW_SIZE_COUNT (sizeof(preview_sizes)/sizeof(camera_size_type))
 
@@ -207,21 +201,18 @@ board_property boardProperties[] = {
  */
 //sorted on column basis
 static const camera_size_type picture_sizes[] = {
-    { 3280, 2464 }, // 8MP
-    { 2592, 1944 }, // 5MP
-//    { 2560, 1920 }, // 5MP (slightly reduced)
-    { 2048, 1536 }, // 3MP QXGA
-    //{ 1920, 1080 }, //HD1080
-    { 1600, 1200 }, // 2MP UXGA
-//    { 1280, 768 }, //WXGA
-//    { 1280, 720 }, //HD720
-    { 1024, 768}, // 1MP XGA
-    { 800, 600 }, //SVGA
-//    { 800, 480 }, // WVGA
-    { 640, 480 }, // VGA
-    { 352, 288 }, //CIF
-//    { 320, 240 }, // QVGA
-//    { 176, 144 } // QCIF
+    { 3264, 2448 },
+    { 2592, 1944 },
+    { 2048, 1536 },
+    { 1920, 1080 },
+    { 1632, 1224 },
+    { 1280, 960 },
+    { 1024, 480},
+    { 854, 480 },
+    { 854, 480 },
+    { 800, 480 },
+    { 640, 480 },
+    { 320, 240 },
 };
 static int PICTURE_SIZE_COUNT = sizeof(picture_sizes)/sizeof(camera_size_type);
 static const camera_size_type * picture_sizes_ptr;
@@ -312,12 +303,12 @@ static const str_map effects[] = {
     { CameraParameters::EFFECT_NONE,       CAMERA_EFFECT_OFF },
     { CameraParameters::EFFECT_MONO,       CAMERA_EFFECT_MONO },
     { CameraParameters::EFFECT_NEGATIVE,   CAMERA_EFFECT_NEGATIVE },
-    { CameraParameters::EFFECT_SOLARIZE,   CAMERA_EFFECT_SOLARIZE },
     { CameraParameters::EFFECT_SEPIA,      CAMERA_EFFECT_SEPIA },
-    { CameraParameters::EFFECT_POSTERIZE,  CAMERA_EFFECT_POSTERIZE },
-    { CameraParameters::EFFECT_WHITEBOARD, CAMERA_EFFECT_WHITEBOARD },
-    { CameraParameters::EFFECT_BLACKBOARD, CAMERA_EFFECT_BLACKBOARD },
-    { CameraParameters::EFFECT_AQUA,       CAMERA_EFFECT_AQUA }
+    { CameraParameters::EFFECT_POSTERIZE,  CAMERA_EFFECT_POSTERIZE }
+//    { CameraParameters::EFFECT_SOLARIZE,   CAMERA_EFFECT_SOLARIZE },
+//    { CameraParameters::EFFECT_WHITEBOARD, CAMERA_EFFECT_WHITEBOARD },
+//    { CameraParameters::EFFECT_BLACKBOARD, CAMERA_EFFECT_BLACKBOARD },
+//    { CameraParameters::EFFECT_AQUA,       CAMERA_EFFECT_AQUA }
 };
 
 // from qcamera/common/camera.h
