@@ -12,12 +12,13 @@ PRODUCT_PACKAGES += \
     gps.qsd8k \
     lights.es209ra \
     gralloc.es209ra \
-    sensors.es209ra \
+    copybit.es209ra \
     libOmxCore \
     libOmxVidEnc \
     libmm-omxcore
 
 # not ready yet
+#    sensors.es209ra \
 
 # Extra apps
 PRODUCT_PACKAGES += \
@@ -35,7 +36,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.heapsize=32m \
     persisit.sys.vm.heapsize=32m \
     ro.media.dec.jpeg.memcap=20000000
-    
+
 #we can hold precise data
 PRODUCT_TAGS +=dalvik.gc.type-precise
 
@@ -43,14 +44,20 @@ PRODUCT_TAGS +=dalvik.gc.type-precise
 PRODUCT_COPY_FILES += \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml
 
-# Board-specific init
-PRODUCT_COPY_FILES += \
-    device/se/x10/ueventd.qct.rc:root/ueventd.qct.rc \
-    device/se/x10/init.es209ra.rc:root/init.es209ra.rc
 
-## RIL related stuff
+ifeq ($(TARGET_PREBUILT_KERNEL),)
+LOCAL_KERNEL := device/se/x10/kernel
+else
+LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
+endif
+
+PRODUCT_COPY_FILES:= \
+    $(LOCAL_KERNEL):kernel
+
+
+
+## RIL related stuff // no more
 PRODUCT_COPY_FILES += \
-    vendor/se/x10/proprietary/bin/isp_fw_update:system/bin/isp_fw_update \
     vendor/se/x10/proprietary/bin/port-bridge:system/bin/port-bridge \
     vendor/se/x10/proprietary/bin/qmuxd:system/bin/qmuxd \
     vendor/se/x10/proprietary/lib/libauth.so:system/lib/libauth.so \
@@ -70,24 +77,12 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/lib/libqueue.so:system/lib/libqueue.so \
     vendor/se/x10/proprietary/lib/libril-qc-1.so:system/lib/libril-qc-1.so \
     vendor/se/x10/proprietary/lib/libwms.so:system/lib/libwms.so \
-    vendor/se/x10/proprietary/lib/libwmsts.so:system/lib/libwmsts.so 
+    vendor/se/x10/proprietary/lib/libwmsts.so:system/lib/libwmsts.so
 
 
 ## OMX proprietaries
 PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so 
-#    device/se/x10/prebuilt/libmm-omxcore.so:system/lib/libmm-omxcore.so \
-#    device/se/x10/prebuilt/libOmxVidEnc.so:system/lib/libOmxVidEnc.so \
-#    device/se/x10/prebuilt/libOmxCore.so:system/lib/libOmxCore.so \
-#    device/se/x10/prebuilt/libstagefrighthw.so:system/lib/libstagefrighthw.so 
-#    vendor/se/x10/proprietary/lib/libOmxVdec.so:system/lib/libOmxVdec.so 
-#    vendor/se/x10/proprietary/lib/libOmxAacDec.so:system/lib/libOmxAacDec.so \
-#    vendor/se/x10/proprietary/lib/libOmxEvrcDec.so:system/lib/libOmxEvrcDec.so \
-#    vendor/se/x10/proprietary/lib/libOmxEvrcEnc.so:system/lib/libOmxEvrcEnc.so \
-#    vendor/se/x10/proprietary/lib/libOmxMp3Dec.so:system/lib/libOmxMp3Dec.so \
-#    vendor/se/x10/proprietary/lib/libOmxQcelp13Dec.so:system/lib/libOmxQcelp13Dec.so \
-#    vendor/se/x10/proprietary/lib/libOmxQcelp13Enc.so:system/lib/libOmxQcelp13Enc.so 
-#
 
 ## Hardware properties 
 PRODUCT_COPY_FILES += \
@@ -113,12 +108,10 @@ PRODUCT_COPY_FILES += \
 ## Atheros AR6002 firmware
 PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/bin/eeprom.AR6002:system/bin/eeprom.AR6002 \
-    device/se/x10/prebuilt/wifi.ko:system/lib/modules/wifi.ko \
-    device/se/x10/prebuilt/tun.ko:system/lib/modules/tun.ko 
-#    vendor/se/x10/proprietary/bin/wlan_mac:system/bin/wlan_mac \
-#    vendor/se/x10/proprietary/bin/wlan_tool:system/bin/wlan_tool \
-#    vendor/se/x10/proprietary/lib/modules/data.patch.hw2_0.bin:system/lib/modules/data.patch.hw2_0.bin \
-#    vendor/se/x10/proprietary/lib/modules/athwlan.bin.z77:system/lib/modules/athwlan.bin.z77 
+    vendor/se/x10/proprietary/bin/wlan_mac:system/bin/wlan_mac \
+    vendor/se/x10/proprietary/bin/wlan_tool:system/bin/wlan_tool \
+    vendor/se/x10/proprietary/lib/modules/wifi.ko:system/lib/modules/wifi.ko
+#    device/se/x10/prebuilt/tun.ko:system/lib/modules/tun.ko 
 
 ## BT proprietary
 PRODUCT_COPY_FILES += \
@@ -133,31 +126,33 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/lib/egl/libq3dtools_adreno200.so:system/lib/egl/libq3dtools_adreno200.so \
     vendor/se/x10/proprietary/lib/egl/libEGL_adreno200.so:system/lib/egl/libEGL_adreno200.so \
     vendor/se/x10/proprietary/lib/egl/libGLESv2_adreno200.so:system/lib/egl/libGLESv2_adreno200.so 
-#    vendor/se/x10/proprietary/lib/egl/egl.cfg:system/lib/egl/egl.cfg \
 
 #kernel modules
 PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
     device/se/x10/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
     device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
-    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko 
-#    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so 
+    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
+    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so
 
 
 ## Other libraries and proprietary binaries
 PRODUCT_COPY_FILES += \
-    vendor/se/x10/proprietary/etc/DualMicControl.txt:system/etc/DualMicControl.txt \
-    vendor/se/x10/proprietary/etc/sensors.conf:system/etc/sensors.conf \
-    vendor/se/x10/proprietary/bin/akmd2:system/bin/akmd2 \
-    vendor/se/x10/proprietary/bin/updatemiscta:system/bin/updatemiscta \
-    vendor/se/x10/proprietary/lib/libmiscta.so:system/lib/libmiscta.so \
-    device/se/x10/prebuilt/busybox:system/bin/busybox \
+    device/se/x10/prebuilt/model:system/recovery/model \
     device/se/x10/prebuilt/chargemon:system/bin/chargemon \
     device/se/x10/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
     device/se/x10/prebuilt/sh:system/recovery/sh \
     device/se/x10/prebuilt/recovery.tar.bz2:system/recovery/recovery.tar.bz2 \
-    device/se/x10/prebuilt/charger:system/bin/charger \
     device/se/x10/prebuilt/hw_config.sh:system/etc/hw_config.sh \
+    vendor/se/x10/proprietary/etc/sensors.conf:system/etc/sensors.conf \
+    vendor/se/x10/proprietary/bin/akmd2:system/bin/akmd2 \
+    vendor/se/x10/proprietary/etc/DualMicControl.txt:system/etc/DualMicControl.txt 
+
+#offline charging animation
+PRODUCT_COPY_FILES += \
+    vendor/se/x10/proprietary/bin/chargemon:system/bin/charger \
+    vendor/se/x10/proprietary/bin/updatemiscta:system/bin/updatemiscta \
+    vendor/se/x10/proprietary/lib/libmiscta.so:system/lib/libmiscta.so \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim1.rle:system/etc/semc/chargemon/anim1.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim2.rle:system/etc/semc/chargemon/anim2.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim3.rle:system/etc/semc/chargemon/anim3.rle \
@@ -167,25 +162,28 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim7.rle:system/etc/semc/chargemon/anim7.rle \
     vendor/se/x10/proprietary/etc/semc/chargemon/anim8.rle:system/etc/semc/chargemon/anim8.rle 
 
+#various fixes
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/bladewififix.apk:system/app/bladewififix.apk \
     device/se/x10/media_profiles.xml:system/etc/media_profiles.xml \
     device/se/x10/vold.fstab:system/etc/vold.fstab \
-    device/se/x10/prebuilt/hosts:system/etc/hosts \
+    device/se/x10/prebuilt/gps.conf:system/etc/gps.conf \
     device/se/x10/prebuilt/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     vendor/se/x10/proprietary/etc/dhcpcd/dhcpcd-hooks/01-test:system/etc/dhcpcd/dhcpcd-hooks/01-test \
     vendor/se/x10/proprietary/etc/dhcpcd/dhcpcd-run-hooks:system/etc/dhcpcd/dhcpcd-run-hooks \
     vendor/se/x10/proprietary/etc/dhcpcd/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf 
+#    device/se/x10/prebuilt/hosts:system/etc/hosts \
+#    device/se/x10/prebuilt/bladewififix.apk:system/app/bladewififix.apk \
 
 PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/usr/keylayout/es209ra_keypad.kl:system/usr/keylayout/es209ra_keypad.kl \
-    vendor/se/x10/proprietary/usr/keylayout/es209ra_handset.kl:system/usr/keychars/es209ra_handset.kl \
+    vendor/se/x10/proprietary/usr/keylayout/es209ra_handset.kl:system/usr/keylayout/es209ra_handset.kl \
     vendor/se/x10/proprietary/usr/keychars/es209ra_keypad.kcm.bin:system/usr/keychars/es209ra_keypad.kcm.bin 
 
-#testing Su
+#testing kernel
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/su:system/xbin/su \
-    device/se/x10/prebuilt/superuser.apk:system/app/superuser.apk 
+    device/se/x10/prebuilt/boot.img:system/kernel/boot.img \
+    device/se/x10/prebuilt/miniloader:system/kernel/miniloader \
+    device/se/x10/prebuilt/splboot.ko:system/kernel/splboot.ko
 
 $(call inherit-product, build/target/product/full_base.mk)
 
@@ -194,4 +192,4 @@ PRODUCT_NAME := x10
 PRODUCT_DEVICE := x10
 PRODUCT_MODEL := Xperia x10
 
-CYANOGEN_WITH_GOOGLE := true
+#CYANOGEN_WITH_GOOGLE := true

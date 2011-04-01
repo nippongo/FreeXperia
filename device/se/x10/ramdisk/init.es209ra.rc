@@ -23,10 +23,10 @@ on property:dev.bootcomplete=1
 	start dhcp-service
 
 
-#service wlan_tool /system/bin/wlan_tool
-#    socket wlan0 dgram 660 wifi wifi
-#    disabled
-#    oneshot
+service wlan_tool /system/bin/wlan_tool
+    socket wlan0 dgram 660 wifi wifi
+    disabled
+    oneshot
 
 service abtfilt /system/bin/abtfilt -d -z -n
     disabled
@@ -143,9 +143,10 @@ service hci_qcomm_init /system/bin/log -t qcom-bluetooth -p i "hci_qcomm_init se
     disabled
     oneshot
 
-#service wlan_mac /system/bin/wlan_mac
-#    user root
-#    oneshot
+service wlan_mac /system/bin/wlan_mac
+    user root
+    oneshot
+
 
 service qmuxd /system/bin/qmuxd &
 

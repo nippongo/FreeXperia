@@ -32,6 +32,9 @@
 
 #include <hardware/lights.h>
 
+#define MANUAL          0
+#define AUTOMATIC       1
+
 /******************************************************************************/
 
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
@@ -42,38 +45,18 @@ static int g_backlight = 255;
 static int g_buttons = 1;
 static int g_attention = 0;
 
-char const*const RED_LED_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:red/brightness";
-
-char const*const GREEN_LED_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:green/brightness";
-
-char const*const BLUE_LED_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:blue/brightness";
-
-char const*const LCD_FILE
-        = "/sys/class/leds/lv5219lg:mled/brightness";
-
-char const*const RED_FREQ_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:red/blink_on";
-
-char const*const RED_PWM_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:red/blink_off";
-
-char const*const GREEN_FREQ_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:green/blink_on";
-
-char const*const GREEN_PWM_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:green/blink_off";
-
-char const*const BLUE_FREQ_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:blue/blink_on";
-
-char const*const BLUE_PWM_FILE
-        = "/sys/class/leds/lv5219lg:rgb1:blue/blink_off";
-
-char const*const BUTTON_FILE
-        = "/sys/class/leds/lv5219lg:sled/brightness";
+char const*const RED_LED_FILE        = "/sys/class/leds/lv5219lg:rgb1:red/brightness";
+char const*const GREEN_LED_FILE        = "/sys/class/leds/lv5219lg:rgb1:green/brightness";
+char const*const BLUE_LED_FILE        = "/sys/class/leds/lv5219lg:rgb1:blue/brightness";
+char const*const LCD_FILE        = "/sys/class/leds/lv5219lg:mled/brightness";
+char const*const ALS_FILE             = "/sys/class/leds/lv5219lg:mled/als_enable";
+char const*const RED_FREQ_FILE        = "/sys/class/leds/lv5219lg:rgb1:red/blink_on";
+char const*const RED_PWM_FILE        = "/sys/class/leds/lv5219lg:rgb1:red/blink_off";
+char const*const GREEN_FREQ_FILE        = "/sys/class/leds/lv5219lg:rgb1:green/blink_on";
+char const*const GREEN_PWM_FILE        = "/sys/class/leds/lv5219lg:rgb1:green/blink_off";
+char const*const BLUE_FREQ_FILE        = "/sys/class/leds/lv5219lg:rgb1:blue/blink_on";
+char const*const BLUE_PWM_FILE        = "/sys/class/leds/lv5219lg:rgb1:blue/blink_off";
+char const*const BUTTON_FILE        = "/sys/class/leds/lv5219lg:sled/brightness";
 
 /**
  * device methods
@@ -126,11 +109,26 @@ set_light_backlight(struct light_device_t* dev,
         struct light_state_t const* state)
 {
     int err = 0;
+    int als_mode;
+
     int brightness = rgb_to_brightness(state);
+
+    switch(state->brightnessMode) {
+        case BRIGHTNESS_MODE_SENSOR:
+            als_mode = AUTOMATIC;
+            break;
+        case BRIGHTNESS_MODE_USER:
+        default:
+            als_mode = MANUAL;
+            break;
+    }
+
     pthread_mutex_lock(&g_lock);
-    g_backlight = brightness;
+    err = write_int(ALS_FILE, als_mode);
     err = write_int(LCD_FILE, brightness);
+//    err = write_int(BUTTON_FILE, 1);
     pthread_mutex_unlock(&g_lock);
+
     return err;
 }
 
@@ -142,7 +140,7 @@ set_light_buttons(struct light_device_t* dev,
     int on = is_lit(state);
     pthread_mutex_lock(&g_lock);
     g_buttons = on;
-    err = write_int(BUTTON_FILE, on?255:0);
+    err = write_int(BUTTON_FILE, on?1:0);
     pthread_mutex_unlock(&g_lock);
     return err;
 }

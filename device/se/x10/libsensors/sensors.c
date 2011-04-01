@@ -25,7 +25,7 @@
  */
 
 /*
- * the AK8973 has a 8-bit ADC but the firmware seems to average 16 samples,
+ * the AK8975 has a 8-bit ADC but the firmware seems to average 16 samples,
  * or at least makes its calibration on 12-bits values. This increases the
  * resolution by 4 bits.
  */
@@ -44,15 +44,15 @@ static const struct sensor_t sSensorList[] = {
                 1, SENSORS_HANDLE_BASE+ID_O,
                 SENSOR_TYPE_ORIENTATION, 360.0f, 1.0f, 7.0f, 0, { } },
         { "APDS9120 Proximity sensor",
-                "Avago Technoligies",
+                "Avago Technologies",
                 1, SENSORS_HANDLE_BASE+ID_P,
                 SENSOR_TYPE_PROXIMITY,
                 PROXIMITY_THRESHOLD_CM, PROXIMITY_THRESHOLD_CM,
                 0.5f, 0, { } },
-        { "ES209RA Light sensor",
-                "SonyEricsson",
-                1, SENSORS_HANDLE_BASE+ID_L,
-                SENSOR_TYPE_LIGHT, 10240.0f, 1.0f, 0.5f, 0, { } },
+//        { "Unknown Light sensor",
+//                "unknown",
+//                1, SENSORS_HANDLE_BASE+ID_L,
+//                SENSOR_TYPE_LIGHT, 4095.0f, 7.0f, 0.5f, 0, { } },
 };
 
 static int open_sensors(const struct hw_module_t* module, const char* name,

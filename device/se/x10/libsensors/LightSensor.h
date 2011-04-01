@@ -31,12 +31,10 @@
 struct input_event;
 
 class LightSensor : public SensorBase {
-    int mEnabled;
     InputEventCircularReader mInputReader;
     sensors_event_t mPendingEvent;
     bool mHasPendingEvent;
 
-    float indexToValue(size_t index) const;
     int setInitialState();
 
 public:

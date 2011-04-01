@@ -1,5 +1,7 @@
 # Copyright 2006 The Android Open Source Project
 
+ifeq ($(TARGET_PROVIDES_LIBRIL),true)
+
 ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),es209ra)
 
 LOCAL_PATH:= $(call my-dir)
@@ -25,3 +27,4 @@ LOCAL_LDLIBS += -lpthread
 include $(BUILD_SHARED_LIBRARY)
 
 endif # TARGET_BOOTLOADER_BOARD_NAME==es209ra
+endif # TARGET_PROVIDES_LIBRIL

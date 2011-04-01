@@ -34,7 +34,7 @@
 #include <hardware/hardware.h>
 #include <hardware/gralloc.h>
 
-#include <linux/android_pmem.h>
+#include "android_pmem.h"
 
 #include "gralloc_priv.h"
 #include "gr.h"
@@ -49,11 +49,6 @@
 pid_t gettid() { return syscall(__NR_gettid);}
 #undef __KERNEL__
 #endif
-
-#define ASHMEM_CACHE_CLEAN_RANGE	_IO(__ASHMEMIOC, 12)
-#define GRALLOC_MODULE_PERFORM_DECIDE_PUSH_BUFFER_HANDLING 0x080000002
-
-// End of CAF values
 
 /*****************************************************************************/
 
@@ -294,9 +289,9 @@ int gralloc_unlock(gralloc_module_t const* module,
             pmem_addr.offset = hnd->offset;
             pmem_addr.length = hnd->size;
             err = ioctl( hnd->fd, PMEM_CLEAN_CACHES,  &pmem_addr);
-        } else if ((hnd->flags & private_handle_t::PRIV_FLAGS_USES_ASHMEM)) {
+        /*} else if ((hnd->flags & private_handle_t::PRIV_FLAGS_USES_ASHMEM)) {
             unsigned long addr = hnd->base + hnd->offset;
-            err = ioctl(hnd->fd, ASHMEM_CACHE_CLEAN_RANGE, NULL);
+            err = ioctl(hnd->fd, ASHMEM_CACHE_CLEAN_RANGE, NULL);*/
         }         
 
         LOGE_IF(err < 0, "cannot flush handle %p (offs=%x len=%x)\n",
@@ -366,7 +361,7 @@ int gralloc_perform(struct gralloc_module_t const* module,
             res = 0;
             break;
         }
-        case GRALLOC_MODULE_PERFORM_DECIDE_PUSH_BUFFER_HANDLING: {
+        /*case GRALLOC_MODULE_PERFORM_DECIDE_PUSH_BUFFER_HANDLING: {
             int format = va_arg(args, int);
             int width = va_arg(args, int);
             int height = va_arg(args, int);
@@ -381,7 +376,7 @@ int gralloc_perform(struct gralloc_module_t const* module,
             res = decideBufferHandlingMechanism(format, compositionUsed, hasBlitEngine,
                                                 needConversion, useBufferDirectly);
 	    break;
-	}
+	}*/
 	default:
 	    break;
     }

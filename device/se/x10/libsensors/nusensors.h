@@ -57,7 +57,7 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 
 #define AKM_DEVICE_NAME     "/dev/akm8973_aot"
 #define CM_DEVICE_NAME      "/dev/es209ra_proximity"
-#define LS_DEVICE_NAME      "/dev/lightsensor"
+//#define LS_DEVICE_NAME      "/dev/lightsensor"
 
 #define EVENT_TYPE_ACCEL_X          ABS_Y
 #define EVENT_TYPE_ACCEL_Y          ABS_X
@@ -76,7 +76,8 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define EVENT_TYPE_TEMPERATURE      ABS_THROTTLE
 #define EVENT_TYPE_STEP_COUNT       ABS_GAS
 #define EVENT_TYPE_PROXIMITY        ABS_DISTANCE
-#define EVENT_TYPE_LIGHT            ABS_MISC
+
+//#define EVENT_TYPE_LIGHT            ABS_MISC
 
 // 720 LSG = 1G
 #define LSG                         (720.0f)

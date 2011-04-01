@@ -46,9 +46,9 @@ chmod 777 /dev/cpu_*
 chmod 777 /dev/msm_camera/control0
 chmod 777 /dev/graphics/fb0
 
-sleep 15
-if [ ! -e /data/boot_complete ]; then
-    echo >/data/boot_complete
-    killall servicemanager
-fi
+#sleep 15
+#if [ ! -e /data/boot_complete ]; then
+#    echo >/data/boot_complete
+#    killall servicemanager
+#fi
 

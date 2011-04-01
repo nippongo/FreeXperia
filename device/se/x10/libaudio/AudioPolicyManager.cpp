@@ -87,6 +87,10 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
             // FALL THROUGH
 
         default:    // FORCE_NONE
+            device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADPHONE;
+            if (device) break;
+            device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADSET;
+            if (device) break;
             // when not in call:
             if (mPhoneState != AudioSystem::MODE_IN_CALL) {
                 // - if we are docked to a BT CAR dock, give A2DP preference over earpiece
@@ -103,10 +107,6 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
                 device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES;
                 if (device) break;
             }
-            device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADPHONE;
-            if (device) break;
-            device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADSET;
-            if (device) break;
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_EARPIECE;
             if (device == 0) {
                 LOGE("getDeviceForStrategy() earpiece device not found");
@@ -139,6 +139,7 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
     break;
 
     case STRATEGY_SONIFICATION:
+    case STRATEGY_MEDIA_SONIFICATION:
 
         // If incall, just select the STRATEGY_PHONE device: The rest of the behavior is handled by
         // handleIncallSonification().
@@ -150,9 +151,11 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
         // - if we are docked to a BT CAR dock, don't duplicate for the sonification strategy
         // - if we are docked to a BT DESK dock, use only speaker for the sonification strategy
         if (mForceUse[AudioSystem::FOR_DOCK] != AudioSystem::FORCE_BT_CAR_DOCK) {
-            device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_SPEAKER;
-            if (device == 0) {
-                LOGE("getDeviceForStrategy() speaker device not found");
+            if (strategy == STRATEGY_SONIFICATION) {
+                device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_SPEAKER;
+                if (device == 0) {
+                    LOGE("getDeviceForStrategy() speaker device not found");
+                }
             }
             if (mForceUse[AudioSystem::FOR_DOCK] == AudioSystem::FORCE_BT_DESK_DOCK) {
                 if (mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADPHONE) {
@@ -170,7 +173,13 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
         // FALL THROUGH
 
     case STRATEGY_MEDIA: {
-        uint32_t device2 = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_AUX_DIGITAL;
+        uint32_t device2 = 0;
+        if (mForceUse[AudioSystem::FOR_MEDIA] == AudioSystem::FORCE_SPEAKER) {
+            device2 = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_SPEAKER;
+        }
+        if (device2 == 0) {
+            device2 = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_AUX_DIGITAL;
+        }
 #ifdef WITH_A2DP
         if (mA2dpOutput != 0) {
             if (device2 == 0) {
@@ -187,6 +196,12 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
             }
         }
 #endif
+        if (device2 == 0) {
+            device2 = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADPHONE;
+        }
+        if (device2 == 0) {
+            device2 = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADSET;
+        }
 #ifdef WITH_A2DP
         if (mA2dpOutput != 0) {
             if (device2 == 0) {
@@ -200,12 +215,6 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
             }
         }
 #endif
-        if (device2 == 0) {
-            device2 = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADPHONE;
-        }
-        if (device2 == 0) {
-            device2 = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADSET;
-        }
         if (device2 == 0) {
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_SPEAKER;
         }
@@ -235,6 +244,13 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
 
 float AudioPolicyManager::computeVolume(int stream, int index, audio_io_handle_t output, uint32_t device)
 {
+    // if requested volume index is the minimum possible value, we must honor this value as this
+    // means the stream is muted. This overrides condition-specific modifications to the volume
+    // computed in the generic APM
+    if (index == mStreams[stream].mIndexMin) {
+        return AudioPolicyManagerBase::computeVolume(stream, index, output, device);
+    }
+
     // force volume on A2DP output to maximum if playing through car dock speakers
     // as volume is applied on the car dock and controlled via car dock keys.
 #ifdef WITH_A2DP
@@ -255,9 +271,10 @@ float AudioPolicyManager::computeVolume(int stream, int index, audio_io_handle_t
         }
     }
 
-    // in car dock: when using the 3.5mm jack to play media, set a fixed volume as access to the
+    // in car dock: when using the 3.5mm jack to play media, set a minimum volume as access to the
     // physical volume keys is blocked by the car dock frame.
     if ((mForceUse[AudioSystem::FOR_DOCK] == AudioSystem::FORCE_BT_CAR_DOCK) &&
+            (volume < CAR_DOCK_MUSIC_MINI_JACK_VOLUME_MIN) &&
             (stream == AudioSystem::MUSIC) &&
             (device & (AudioSystem::DEVICE_OUT_WIRED_HEADPHONE |
                 AudioSystem::DEVICE_OUT_WIRED_HEADSET))) {
