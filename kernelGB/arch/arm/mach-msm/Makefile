@@ -1,5 +1,5 @@
 obj-y += io.o dma.o memory.o
-obj-y += devices.o
+obj-y += devices-qsd8x50.o
 obj-y += proc_comm.o
 obj-y += vreg.o mpp.o
 obj-y += vreg.o
