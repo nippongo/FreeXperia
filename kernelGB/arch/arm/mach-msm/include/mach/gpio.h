@@ -1,6 +1,7 @@
-/*
+/* linux/include/asm-arm/arch-msm/gpio.h
+ *
  * Copyright (C) 2007 Google, Inc.
- * Copyright (c) 2009-2010, Code Aurora Forum. All rights reserved.
+ * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
  * Author: Mike Lockwood <lockwood@android.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -13,38 +14,11 @@
  * GNU General Public License for more details.
  *
  */
+
 #ifndef __ASM_ARCH_MSM_GPIO_H
 #define __ASM_ARCH_MSM_GPIO_H
 
-#ifdef CONFIG_ARCH_MSM8X60
-#define ARCH_NR_GPIOS 512
-#endif
-
 #include <linux/interrupt.h>
-#include <asm-generic/gpio.h>
-#include <mach/irqs.h>
-
-#define FIRST_BOARD_GPIO	NR_GPIO_IRQS
-
-static inline int gpio_get_value(unsigned gpio)
-{
-	return __gpio_get_value(gpio);
-}
-
-static inline void gpio_set_value(unsigned gpio, int value)
-{
-	__gpio_set_value(gpio, value);
-}
-
-static inline int gpio_cansleep(unsigned gpio)
-{
-	return __gpio_cansleep(gpio);
-}
-
-static inline int gpio_to_irq(unsigned gpio)
-{
-	return __gpio_to_irq(gpio);
-}
 
 /**
  * struct msm_gpio - GPIO pin description
@@ -71,7 +45,6 @@ struct msm_gpio {
  * @size:  number of entries in @table
  */
 int msm_gpios_request_enable(const struct msm_gpio *table, int size);
-
 /**
  * msm_gpios_disable_free() - disable and free set of GPIOs
  *
@@ -79,7 +52,6 @@ int msm_gpios_request_enable(const struct msm_gpio *table, int size);
  * @size:  number of entries in @table
  */
 void msm_gpios_disable_free(const struct msm_gpio *table, int size);
-
 /**
  * msm_gpios_request() - request set of GPIOs
  * In case of error, all operations rolled back.
@@ -89,7 +61,6 @@ void msm_gpios_disable_free(const struct msm_gpio *table, int size);
  * @size:  number of entries in @table
  */
 int msm_gpios_request(const struct msm_gpio *table, int size);
-
 /**
  * msm_gpios_free() - free set of GPIOs
  *
@@ -97,7 +68,6 @@ int msm_gpios_request(const struct msm_gpio *table, int size);
  * @size:  number of entries in @table
  */
 void msm_gpios_free(const struct msm_gpio *table, int size);
-
 /**
  * msm_gpios_enable() - enable set of GPIOs
  * In case of error, all operations rolled back.
@@ -107,14 +77,38 @@ void msm_gpios_free(const struct msm_gpio *table, int size);
  * @size:  number of entries in @table
  */
 int msm_gpios_enable(const struct msm_gpio *table, int size);
-
 /**
  * msm_gpios_disable() - disable set of GPIOs
  *
  * @table: GPIO table
  * @size:  number of entries in @table
  */
-int msm_gpios_disable(const struct msm_gpio *table, int size);
+void msm_gpios_disable(const struct msm_gpio *table, int size);
+
+int gpio_request(unsigned gpio, const char *label);
+void gpio_free(unsigned gpio);
+int gpio_direction_input(unsigned gpio);
+int gpio_direction_output(unsigned gpio, int value);
+int gpio_get_value(unsigned gpio);
+void gpio_set_value(unsigned gpio, int value);
+int gpio_to_irq(unsigned gpio);
+
+#include <asm-generic/gpio.h>
+
+/* extended gpio api */
+
+#define GPIOF_IRQF_MASK         0x0000ffff /* use to specify edge detection without */
+#define GPIOF_IRQF_TRIGGER_NONE 0x00010000 /* IRQF_TRIGGER_NONE is 0 which also means "as already configured" */
+#define GPIOF_INPUT             0x00020000
+#define GPIOF_DRIVE_OUTPUT      0x00040000
+#define GPIOF_OUTPUT_LOW        0x00080000
+#define GPIOF_OUTPUT_HIGH       0x00100000
+
+#define GPIOIRQF_SHARED         0x00000001 /* the irq line is shared with other inputs */
+
+extern int gpio_configure(unsigned int gpio, unsigned long flags);
+extern int gpio_read_detect_status(unsigned int gpio);
+extern int gpio_clear_detect_status(unsigned int gpio);
 
 /* GPIO TLMM (Top Level Multiplexing) Definitions */
 
@@ -122,33 +116,33 @@ int msm_gpios_disable(const struct msm_gpio *table, int size);
 
 /* GPIO TLMM: Direction */
 enum {
-	GPIO_CFG_INPUT,
-	GPIO_CFG_OUTPUT,
+	GPIO_INPUT,
+	GPIO_OUTPUT,
 };
 
 /* GPIO TLMM: Pullup/Pulldown */
 enum {
-	GPIO_CFG_NO_PULL,
-	GPIO_CFG_PULL_DOWN,
-	GPIO_CFG_KEEPER,
-	GPIO_CFG_PULL_UP,
+	GPIO_NO_PULL,
+	GPIO_PULL_DOWN,
+	GPIO_KEEPER,
+	GPIO_PULL_UP,
 };
 
 /* GPIO TLMM: Drive Strength */
 enum {
-	GPIO_CFG_2MA,
-	GPIO_CFG_4MA,
-	GPIO_CFG_6MA,
-	GPIO_CFG_8MA,
-	GPIO_CFG_10MA,
-	GPIO_CFG_12MA,
-	GPIO_CFG_14MA,
-	GPIO_CFG_16MA,
+	GPIO_2MA,
+	GPIO_4MA,
+	GPIO_6MA,
+	GPIO_8MA,
+	GPIO_10MA,
+	GPIO_12MA,
+	GPIO_14MA,
+	GPIO_16MA,
 };
 
 enum {
-	GPIO_CFG_ENABLE,
-	GPIO_CFG_DISABLE,
+	GPIO_ENABLE,
+	GPIO_DISABLE,
 };
 
 #define GPIO_CFG(gpio, func, dir, pull, drvstr) \
@@ -169,4 +163,5 @@ enum {
 
 int gpio_tlmm_config(unsigned config, unsigned disable);
 
-#endif /* __ASM_ARCH_MSM_GPIO_H */
+#endif
+

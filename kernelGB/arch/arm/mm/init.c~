@@ -719,8 +719,8 @@ void __init mem_init(void)
 			MLK(UL(CONFIG_VECTORS_BASE), UL(CONFIG_VECTORS_BASE) +
 				(PAGE_SIZE)),
 			MLK(FIXADDR_START, FIXADDR_TOP),
-			MLM(VMALLOC_START, (unsigned int)VMALLOC_END),
-			MLM(PAGE_OFFSET, (unsigned int)high_memory),
+			MLM(VMALLOC_START, (unsigned long)VMALLOC_END),
+			MLM(PAGE_OFFSET, (unsigned long)high_memory),
 #ifdef CONFIG_HIGHMEM
 			MLM(PKMAP_BASE, (PKMAP_BASE) + (LAST_PKMAP) *
 				(PAGE_SIZE)),

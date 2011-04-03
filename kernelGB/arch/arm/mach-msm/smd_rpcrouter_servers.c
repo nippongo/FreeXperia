@@ -310,7 +310,6 @@ int msm_rpc_server_cb_req(struct msm_rpc_server *server,
 		timeout = msecs_to_jiffies(10000);
 
 	do {
-		buffer = NULL;
 		rc = msm_rpc_read(server->cb_ept, &buffer, -1, timeout);
 		xdr_init_input(&server->cb_xdr, buffer, rc);
 		if ((rc < ((int)(sizeof(uint32_t) * 2))) ||
@@ -434,12 +433,9 @@ int msm_rpc_server_cb_req2(struct msm_rpc_server *server,
 		timeout = msecs_to_jiffies(10000);
 
 	do {
-		buffer = NULL;
 		rc = msm_rpc_read(server->cb_ept, &buffer, -1, timeout);
-		if (rc < 0) {
-			server->cb_xdr.out_index = 0;
-			goto release_locks;
-		}
+		if (rc < 0)
+			goto free_and_release;
 
 		xdr_init_input(&server->cb_xdr, buffer, rc);
 		rc = xdr_recv_reply(&server->cb_xdr, &rpc_rsp);

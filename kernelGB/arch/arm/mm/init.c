@@ -712,9 +712,9 @@ void __init mem_init(void)
 			"    pkmap   : 0x%08lx - 0x%08lx   (%4ld MB)\n"
 #endif
 			"    modules : 0x%08lx - 0x%08lx   (%4ld MB)\n"
-			"      .init : 0x%p" " - 0x%p" "   (%4ld kB)\n"
-			"      .text : 0x%p" " - 0x%p" "   (%4ld kB)\n"
-			"      .data : 0x%p" " - 0x%p" "   (%4ld kB)\n",
+			"      .init : 0x%p" " - 0x%p" "   (%4d kB)\n"
+			"      .text : 0x%p" " - 0x%p" "   (%4d kB)\n"
+			"      .data : 0x%p" " - 0x%p" "   (%4d kB)\n",
 
 			MLK(UL(CONFIG_VECTORS_BASE), UL(CONFIG_VECTORS_BASE) +
 				(PAGE_SIZE)),
