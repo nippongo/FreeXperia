@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.32.9
- * Sun Apr  3 14:27:12 2011
+ * Mon Apr  4 19:34:36 2011
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_ANDROID 1
@@ -311,7 +311,6 @@
 #define CONFIG_FB 1
 #define CONFIG_SLIP_MODE_SLIP6 1
 #define CONFIG_VMALLOC_RESERVE 0x08000000
-#define CONFIG_MSM_N_WAY_SMSM 1
 #define CONFIG_TMPFS 1
 #define CONFIG_GENERIC_TIME 1
 #define CONFIG_GENERIC_GPIO 1
@@ -444,6 +443,7 @@
 #define CONFIG_MSM_FIQ_SUPPORT 1
 #define CONFIG_CPU_FREQ_GOV_USERSPACE 1
 #define CONFIG_MSM_KGSL_MMU 1
+#define CONFIG_AR6000_WLAN_RESET 1
 #define CONFIG_CFG80211 1
 #define CONFIG_PPP_ASYNC 1
 #define CONFIG_MAC80211 1
@@ -491,6 +491,7 @@
 #define CONFIG_NET 1
 #define CONFIG_MODULE_UNLOAD 1
 #define CONFIG_STANDALONE 1
+#define CONFIG_AR6000_WLAN 1
 #define CONFIG_NETDEVICES 1
 #define CONFIG_USB 1
 #define CONFIG_USB_GADGET_DUALSPEED 1

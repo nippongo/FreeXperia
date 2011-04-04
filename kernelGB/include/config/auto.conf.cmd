@@ -348,8 +348,10 @@ deps_config := \
 	drivers/net/wireless/ipw2x00/Kconfig \
 	drivers/net/wireless/ath/ar9170/Kconfig \
 	drivers/net/wireless/ath/ath9k/Kconfig \
+	drivers/net/wireless/ath/ath6kl/Kconfig \
 	drivers/net/wireless/ath/ath5k/Kconfig \
 	drivers/net/wireless/ath/Kconfig \
+	drivers/net/wireless/ar6000/Kconfig \
 	drivers/net/wireless/p54/Kconfig \
 	drivers/net/wireless/Kconfig \
 	drivers/net/tokenring/Kconfig \

@@ -130,9 +130,9 @@
 #include "smd_private.h"
 #include "proc_comm.h"
 #include <linux/msm_kgsl.h>
-#ifdef CONFIG_USB_ANDROID
+//#ifdef CONFIG_USB_ANDROID
 #include <linux/usb/android.h>
-#endif /* CONFIG_USB_ANDROID */
+//#endif /* CONFIG_USB_ANDROID */
 #include "board-es209ra.h"
 #include "board-es209ra-keypad.h"
 #ifdef CONFIG_ES209RA_HEADSET

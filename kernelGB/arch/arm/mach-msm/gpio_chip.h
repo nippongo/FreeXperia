@@ -45,7 +45,7 @@ struct msm_gpio_regs {
 	void __iomem *int_pos;
 	void __iomem *oe;
 };
-
+/*
 #define MSM_GPIO_BROKEN_INT_CLEAR 1
 
 struct msm_gpio_chip {
@@ -55,8 +55,8 @@ struct msm_gpio_chip {
 	unsigned                int_status_copy;
 #endif
 	unsigned int            both_edge_detect;
-	unsigned int            int_enable[2]; /* 0: awake, 1: sleep */
-};
+	unsigned int            int_enable[2]; // 0: awake, 1: sleep
+};*/
 
 int register_gpio_chip(struct gpio_chip *gpio_chip);
 
