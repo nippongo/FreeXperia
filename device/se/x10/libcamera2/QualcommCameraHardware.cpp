@@ -239,7 +239,7 @@ typedef struct {
 } thumbnail_size_type;
 
 static thumbnail_size_type thumbnail_sizes[] = {
-    { 7281, 512, 288 }, //1.777778
+//    { 7281, 512, 288 }, //1.777778
     { 6826, 480, 288 }, //1.666667
     { 6144, 432, 288 }, //1.5
     { 5461, 512, 384 }, //1.333333
@@ -305,10 +305,7 @@ static const str_map effects[] = {
     { CameraParameters::EFFECT_NEGATIVE,   CAMERA_EFFECT_NEGATIVE },
     { CameraParameters::EFFECT_SEPIA,      CAMERA_EFFECT_SEPIA },
     { CameraParameters::EFFECT_POSTERIZE,  CAMERA_EFFECT_POSTERIZE }
-//    { CameraParameters::EFFECT_SOLARIZE,   CAMERA_EFFECT_SOLARIZE },
-//    { CameraParameters::EFFECT_WHITEBOARD, CAMERA_EFFECT_WHITEBOARD },
-//    { CameraParameters::EFFECT_BLACKBOARD, CAMERA_EFFECT_BLACKBOARD },
-//    { CameraParameters::EFFECT_AQUA,       CAMERA_EFFECT_AQUA }
+
 };
 
 // from qcamera/common/camera.h
@@ -910,7 +907,7 @@ QualcommCameraHardware::QualcommCameraHardware()
             jpegPadding = 0;
             break;
     }
-    LOGV("constructor EX");
+on    LOGV("constructor EX");
 }
 
 
@@ -1086,13 +1083,6 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set("saturation-def",
             CAMERA_DEF_SATURATION);
 
-    mParameters.set(CameraParameters::KEY_MAX_EXPOSURE_COMPENSATION,
-            CAMERA_MAX_EXPOSURE_COMPENSATION);
-    mParameters.set(CameraParameters::KEY_MIN_EXPOSURE_COMPENSATION,
-            CAMERA_MIN_EXPOSURE_COMPENSATION);
-    mParameters.set(CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP,
-            CAMERA_EXPOSURE_COMPENSATION_STEP);
-
     mParameters.set("luma-adaptation", "3");
     mParameters.set("zoom-supported", "true");
     mParameters.set("zoom-ratios", "100,200,300,400,500,600");
@@ -1107,8 +1097,6 @@ void QualcommCameraHardware::initDefaultParameters()
                     CAMERA_DEF_CONTRAST);
     mParameters.set(CameraParameters::KEY_SATURATION,
                     CAMERA_DEF_SATURATION);
-    mParameters.set(CameraParameters::KEY_EXPOSURE_COMPENSATION,
-                    CAMERA_DEF_EXPOSURE_COMPENSATION);
 
     mParameters.set(CameraParameters::KEY_ISO_MODE,
                     CameraParameters::ISO_AUTO);
@@ -3025,7 +3013,6 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     status_t rc, final_rc = NO_ERROR;
 
     if ((rc = setPreviewSize(params))) final_rc = rc;
-    //if ((rc = setPreviewFrameRate(params))) final_rc = rc;
     if ((rc = setPictureSize(params)))  final_rc = rc;
     if ((rc = setJpegQuality(params)))  final_rc = rc;
     if ((rc = setAntibanding(params)))  final_rc = rc;
@@ -3039,7 +3026,6 @@ status_t QualcommCameraHardware::setParameters(const CameraParameters& params)
     if ((rc = setFocusMode(params)))    final_rc = rc;
     if ((rc = setOrientation(params)))  final_rc = rc;
     if ((rc = setBrightness(params)))   final_rc = rc;
-    if ((rc = setExposureCompensation(params)))   final_rc = rc;
     if ((rc = setISOValue(params)))  final_rc = rc;
     if ((rc = setPictureFormat(params))) final_rc = rc;
     if ((rc = setSharpness(params)))    final_rc = rc;
