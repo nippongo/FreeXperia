@@ -1,0 +1,218 @@
+/* SEMC:modified */
+/*
+ * splload.c - splload
+ */
+
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/io.h>
+#include <asm/cacheflush.h>
+#include <linux/proc_fs.h>
+#include <linux/delay.h>
+#include <mach/msm_iomap.h>
+#include <asm/mach/map.h>
+
+extern void setup_mm_for_reboot(char mode);
+
+static unsigned char* splmem = 0;
+static int s_spladdr = 0x30000000;
+static int s_splsize = 0x00100000;
+module_param_named(spladdr, s_spladdr, int, 0644);
+module_param_named(splsize, s_splsize, int, 0644);
+
+#if 1
+void kernel_restart_prepare(char *cmd)
+{
+	printk("%s\n", __func__);
+}
+#else
+void kernel_restart_prepare(char *cmd)
+{
+	printk("%s\n", __func__);
+        blocking_notifier_call_chain(&reboot_notifier_list, SYS_RESTART, cmd);
+        system_state = SYSTEM_RESTART;
+        device_shutdown();
+        sysdev_shutdown();
+}
+#endif
+
+static unsigned char* __iomem spladdr = 0;
+static unsigned char* __iomem spllog = 0;
+static unsigned char* __iomem mddiaddr = 0;
+static off_t spl_off = 0;
+#define SPLLOG_SIZE 0x00100000
+
+static int proc_log_show(char *page, char **start, off_t off,
+                          int count, int *eof, void *data)
+{
+	if(off > SPLLOG_SIZE){
+		*eof=1;
+		return 0;
+	}
+	if(off + count >= SPLLOG_SIZE){
+		count = SPLLOG_SIZE - off;
+	}
+	memcpy(page, spllog + off, count);
+	*start = page;
+	return count;
+}
+
+static int proc_splimage_show(char *page, char **start, off_t off,
+                          int count, int *eof, void *data)
+{
+printk("page=%p start=%p off=%08x, count=%08x eof=%d data=%p\n",
+	page, *start, (unsigned int)off, count, *eof, data);
+	if(off > s_splsize){
+		*eof=1;
+		return 0;
+	}
+	if(off + count >= s_splsize){
+		count = s_splsize - off;
+	}
+	//memcpy(page, spladdr + off, count);
+	memcpy(page, splmem + off, count);
+	*start = page;
+	spl_off = 0;
+	return count;
+}
+
+static int proc_splimage_store(struct file *file,
+                             const char *buffer,
+                             unsigned long count,
+                             void *data)
+{
+printk("off=%08x file=%p buffer=%p count=%08lx data=%p\n",
+	(unsigned int)spl_off, file, buffer, count, data);
+
+	if(spl_off > s_splsize){
+		return count;
+	}
+	if(spl_off + count >= s_splsize){
+		count = s_splsize - spl_off;
+	}
+	//memcpy(spladdr+spl_off, buffer, count);
+	memcpy(splmem+spl_off, buffer, count);
+	spl_off += count;
+	return count;
+}
+
+#if 1
+static void memdump(const unsigned char* buf, int size)
+{
+	int i;
+	for(i=0; i<size; i++){
+        	if(i % 16 == 0) printk(KERN_INFO "%04x:", i);
+        	printk(" %02x", buf[i]);
+        	if(i % 16 == 15) printk("\n");
+	}
+       	printk("\n");
+}
+#endif
+
+static int proc_splboot_store(struct file *file,
+                             const char *buffer,
+                             unsigned long count,
+                             void *data)
+{
+	kernel_restart_prepare(NULL);
+	printk(KERN_EMERG "Starting new spl\n");
+//	memdump(spladdr, 0x100);
+	memcpy(spladdr, splmem, s_splsize);
+        flush_icache_range((unsigned long) spladdr,
+                           (unsigned long) spladdr + s_splsize);
+//	memdump(spladdr, 0x100);
+        printk(KERN_INFO "Bye!\n");
+        setup_mm_for_reboot(0);
+	memdump(spladdr, 0x100);
+        printk(KERN_INFO "spladdr=%p s_spladdr=%08x\n", spladdr, s_spladdr);
+	spladdr = (void*)s_spladdr;
+	memdump(spladdr, 0x100);
+//	mdelay(2000);
+	*((unsigned int*)(spladdr+0x00ff000)) = (unsigned int)mddiaddr;
+        cpu_reset(s_spladdr);
+	return 0;
+}
+
+static struct proc_dir_entry *splboot_dir;
+
+static int __init splboot_init(void)
+{
+	struct proc_dir_entry *entry;
+	splboot_dir = proc_mkdir("splboot", NULL);
+
+	splmem = kzalloc(s_splsize, GFP_KERNEL);
+	if(!splmem)
+		goto fail;
+	spladdr = ioremap(s_spladdr, s_splsize);
+	if (!spladdr)
+		goto fail;
+	spllog = ioremap(0x3200000, 0x0e00000);
+	if (!spllog)
+		goto fail;
+	mddiaddr = ioremap(0xAA600000, 0x0001000);
+	if (!mddiaddr)
+		goto fail;
+printk("mddiaddr=%p\n", mddiaddr);
+	memcpy(splmem, spladdr, s_splsize);
+	entry = create_proc_entry("image", S_IFREG | S_IRUGO | S_IWUGO, splboot_dir);
+	entry->data = NULL;
+	entry->read_proc = proc_splimage_show;
+	entry->write_proc = proc_splimage_store;
+	entry->owner = THIS_MODULE;
+
+	entry = create_proc_entry("boot", S_IFREG | S_IRUGO | S_IWUGO, splboot_dir);
+	entry->data = NULL;
+	entry->write_proc = proc_splboot_store;
+	entry->owner = THIS_MODULE;
+
+	entry = create_proc_entry("log", S_IFREG | S_IRUGO | S_IWUGO, splboot_dir);
+	entry->data = NULL;
+	entry->read_proc = proc_log_show;
+	entry->owner = THIS_MODULE;
+
+	return 0;
+fail:
+	if (spladdr)
+		iounmap(spladdr);
+
+	if (spllog)
+		iounmap(spllog);
+
+	if(mddiaddr)
+		iounmap(mddiaddr);
+
+	if(splmem)
+		kfree(splmem);
+
+	if(splboot_dir) {
+		remove_proc_entry("image", splboot_dir);
+		remove_proc_entry("boot", splboot_dir);
+		remove_proc_entry("log", splboot_dir);
+	}
+	remove_proc_entry("splboot", NULL);
+	return -ENOMEM;
+}
+module_init(splboot_init)
+
+static void __exit splboot_exit(void)
+{
+	if(splboot_dir) {
+		remove_proc_entry("image", splboot_dir);
+		remove_proc_entry("boot", splboot_dir);
+		remove_proc_entry("log", splboot_dir);
+	}
+	if(splmem)
+		kfree(splmem);
+	if(mddiaddr)
+		iounmap(mddiaddr);
+	if(spllog)
+		iounmap(spllog);
+	if(spladdr)
+		iounmap(spladdr);
+	remove_proc_entry("splboot", NULL);
+}
+module_exit(splboot_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("execute splload image");
+
