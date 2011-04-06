@@ -73,19 +73,9 @@ int raise(int sig) {
       return 0;
 }
 
-static int usb_initialized = 0;
-
 void boot_from_mem(unsigned int addr, int size);
-void usbloader_init(void);
-void usb_poll(void);
 void uart_putc(unsigned);
-const char *get_fastboot_version(void);
 
-#ifdef SURF8K
-int      is_usb_connect(void);
-void     usb_charger_reset(void);
-unsigned is_usb_charging(void);
-#endif
 
 extern unsigned linux_type;
 extern unsigned linux_tags;
@@ -173,7 +163,6 @@ void display_init( void )
         console_init();
         display_initialized = 1;
         console_flush_enable(0);
-        cprintf("\n\nUSB FastBoot:  V%s\n", get_fastboot_version());
         cprintf("Machine ID:    %d v%d\n", linux_type, revision);
         cprintf("Build Date:    "__DATE__", "__TIME__"\n");
         print_modem_build_id();
@@ -365,7 +354,6 @@ static void boot_linux(unsigned kaddr)
 unsigned char raw_header[4096];
 static int boot_into_recovery = 0;
 static int boot_from_flash = 1;
-static int stop_charging = 0;
 
 void check_reboot_reason()
 {
@@ -390,20 +378,10 @@ void check_reboot_reason()
             boot_into_recovery = 1;
         }else if(*reason == FASTBOOT_MODE){
             boot_from_flash = 0;
-            stop_charging   = -1;
         }
     }
 #endif
-#ifdef SURF8K
-    if (!usb_initialized) {
-        usbloader_init();
-        usb_initialized = 1;
-    }
 
-    if (is_usb_connect()) {
-        boot_from_flash = 0;
-    }
-#endif
 }
 
 int boot_linux_from_flash(void)
@@ -495,40 +473,6 @@ void xdcc_putc(unsigned x)
 
 #define SERIALNO_STR "semcandroidboot.serialno="
 #define SERIALNO_LEN strlen(SERIALNO_STR)
-
-void key_changed(unsigned int key, unsigned int down)
-{
-    if(!down) return;
-
-    /* For SURF8K, if the STOP_BOOT key is pressed the bootloader will
-     * stop and USB charging of battery will start.  If the key is pressed
-     * again, bootup will resume.
-     *
-     * For all other targets, STOP_BOOT key will bypass normal bootup
-     * and stop at the bootloader.
-     */
-
-    if(key == BOOT_KEY_STOP_BOOT) {
-        if(stop_charging == 0) {
-            boot_from_flash = 1;
-            stop_charging   = 1;
-        }
-        else if(stop_charging == -1) {
-            /* Temporary: intermediate state as the key can sometimes report
-             *   two key down events.
-             */
-            stop_charging   = 0;
-        }
-        else {
-            boot_from_flash = 0;
-            stop_charging   = -1;
-        }
-    }
-    else if (key == BOOT_KEY_CONTINUE_BOOT){
-        boot_into_recovery = 1;
-        stop_charging   = 1;
-    }
-}
 
 static int tags_okay(unsigned taddr)
 {
@@ -714,7 +658,8 @@ int _main(unsigned zero, unsigned type, unsigned tags)
     if(get_vecflag() == 0){
     	console_set_colors(0x0000, 0xFFFF);
     	display_init();
-    	DISPLAY_MSG("This is goroh customized spl...\n");
+    	DISPLAY_MSG("Bin4ry SPL...\n");
+	DISPLAY_MSG("based on Gorohs SPL\n");
     	display_versions();
     }else{
     	console_set_colors(0x0000, 0xFFFF);
@@ -825,52 +770,10 @@ int _main(unsigned zero, unsigned type, unsigned tags)
 
      check_reboot_reason();
 
-#ifdef SURF8K
-    if(!boot_from_flash) {
-
-        DISPLAY_MSG("Switched to fastboot mode...\n");
-
-        if (!usb_initialized) {
-            usbloader_init();
-            usb_initialized = 1;
-        }
-
-        /* scan the keyboard and detect charger and start charging */
-        for(;;) {
-            if(is_usb_charging()) {
-                /* if USB charging is in progress, poll both USB and keypad */
-                boot_poll();
-            } else {
-                /* USB charging suspended; this is due to in-progress data transfer
-                   so poll only the USB
-                */
-                usb_poll();
-            }
-
-            if(stop_charging == 1) {
-                DISPLAY_MSG("Continue boot...\n");
-                break;
-            }
-        }
-        boot_from_flash = 1;
-        usb_charger_reset();
-    }
-#endif /* SURF8K */
 
     if (boot_from_flash) {
         DISPLAY_MSG("\n ** BOOTING LINUX FROM FLASH **\n");
         boot_linux_from_flash();
-    }
-
-    cprintf("\nAndroid download mode\n");
-
-    if (!usb_initialized) {
-        usbloader_init();
-        usb_initialized = 1;
-    }
-
-    while (polling) {
-        usb_poll();
     }
 
     return 0;

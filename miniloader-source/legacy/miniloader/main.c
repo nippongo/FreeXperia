@@ -113,15 +113,15 @@ static void print_modem_build_id( void )
     modem_build_id =
            (struct smem_build_id*)smem_get_entry( SMEM_BUILD_ID_LOCATION,
                                                &build_id_struct_len );
-    cprintf("modem_build_id = %x\n", modem_build_id);
+//    cprintf("modem_build_id = %x\n", modem_build_id);
 
     if( modem_build_id && build_id_struct_len)
     {
-        DISPLAY_MSG("\nMSM Id: %d\n", modem_build_id->msm_id);
+//        DISPLAY_MSG("\nMSM Id: %d\n", modem_build_id->msm_id);
         msm_version_major = (modem_build_id->msm_version >> 16 ) & 0xff;
         msm_version_minor = modem_build_id->msm_version & 0xff;
-        DISPLAY_MSG("MSM Version: %d.%d\n", msm_version_major, msm_version_minor);
-        DISPLAY_MSG("Modem Build Id: %s\n", modem_build_id->build_id);
+//        DISPLAY_MSG("MSM Version: %d.%d\n", msm_version_major, msm_version_minor);
+//        DISPLAY_MSG("Modem Build Id: %s\n", modem_build_id->build_id);
     }
 #endif
 
@@ -148,11 +148,11 @@ void memdump(const unsigned int* buf, int size)
     console_flush_enable(0);
     for(i=0; i<size; i++){
         if(i % 4 == 0) cprintf("%x:", addr + (i<<2));
-        cprintf(" %x", buf[i]);
+//        cprintf(" %x", buf[i]);
         if(i % 4 == 3) cprintf("\n");
     }
     console_flush_enable(1);
-    cprintf("\n");
+//    cprintf("\n");
 }
 
 void display_init( void )
@@ -163,13 +163,13 @@ void display_init( void )
         console_init();
         display_initialized = 1;
         console_flush_enable(0);
-        cprintf("Machine ID:    %d v%d\n", linux_type, revision);
-        cprintf("Build Date:    "__DATE__", "__TIME__"\n");
-        print_modem_build_id();
-        if(param->serialno[0]){
-            strcpy(serialno, &param->serialno);
-        }
-        cprintf("Serial Number: %s\n\n", serialno[0] ? serialno : "UNKNOWN");
+//        cprintf("Machine ID:    %d v%d\n", linux_type, revision);
+//        cprintf("Build Date:    "__DATE__", "__TIME__"\n");
+//        print_modem_build_id();
+//        if(param->serialno[0]){
+//            strcpy(serialno, &param->serialno);
+//        }
+//        cprintf("Serial Number: %s\n\n", serialno[0] ? serialno : "UNKNOWN");
         console_flush_enable(1);
         console_flush();
         
@@ -181,16 +181,16 @@ static void display_versions( void )
 {
     volatile loader_param* param = get_loader_param();
     console_flush_enable(0);
-    cprintf("Parameter Boot Image Addr: %x\n", param->bootimgaddr);
-    cprintf("Parameter Boot Image Size: %x\n", param->bootimgsize);
-    cprintf("Parameter Machine Type: %d\n", param->machine_type);
-    cprintf("Parameter Boot Param: %s\n", param->bootparam);
+//    cprintf("Parameter Boot Image Addr: %x\n", param->bootimgaddr);
+//    cprintf("Parameter Boot Image Size: %x\n", param->bootimgsize);
+//    cprintf("Parameter Machine Type: %d\n", param->machine_type);
+//    cprintf("Parameter Boot Param: %s\n", param->bootparam);
 #if 0
-    cprintf("Parameter addr: %x\n", param);
-    cprintf("Parameter Version: %d\n", param->version);
-    cprintf("Parameter Size: %d\n", param->param_size);
-    cprintf("Parameter Mddi Addr: %x\n", param->mddiaddr);
-    cprintf("Parameter Serial Number: %s\n\n", param->serialno);
+//    cprintf("Parameter addr: %x\n", param);
+//    cprintf("Parameter Version: %d\n", param->version);
+//    cprintf("Parameter Size: %d\n", param->param_size);
+//    cprintf("Parameter Mddi Addr: %x\n", param->mddiaddr);
+//    cprintf("Parameter Serial Number: %s\n\n", param->serialno);
 #endif
     console_flush_enable(1);
     console_flush();
@@ -205,7 +205,7 @@ void qpst_splash( void )
         console_init();
         display_initialized = 1;
    }
-   cprintf("\n\nQPST download mode\n");
+//   cprintf("\n\nQPST download mode\n");
    while (spinning) {
    }
 }
@@ -395,45 +395,45 @@ int boot_linux_from_flash(void)
     if (!boot_into_recovery)
     {
         if((p = flash_find_ptn("boot")) == 0) {
-            DISPLAY_MSG("NO BOOT PARTITION\n");
+//            DISPLAY_MSG("NO BOOT PARTITION\n");
             return -1;
         }
     }
     else
     {
         if((p = flash_find_ptn("recovery")) == 0) {
-            DISPLAY_MSG("NO RECOVERY PARTITION\n");
+//            DISPLAY_MSG("NO RECOVERY PARTITION\n");
             return -1;
         }
     }
 
     if(flash_read(p, offset, raw_header, FLASH_PAGE_SIZE)) {
-        DISPLAY_MSG("CANNOT READ BOOT IMAGE HEADER\n");
+//        DISPLAY_MSG("CANNOT READ BOOT IMAGE HEADER\n");
         return -1;
     }
     offset += FLASH_PAGE_SIZE;
     
     if(memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)) {
-        DISPLAY_MSG("INVALID BOOT IMAGE HEADER\n");
+//        DISPLAY_MSG("INVALID BOOT IMAGE HEADER\n");
         return -1;
     }
 
     n = (hdr->kernel_size + (FLASH_PAGE_SIZE - 1)) & (~(FLASH_PAGE_SIZE - 1));
     if(flash_read(p, offset, (void*) hdr->kernel_addr, n)) {
-        DISPLAY_MSG("CANNOT READ KERNEL IMAGE\n");
+//        DISPLAY_MSG("CANNOT READ KERNEL IMAGE\n");
         return -1;
     }
     offset += n;
 
     n = (hdr->ramdisk_size + (FLASH_PAGE_SIZE - 1)) & (~(FLASH_PAGE_SIZE - 1));
     if(flash_read(p, offset, (void*) hdr->ramdisk_addr, n)) {
-        DISPLAY_MSG("CANNOT READ RAMDISK IMAGE\n");
+//        DISPLAY_MSG("CANNOT READ RAMDISK IMAGE\n");
         return -1;
     }
     offset += n;
     
-    dprintf("\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr, hdr->kernel_size);
-    dprintf("ramdisk @ %x (%d bytes)\n\n\n", hdr->ramdisk_addr, hdr->ramdisk_size);
+//    dprintf("\nkernel  @ %x (%d bytes)\n", hdr->kernel_addr, hdr->kernel_size);
+//    dprintf("ramdisk @ %x (%d bytes)\n\n\n", hdr->ramdisk_addr, hdr->ramdisk_size);
 
     if(hdr->cmdline[0]) {
         cmdline = (char*) hdr->cmdline;
@@ -444,9 +444,9 @@ int boot_linux_from_flash(void)
         }
     }
 
-    DISPLAY_MSG("cmdline = '%s'\n", cmdline);
+//    DISPLAY_MSG("cmdline = '%s'\n", cmdline);
     
-    DISPLAY_MSG("\nBooting Linux\n");
+//    DISPLAY_MSG("\nBooting Linux\n");
 
     create_atags(ADDR_TAGS, cmdline,
                  hdr->ramdisk_addr, hdr->ramdisk_size);
@@ -458,7 +458,7 @@ int boot_linux_from_flash(void)
 
 static void tag_dump(unsigned tag, void *data, unsigned sz, void *cookie)
 {
-    dprintf("tag type=%x data=%x size=%x\n", tag, (unsigned) data, sz);
+//    dprintf("tag type=%x data=%x size=%x\n", tag, (unsigned) data, sz);
 }
 
 static struct tag_handler tag_dump_handler = {
@@ -521,15 +521,15 @@ void smsm_wait_for_modem(void)
     unsigned states_size;
     states =
            (void *)smem_get_entry(ID_SHARED_STATE, &states_size);
-    cprintf("Waiting for Modem...\n");
-    cprintf("state=%x\n", states[SMSM_MODEM_STATE]);
+//    cprintf("Waiting for Modem...\n");
+//    cprintf("state=%x\n", states[SMSM_MODEM_STATE]);
     for(i=0; i<100; i++){
         if(states[SMSM_MODEM_STATE] & SMSM_OSENTERED){
-            cprintf("ok\n");
+//            cprintf("ok\n");
             return;
         }
     }
-    cprintf("timeout\n");
+//    cprintf("timeout\n");
 }
 
 int irqCalled;
@@ -586,7 +586,7 @@ void smsm_ack_amss_crash(void)
     states =
            (void *)smem_get_entry(ID_SHARED_STATE, &states_size);
     old_state = states[SMSM_APPS_STATE];
-    cprintf("Notify apps init to Modem...\n");
+//    cprintf("Notify apps init to Modem...\n");
 //    states[SMSM_APPS_STATE] |= SMSM_APPS_CRASHDUMP; //acpu rebooting
 //    states[SMSM_APPS_STATE] |= SMSM_SYSTEM_REBOOT; //acpu rebooting
 //    states[SMSM_APPS_STATE] |= SMSM_APPS_REBOOT;
@@ -599,9 +599,9 @@ void smsm_ack_amss_crash(void)
     MSM_TRIG_A2M_INT(5);
     smsm_wait_for_modem();
 #else
-    cprintf("%s\n", __FUNCTION__);
+//    cprintf("%s\n", __FUNCTION__);
     mdelay(100);
-    cprintf("now!\n");
+//    cprintf("now!\n");
 dump_smem_info_n(ID_DIAG_ERR_MSG);
 dump_smem_info_n(SMEM_ERR_CRASH_LOG);
 //    smsm_reset_modem();
@@ -657,19 +657,19 @@ int _main(unsigned zero, unsigned type, unsigned tags)
 
     if(get_vecflag() == 0){
     	console_set_colors(0x0000, 0xFFFF);
-    	display_init();
-    	DISPLAY_MSG("Bin4ry SPL...\n");
-	DISPLAY_MSG("based on Gorohs SPL\n");
-    	display_versions();
+//    	display_init();
+//    	DISPLAY_MSG("Bin4ry SPL...\n");
+//	DISPLAY_MSG("based on Gorohs SPL\n");
+//    	display_versions();
     }else{
     	console_set_colors(0x0000, 0xFFFF);
-    	display_init();
-        DISPLAY_MSG("on interrupt(%s)\n", get_vecname());
+//    	display_init();
+//        DISPLAY_MSG("on interrupt(%s)\n", get_vecname());
         memdump(get_regs_int(), 16);
         clear_vecflag();
     }
 
-    DISPLAY_MSG("irqCalled=%d\n", irqCalled);
+//    DISPLAY_MSG("irqCalled=%d\n", irqCalled);
 #ifdef USE_SMEM
     //DISPLAY_MSG("smem_init() .. ");
     smem_init();
@@ -772,7 +772,7 @@ int _main(unsigned zero, unsigned type, unsigned tags)
 
 
     if (boot_from_flash) {
-        DISPLAY_MSG("\n ** BOOTING LINUX FROM FLASH **\n");
+//        DISPLAY_MSG("\n ** BOOTING LINUX FROM FLASH **\n");
         boot_linux_from_flash();
     }
 

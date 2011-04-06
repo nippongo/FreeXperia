@@ -331,8 +331,7 @@ void boot_from_mem(unsigned int addr, int size)
         DISPLAY_MSG("FAILinvalid boot image");
     }
     DISPLAY_MSG("\nTrying to reset modem...\n");
-    //smsm_reset_modem();
-	//    smsm_reset_modem_cont();
+	 smsm_ack_amss_crash();
     DISPLAY_MSG("\nbooting linux...\n");
     mdelay(10);
     boot_linux();

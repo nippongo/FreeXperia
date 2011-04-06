@@ -140,8 +140,8 @@ static void fixup_tags(unsigned *tags, unsigned *out, const char *cmdline)
         *np++ = ramdisk_size;
     }
 
-    dprintf("oldcmdline: '%s'\n", oldcmdline);
-    dprintf("cmdline: '%s'\n", cmdline);
+//    dprintf("oldcmdline: '%s'\n", oldcmdline);
+//    dprintf("cmdline: '%s'\n", cmdline);
     
         /* create a cmdline tag if we need to */
     if(cmdline[0]) {
@@ -163,7 +163,7 @@ static void fixup_tags(unsigned *tags, unsigned *out, const char *cmdline)
             /* length in words */
         len = ((str - ((char*) (np + 2))) + 3) / 4;
 
-        dprintf("CMDLINE: '%s'\n", ((char*) (np + 2)));
+//        dprintf("CMDLINE: '%s'\n", ((char*) (np + 2)));
         
         *np++ = 2 + len;
         *np++ = 0x54410009;
@@ -216,12 +216,12 @@ static int init_boot_linux(void)
     unsigned second_actual;
     
     if((kernel_size < 4096) || memcmp(hdr->magic, BOOT_MAGIC, BOOT_MAGIC_SIZE)){
-        dprintf("bootimg: bad header\n");
+//        dprintf("bootimg: bad header\n");
         return -1;
     }
 
     if(hdr->page_size != 2048 &&  hdr->page_size != 4096) {
-        dprintf("bootimg: invalid page size\n");
+//        dprintf("bootimg: invalid page size\n");
         return -1;
     }
 
@@ -230,7 +230,7 @@ static int init_boot_linux(void)
     second_actual = (hdr->second_size + page_mask) & (~page_mask);
     
     if(kernel_size != (kernel_actual + ramdisk_actual + second_actual + 2048)) {
-        dprintf("bootimg: invalid image size");
+//        dprintf("bootimg: invalid image size");
         return -1;
     }
 
@@ -248,10 +248,10 @@ static int init_boot_linux(void)
     kernel_addr = hdr->magic + 2048;
     kernel_size = hdr->kernel_size;
     
-    cprintf("bootimg: kernel addr=%x size=%x\n",
-            kernel_addr, kernel_size);
-    cprintf("bootimg: ramdisk addr=%x size=%x\n",
-            ramdisk_addr, ramdisk_size);
+//    cprintf("bootimg: kernel addr=%x size=%x\n",
+//            kernel_addr, kernel_size);
+//    cprintf("bootimg: ramdisk addr=%x size=%x\n",
+//            ramdisk_addr, ramdisk_size);
     
     return 0; 
 #else
@@ -262,10 +262,10 @@ static int init_boot_linux(void)
     kernel_addr = hdr->kernel_addr;
     kernel_size = hdr->kernel_size;
     
-    cprintf("bootimg: kernel addr=%x size=%x\n",
-            kernel_addr, kernel_size);
-    cprintf("bootimg: ramdisk addr=%x size=%x\n",
-            ramdisk_addr, ramdisk_size);
+//    cprintf("bootimg: kernel addr=%x size=%x\n",
+//            kernel_addr, kernel_size);
+//    cprintf("bootimg: ramdisk addr=%x size=%x\n",
+//            ramdisk_addr, ramdisk_size);
     
     memcpy((void*) ramdisk_addr, 
            hdr->magic + 2048 + kernel_actual,
@@ -330,9 +330,9 @@ void boot_from_mem(unsigned int addr, int size)
     if(init_boot_linux()) {
         DISPLAY_MSG("FAILinvalid boot image");
     }
-    DISPLAY_MSG("\nTrying to reset modem...\n");
+//    DISPLAY_MSG("\nTrying to reset modem...\n");
 	 smsm_ack_amss_crash();
-    DISPLAY_MSG("\nbooting linux...\n");
+//    DISPLAY_MSG("\nbooting linux...\n");
     mdelay(10);
     boot_linux();
     return;
