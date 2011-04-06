@@ -271,13 +271,6 @@ config SEMCCLASS
 	---help---
 	  base class for various SEMC devices
 
-config SENSORS_ES209RA_PROXIMITY
-	bool "ES209RA Proximity Sensor"
-	default n
-
-config ES209RA_WLAN_POWER
-	bool "ES209RA WLAN Power driver"
-	default n
 
 config TSIF
 	depends on ARCH_MSM

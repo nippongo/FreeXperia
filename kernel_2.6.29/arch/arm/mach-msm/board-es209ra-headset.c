@@ -35,7 +35,7 @@
 #include <linux/wakelock.h>
 
 #include "proc_comm.h"
-#include "es209ra_headset.h"
+#include "board-es209ra-headset.h"
 
 #ifdef	CONFIG_ARM
 #include <asm/mach-types.h>

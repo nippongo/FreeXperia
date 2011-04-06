@@ -136,9 +136,9 @@
 #include "board-es209ra.h"
 #include "board-es209ra-keypad.h"
 #ifdef CONFIG_ES209RA_HEADSET
-#include "es209ra_headset.h"
+#include "board-es209ra-headset.h"
 #endif
-#include <linux/spi/es209ra_touch.h>
+#include "board-es209ra-touch-mt.h"
 #include <asm/setup.h>
 #include "q6audio.h"
 #include <../../../drivers/video/msm/mddi_tmd_nt35580.h>
@@ -1088,7 +1088,7 @@ static void __init msm_mddi_tmd_fwvga_display_device_init(void)
 	panel_data->panel_info.bpp = 16;
 	panel_data->panel_info.clk_rate = 192000000;
 	panel_data->panel_info.clk_min =  190000000;
-	panel_data->panel_info.clk_max = 200000000;
+	panel_data->panel_info.clk_max =  200000000;
 	panel_data->panel_info.fb_num = 2;
 
 	panel_data->panel_info.mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
@@ -1104,8 +1104,7 @@ static void __init msm_mddi_tmd_fwvga_display_device_init(void)
 
 	panel_data->panel_ext = &tmd_wvga_panel_ext;
 
-	mddi_tmd_wvga_display_device.dev.platform_data =
-						&tmd_wvga_panel_data;
+	mddi_tmd_wvga_display_device.dev.platform_data =&tmd_wvga_panel_data;
 
 	vreg_gp2 = vreg_get(NULL, "gp2");
 	if (IS_ERR(vreg_gp2)) {

@@ -28,7 +28,7 @@
 #include <mach/rpc_server_handset.h>
 
 #ifdef CONFIG_ES209RA_HEADSET
-#include "es209ra_headset.h"
+#include "board-es209ra-headset.h"
 #endif
 
 #ifdef CONFIG_SEMC_SEPORT_PLATFORM

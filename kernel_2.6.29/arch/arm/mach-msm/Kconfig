@@ -949,6 +949,18 @@ config ES209RA_HEADSET
 	  Provides support for detecting 3.5mm audio jack, such as wired
 	  headset, on the es209ra platform.
 
+config ES209RA_PROXIMITY_SENSOR
+	bool "ES209RA PROXIMITY SENSOR"
+	default n 
+
+config ES209RA_WLAN_POWER
+	bool "ES209RA WLAN POWER"
+	default n
+
+config ES209RA_TOUCH_MT
+	bool "ES209RA TOUCH MT"
+	default y
+
 config NPA_REMOTE_ONCRPC
 	bool "Enables NPA remoting through ONCRPC protocol."
 	depends on NPA && MSM_ONCRPCROUTER

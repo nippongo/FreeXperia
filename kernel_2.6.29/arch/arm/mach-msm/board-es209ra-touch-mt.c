@@ -1,4 +1,4 @@
-/* linux/drivers/input/touchscreen/es209ra_touch.c
+/* linux/drivers/input/touchscreen/es209ra_touch_mt.c
  *
  * Copyright (C) 2009 Sony Ericsson Mobile Communications, INC
  *
@@ -14,9 +14,7 @@
  */
 
 /*#define DEBUG*/
-
 /*#define CONFIG_FWUPDATE_IGNORE*/
-/*#define CONFIG_BACK_KEY_EMULATION*/
 #define CONFIG_FW_HEADER
 #ifdef CONFIG_EARLYSUSPEND
 #define CONFIG_ES209RA_TOUCH_EARLYSUSPEND
@@ -29,7 +27,7 @@
 #include <linux/interrupt.h>
 #include <linux/slab.h>
 #include <linux/spi/spi.h>
-#include <linux/spi/es209ra_touch.h>
+#include <linux/spi/es209ra_touch_mt.h>
 #include <linux/earlysuspend.h>
 #include <linux/syscalls.h>
 #include <linux/cdev.h>
@@ -42,7 +40,7 @@
 #include <linux/ctype.h>
 
 #ifdef CONFIG_FW_HEADER
-#include "es209ra_touch_fw.h"
+#include "board-es209ra-touch-mt-fw.h"
 #endif
 
 #ifdef CONFIG_ARM
@@ -90,11 +88,26 @@
 #define TP_REG_XLSB		0x20
 #define TP_REG_XYMSB		0x21
 #define TP_REG_YLSB		0x22
-#define TP_REG_2FDZLSB		0x23
-#define TP_REG_2FDZMS4		0x24
-#define TP_REG_GC		0x25
-#define TP_REG_GPLSB		0x26
-#define TP_REG_GPMSB		0x27
+#define TP_REG_Z		0x23
+#define TP_REG_XLSB2		0x24
+#define TP_REG_XYMSB2		0x25
+#define TP_REG_YLSB2		0x26
+#define TP_REG_Z2		0x27
+#define TP_REG_GC		0x28
+#define TP_REG_GPLSB		0x29
+#define TP_REG_GPMSB		0x2A
+#define TP_REG_MAXIVX		0x2B
+#define TP_REG_MINIVX		0x2C
+#define TP_REG_MAXIVY		0x2D
+#define TP_REG_MINIVY		0x2E
+#define TP_REG_TSTAT		0x2F
+
+#define TSTAT_TCH12(S)  	(!!((S) & (1 << 0)))
+#define TSTAT_AXISY(S)  	(!!((S) & (1 << 1)))
+#define TSTAT_AXISX(S)  	(!!((S) & (1 << 2)))
+#define TSTAT_1STTCHX(S)	(!!((S) & (1 << 3)))
+#define TSTAT_1STTCHY(S)	(!!((S) & (1 << 4)))
+#define TSTAT_1STTCHL(S)	(!!((S) & (1 << 5)))
 
 /* calibration register address*/
 #define TP_REG_BL			0xFF
@@ -110,16 +123,29 @@
 #define UPDATE_PERMISSION_VERSION	(0x35)
 #define RESET_TIME			(3*HZ)
 
-#ifdef DEBUG
-#define DBGLOG(format, args...) 			\
-	do {    					\
-		printk(KERN_DEBUG format, ## args);	\
-	} while (0);
+#define MAX_TP_SUPPORT		2
+#define FIRST_TOUCH_POINT	0
+#define SECOND_TOUCH_POINT	1
+#define JUMP_PIXEL		40
 
-#define ERRLOG(format, args...) 			\
-	do {    					\
-		printk(KERN_ERR format, ## args);	\
-	} while (0);
+/*Gesture Codes*/
+#define GC_TOUCHUP		0x00
+#define GC_CLICK		0x01
+#define GC_FTOUCH1		0x02
+#define GC_DRAG			0x04
+#define GC_FTOUCH2		0x82
+#define GC_DRAG2		0x84
+#define GC_ZOOM2		0x87
+#define GC_ERROR		0xFF
+
+/*touch state*/
+#define NO_TOUCH		0
+#define ONE_TOUCH		1
+#define TWO_TOUCH		2
+
+#ifdef DEBUG
+#define DBGLOG(format, args...) printk(KERN_DEBUG format, ## args)
+#define ERRLOG(format, args...) printk(KERN_ERR format, ## args)
 #else
 #define DBGLOG(format, args...)
 #define ERRLOG(format, args...)
@@ -136,21 +162,44 @@ enum drv_state{
 	DRV_STATE_UNKNOWN,
 };
 
+struct touch_dataspace {
+	u8 xlsb1;
+	u8 xymsb1;
+	u8 ylsb1;
+	u8 z1;
+	u8 xlsb2;
+	u8 xymsb2;
+	u8 ylsb2;
+	u8 z2;
+	u8 gc;
+	u8 gplsb;
+	u8 gpmsb;
+	u8 maxivx;
+	u8 minivx;
+	u8 maxivy;
+	u8 minivy;
+	u8 tstat;
+};
+
+struct finger_data {
+	u16 x;
+	u16 y;
+	u16 old_x;
+	u16 old_y;
+};
+
 /* data structure used by this driver statically */
 struct es209ra_touch {
 	enum drv_state		state;
 	struct input_dev	*input;
 	struct spi_device	*spi;
-	struct work_struct	irqwork;
+	struct work_struct	isr_work;
 	struct work_struct	tmowork;
 #ifdef CONFIG_ES209RA_TOUCH_EARLYSUSPEND
 	struct early_suspend	early_suspend;
 #endif
-
-	struct spi_message	async_spi_message;
-	struct spi_transfer	async_spi_trasfer;
-	u8			async_set_point_buf[2];
-	u8			async_read_buf[8];
+	struct finger_data	finger_data[MAX_TP_SUPPORT];
+	struct touch_dataspace	touch_data;
 	struct cdev		device_cdev;
 	int			device_major;
 	struct class		*device_class;
@@ -159,14 +208,12 @@ struct es209ra_touch {
 	u16			old_y;
 	u8			g_state_err;
 	u8			g_state;
-	u16			centerX;
-	u16			centerY;
 	u8			update_counter;
 	struct timer_list	tickfn;
 	struct mutex		touch_lock;
 };
-
-static void es209ra_touch_setup(struct es209ra_touch *tp);
+static void es209ra_setup_work(struct es209ra_touch *tp);
+static void touch_data_handler(struct es209ra_touch *tp);
 /*--------------------------------------------------------------------------*/
 
 int es209ra_touch_reg_write(struct spi_device *spi, u8 addr,
@@ -220,7 +267,7 @@ static int reg_write_byte(struct spi_device *spi, u8 addr, u8 data)
 	return 0;
 }
 
-int es209ra_touch_reg_read(struct spi_device *spi, u8 addr, u8* buf, size_t len)
+int es209ra_touch_reg_read(struct spi_device *spi, u8 addr, u8 *buf, size_t len)
 {
 	int err;
 	u8 read_req[2];
@@ -257,6 +304,7 @@ int es209ra_touch_reg_read(struct spi_device *spi, u8 addr, u8* buf, size_t len)
 	} else {
 		err = spi_read(spi, buf, len);
 	}
+
 	if (err)
 		return err;
 
@@ -345,8 +393,7 @@ static int no_dummy_reg_read(struct spi_device *spi, u8 addr, u8* buf)
 	return 0;
 }
 
-
-static int spi_sync_read(struct spi_device *spi, u8 addr, u8* buf, size_t len)
+static int spi_sync_read(struct spi_device *spi, u8 addr, u8 *buf, size_t len)
 {
 	int err;
 	u8 read_req[2];
@@ -374,6 +421,7 @@ static int spi_sync_read(struct spi_device *spi, u8 addr, u8* buf, size_t len)
 	return 0;
 }
 
+
 static void reset_device(struct es209ra_touch_platform_data *pdata)
 {
 	gpio_set_value(pdata->gpio_reset_pin, 1);
@@ -393,11 +441,9 @@ static void dump_calibration_parameters(struct es209ra_touch_ioctl_clbr *data)
 	DBGLOG("%s: rowidac=%d\n", __func__, data->rowidac);
 	DBGLOG("%s: noisethreshold=%d\n", __func__, data->noisethreshold);
 	DBGLOG("%s: fingerthreshold=%d\n", __func__, data->fingerthreshold);
-	DBGLOG("%s: negnoisethreshold=%d\n", __func__,
-						data->negnoisethreshold);
+	DBGLOG("%s: negnoisethreshold=%d\n", __func__, data->negnoisethreshold);
 	DBGLOG("%s: lowbaselinereset=%d\n", __func__, data->lowbaselinereset);
-	DBGLOG("%s: blupdatethreshold=%d\n", __func__,
-						data->blupdatethreshold);
+	DBGLOG("%s: blupdatethreshold=%d\n", __func__, data->blupdatethreshold);
 }
 
 static int do_calibration_ioctl_valset(struct spi_device *spi,
@@ -481,7 +527,6 @@ static int do_calibration_ioctl_valset(struct spi_device *spi,
 	mutex_unlock(&tp->touch_lock);
 	return err;
 }
-
 
 static int do_calibration_ioctl_valget(struct spi_device *spi,
 			  struct es209ra_touch_ioctl_clbr *data)
@@ -609,7 +654,7 @@ static u8 get_latest_firmware_ver(struct es209ra_touch *tp)
 	fw_buf = firmware[FW_LENGTH];
 #endif
 
-	DBGLOG("%s: version = %d.%d\n", __func__, fw_buf>>4, fw_buf&0x0F);
+	DBGLOG("%s: fw version = %d.%d\n", __func__, fw_buf>>4, fw_buf&0x0F);
 	return fw_buf;
 }
 
@@ -755,7 +800,6 @@ err_free_data:
 	kfree(fw_buf);
 #endif
 err_r_fs_irq:
-
 	if (tp->state != DRV_STATE_POWEROFF) {
 		/* reset release device */
 		DBGLOG("%s: state = DRV_STATE_BEGIN_RESET\n", __func__);
@@ -777,18 +821,9 @@ static void es209ra_touch_tmowork(struct work_struct *work)
 
 	mutex_lock(&tp->touch_lock);
 
-	if ((tp->g_state != 0)
-#if defined(CONFIG_BACK_KEY_EMULATION)
-	   && (tp->g_state != 2)
-#endif
-	   ){
-		input_report_key(tp->input, BTN_TOUCH, 0);
-		input_report_abs(tp->input, ABS_X, tp->old_x);
-		input_report_abs(tp->input, ABS_Y, tp->old_y);
-		input_sync(tp->input);
-		tp->g_state = 0;
-		DBGLOG("%s: touch up at (%d, %d)\n",
-			__func__, tp->old_x, tp->old_y);
+	if (tp->g_state != NO_TOUCH) {
+		tp->touch_data.gc = GC_TOUCHUP;
+		touch_data_handler(tp);
 	}
 
 	DBGLOG("%s: state = DRV_STATE_BEGIN_RESET\n", __func__);
@@ -807,154 +842,174 @@ static void touch_timeout(unsigned long arg)
 	schedule_work(&tp->tmowork);
 }
 
-static void read_gesture_code(struct es209ra_touch *tp)
+static void touch_data_handler(struct es209ra_touch *tp)
 {
-	u8 read_buf[8];
-	u16 x;
-	u16 y;
-	memcpy(read_buf, tp->async_read_buf, sizeof(u8)*8);
+	struct finger_data *tp1 = &tp->finger_data[FIRST_TOUCH_POINT];
+	struct finger_data *tp2 = &tp->finger_data[SECOND_TOUCH_POINT];
+	struct finger_data *down;
+	struct finger_data *temp;
 
-	x = read_buf[0] | ((read_buf[1]&0x0F)<<8);
-	y = read_buf[2] | ((read_buf[1]&0xF0)<<4);
+	tp1->x = tp->touch_data.xlsb1 | ((tp->touch_data.xymsb1 & 0x0F) << 8);
+	tp1->y = tp->touch_data.ylsb1 | ((tp->touch_data.xymsb1 & 0xF0) << 4);
+	tp2->x = tp->touch_data.xlsb2 | ((tp->touch_data.xymsb2 & 0x0F) << 8);
+	tp2->y = tp->touch_data.ylsb2 | ((tp->touch_data.xymsb2 & 0xF0) << 4);
 
-	DBGLOG("%s: Gesture Code[0x%X]\n", __func__, read_buf[5]);
-	switch (read_buf[5]) {
-	case 0x00:
+	down = (tp1->x != 0xFFF) ? tp1 : tp2;
+
+	DBGLOG("%s: [%02x] xy1=(%d %d)"
+		"xy2=(%d %d) TCH12=%d AXISxy=(%d %d)"
+		"1stTchXY=(%d %d) 1stTchL=%d %s\n",
+		__func__, tp->touch_data.gc,
+		tp1->x, tp1->y, tp2->x, tp2->y,
+		TSTAT_TCH12(tp->touch_data.tstat),
+		TSTAT_AXISX(tp->touch_data.tstat),
+		TSTAT_AXISY(tp->touch_data.tstat),
+		TSTAT_1STTCHX(tp->touch_data.tstat),
+		TSTAT_1STTCHY(tp->touch_data.tstat),
+		TSTAT_1STTCHL(tp->touch_data.tstat),
+		((tp->touch_data.tstat & 0x7) != 0x7) ? "*** error" : "");
+
+	switch (tp->touch_data.gc) {
+	case GC_TOUCHUP:
+	case GC_CLICK:
 		if (timer_pending(&tp->tickfn)) {
-			DBGLOG("%s: Change!! x:%d -> %d, y:%d -> %d\n",
-				__func__, x, tp->old_x, y , tp->old_y);
 			del_timer(&tp->tickfn);
-			x = tp->old_x;
-			y = tp->old_y;
 			tp->g_state_err = 0;
 		}
-		if (tp->g_state == 3) {
-			DBGLOG("%s: Change!! x:%d -> %d, y:%d -> %d\n",
-				__func__, x, tp->old_x, y , tp->old_y);
-			x = tp->old_x;
-			y = tp->old_y;
-			input_report_abs(tp->input, ABS_X, x);
-			input_report_abs(tp->input, ABS_Y, y);
-			input_report_key(tp->input, BTN_TOUCH, 0);
+		if (tp->g_state == ONE_TOUCH) {
+			input_report_abs(tp->input, ABS_MT_POSITION_X,
+							down->old_x);
+			input_report_abs(tp->input, ABS_MT_POSITION_Y,
+							down->old_y);
+			input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 0);
+			input_mt_sync(tp->input);
 			input_sync(tp->input);
-		}
-#if defined(CONFIG_BACK_KEY_EMULATION)
-		else if (tp->g_state == 2) {
-			input_report_key(tp->input, BTN_BACK, 0);
-			input_report_key(tp->input, KEY_BACK, 0);
+			DBGLOG("%s: ST -> touch up: (%d, %d)",
+				__func__, down->old_x, down->old_y);
+		} else if (tp->g_state == TWO_TOUCH) {
+			input_report_abs(tp->input, ABS_MT_POSITION_X,
+							tp1->old_x);
+			input_report_abs(tp->input, ABS_MT_POSITION_Y,
+							tp1->old_y);
+			input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 0);
+			input_mt_sync(tp->input);
+
+			input_report_abs(tp->input, ABS_MT_POSITION_X,
+							tp2->old_x);
+			input_report_abs(tp->input, ABS_MT_POSITION_Y,
+							tp2->old_y);
+			input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 0);
+			input_mt_sync(tp->input);
 			input_sync(tp->input);
+			DBGLOG("%s: MT -> tp1 touch up: (%d, %d)"
+				" tp2 touch up: (%d, %d) \n",
+				__func__,
+				tp1->old_x, tp1->old_y,
+				tp2->old_x, tp2->old_y);
+			tp1->old_x = 0xFFF;
+			tp1->old_y = 0xFFF;
+			tp2->old_x = 0xFFF;
+			tp2->old_y = 0xFFF;
 		}
-#endif
-		else if (tp->g_state == 1) {
-			input_report_abs(tp->input, ABS_X, x);
-			input_report_abs(tp->input, ABS_Y, y);
-			input_report_key(tp->input, BTN_TOUCH, 0);
-			input_sync(tp->input);
-		}
-			tp->g_state = 0;
-			tp->old_x = x;
-			tp->old_y = y;
-			DBGLOG("%s: touch up at (%d, %d)\n", __func__, x, y);
+		tp->g_state = NO_TOUCH;
 		break;
-	case 0x01:
+	case GC_FTOUCH1:
+	case GC_DRAG:
 		if (timer_pending(&tp->tickfn)) {
-			DBGLOG("%s: Change!! x:%d -> %d, y:%d -> %d\n",
-				__func__, x, tp->old_x, y , tp->old_y);
 			del_timer(&tp->tickfn);
-			x = tp->old_x;
-			y = tp->old_y;
 			tp->g_state_err = 0;
 		}
-		input_report_abs(tp->input, ABS_X, x);
-		input_report_abs(tp->input, ABS_Y, y);
-		input_report_key(tp->input, BTN_TOUCH, 0);
+		/*send ST report*/
+		input_report_abs(tp->input, ABS_MT_POSITION_X, down->x);
+		input_report_abs(tp->input, ABS_MT_POSITION_Y, down->y);
+		input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 10);
+		input_mt_sync(tp->input);
 		input_sync(tp->input);
-		tp->g_state = 0;
-		tp->old_x = x;
-		tp->old_y = y;
-		DBGLOG("%s: touch up at (%d, %d)\n", __func__, x, y);
+		DBGLOG("%s: ST -> tp1 touch down: %d, %d\n",
+				__func__, down->x, down->y);
+		down->old_x = down->x;
+		down->old_y = down->y;
+		tp->g_state = ONE_TOUCH;
 		break;
-	case 0x02:
+	case GC_FTOUCH2:
 		if (timer_pending(&tp->tickfn)) {
-			DBGLOG("%s: Clear!!\n", __func__);
 			del_timer(&tp->tickfn);
 			tp->g_state_err = 0;
 		}
-		if (tp->g_state == 3) {
-			u16 f1_x = abs(x - tp->centerX);
-			u16 f1_y = abs(y - tp->centerY);
-			input_report_key(tp->input, BTN_TOUCH, 0);
-			input_report_abs(tp->input, ABS_X, f1_x);
-			input_report_abs(tp->input, ABS_Y, f1_y);
-			input_sync(tp->input);
-			input_report_key(tp->input, BTN_TOUCH, 1);
-			input_report_abs(tp->input, ABS_X, x);
-			input_report_abs(tp->input, ABS_Y, y);
+		/* swap order of sending fingers when 1st finger
+		   goes down->up->down */
+		if ((tp->g_state == ONE_TOUCH) &&
+		    (tp1->x != down->old_x && tp1->y != down->old_y)) {
+			temp = tp1;
+			tp1 = tp2;
+			tp2 = temp;
 		}
-#if defined(CONFIG_BACK_KEY_EMULATION)
-		else if (tp->g_state == 2) {
-			DBGLOG("%s: state = %d, BACK!\n",
-					__func__, tp->g_state);
-			input_report_key(tp->input, BTN_BACK, 0);
-			input_report_key(tp->input, KEY_BACK, 0);
-		}
-#endif
-		else{
-			input_report_key(tp->input, BTN_TOUCH, 1);
-			input_report_abs(tp->input, ABS_X, x);
-			input_report_abs(tp->input, ABS_Y, y);
-		}
+		/*report 2 successive finger*/
+		input_report_abs(tp->input, ABS_MT_POSITION_X, tp1->x);
+		input_report_abs(tp->input, ABS_MT_POSITION_Y, tp1->y);
+		input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 10);
+		input_mt_sync(tp->input);
+		tp1->old_x = tp1->x;
+		tp1->old_y = tp1->y;
+
+		input_report_abs(tp->input, ABS_MT_POSITION_X, tp2->x);
+		input_report_abs(tp->input, ABS_MT_POSITION_Y, tp2->y);
+		input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 10);
+		input_mt_sync(tp->input);
 		input_sync(tp->input);
-		tp->g_state = 1;
-		tp->old_x = x;
-		tp->old_y = y;
-		DBGLOG("%s: touch down at (%d, %d)\n", __func__, x, y);
+		DBGLOG("%s: MT -> tp1 touch down: (%d, %d),"
+			" tp2 touch down: (%d, %d) \n",
+				__func__,
+				tp1->x, tp1->y,
+				tp2->x, tp2->y);
+		tp2->old_x = tp2->x;
+		tp2->old_y = tp2->y;
+		tp->g_state = TWO_TOUCH;
 		break;
-	case 0x04:
+	case GC_DRAG2:
+        case GC_ZOOM2:
 		if (timer_pending(&tp->tickfn)) {
-			DBGLOG("%s: Change!! x:%d -> %d, y:%d -> %d\n",
-				__func__, x, tp->old_x, y , tp->old_y);
 			del_timer(&tp->tickfn);
-			x = tp->old_x;
-			y = tp->old_y;
 			tp->g_state_err = 0;
 		}
-		input_report_key(tp->input, BTN_TOUCH, 1);
-		input_report_abs(tp->input, ABS_X, x);
-		input_report_abs(tp->input, ABS_Y, y);
+		/*reduce jump*/
+		if (abs(tp1->x - tp1->old_x) > JUMP_PIXEL) {
+			tp1->x = tp1->old_x + ((tp1->x - tp1->old_x) * 1/10);
+			DBGLOG("%s: tp1->x = %d jumped!\n", __func__, tp1->x);
+		}
+		if (abs(tp1->y - tp1->old_y) > JUMP_PIXEL) {
+			tp1->y = tp1->old_y + ((tp1->y - tp1->old_y) * 1/10);
+			DBGLOG("%s: tp1->y = %d jumped!\n", __func__, tp1->y);
+		}
+		if (abs(tp2->x - tp2->old_x) > JUMP_PIXEL) {
+			tp2->x = tp2->old_x + ((tp2->x - tp2->old_x) * 1/10);
+			DBGLOG("%s: tp2->x = %d jumped!\n", __func__, tp2->x);
+		}
+		if (abs(tp2->y - tp2->old_y) > JUMP_PIXEL) {
+			tp2->y = tp2->old_y + ((tp2->y - tp2->old_y) * 1/10);
+			DBGLOG("%s: tp2->y = %d jumped!\n", __func__, tp2->y);
+		}
+		/*send MT report*/
+		input_report_abs(tp->input, ABS_MT_POSITION_X, tp1->x);
+		input_report_abs(tp->input, ABS_MT_POSITION_Y, tp1->y);
+		input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 10);
+		input_mt_sync(tp->input);
+		tp1->old_x = tp1->x;
+		tp1->old_y = tp1->y;
+
+		input_report_abs(tp->input, ABS_MT_POSITION_X, tp2->x);
+		input_report_abs(tp->input, ABS_MT_POSITION_Y, tp2->y);
+		input_report_abs(tp->input, ABS_MT_TOUCH_MAJOR, 10);
+		input_mt_sync(tp->input);
 		input_sync(tp->input);
-		tp->old_x = x;
-		tp->old_y = y;
-		DBGLOG("%s: touch drag at (%d, %d)\n", __func__, x, y);
+		DBGLOG("%s: MT -> tp1 touch down: (%d, %d),"
+			" tp2 touch down: (%d, %d) \n",
+			__func__, tp1->x, tp1->y, tp2->x, tp2->y);
+		tp2->old_x = tp2->x;
+		tp2->old_y = tp2->y;
 		break;
-	case 0x82:
-		if (timer_pending(&tp->tickfn)) {
-			DBGLOG("%s: Clear!!\n", __func__);
-			del_timer(&tp->tickfn);
-			tp->g_state_err = 0;
-		}
-		if (tp->g_state == 1) {
-			tp->g_state = 3;
-			tp->centerX = x;
-			tp->centerY = y;
-		}
-#if defined(CONFIG_BACK_KEY_EMULATION)
-		else if (tp->g_state == 0) {
-			DBGLOG("%s: state = %d, BACK!\n",
-				__func__, tp->g_state);
-			input_report_key(tp->input, BTN_BACK, 1);
-			input_report_key(tp->input, KEY_BACK, 1);
-			input_sync(tp->input);
-			tp->g_state = 2;
-		}
-#endif
-		break;
-	case 0x84:
-		tp->centerX = x;
-		tp->centerY = y;
-		break;
-	case 0xFF:
-		DBGLOG("%s: touch err\n", __func__);
+	case GC_ERROR:
+		ERRLOG("%s: touch err\n", __func__);
 		if (timer_pending(&tp->tickfn) == 0) {
 			DBGLOG("%s: timeout set!\n", __func__);
 			tp->tickfn.expires = jiffies + RESET_TIME;
@@ -963,35 +1018,35 @@ static void read_gesture_code(struct es209ra_touch *tp)
 		tp->g_state_err = 1;
 		break;
 	default:
-		DBGLOG("%s: detected unknown event!\n", __func__);
+		DBGLOG("%s: -> Unknown gesture reg code!\n", __func__);
 		break;
 	}
 
-	if (tp->fw_ver < 0x10)
-		mdelay(2);
 }
-
-
 static void es209ra_touch_isr(struct work_struct *work)
 {
 	struct es209ra_touch *tp =
-		container_of(work, struct es209ra_touch, irqwork);
+		container_of(work, struct es209ra_touch, isr_work);
 	struct spi_device *spi = tp->spi;
 	int err;
 
 	mutex_lock(&tp->touch_lock);
 
-	err = spi_sync_read(spi, TP_REG_XLSB, tp->async_read_buf,
-					sizeof(tp->async_read_buf));
+	err = spi_sync_read(spi, TP_REG_XLSB, (u8 *)&tp->touch_data,
+					sizeof(tp->touch_data));
 
 	if (err)
 		ERRLOG("%s: spi_sync_read failed\n", __func__);
 
-	if (tp->state == DRV_STATE_ACTIVE_APP)
-		read_gesture_code(tp);
-	else if ((tp->state == DRV_STATE_POWEROFF) ||
-		(tp->state == DRV_STATE_BEGIN_RESET))
-		es209ra_touch_setup(tp);
+	if (tp->state == DRV_STATE_ACTIVE_APP) {
+		touch_data_handler(tp);
+	} else if ((tp->state == DRV_STATE_POWEROFF) ||
+		(tp->state == DRV_STATE_BEGIN_RESET)) {
+		DBGLOG("%s: setup_work()\n", __func__);
+		es209ra_setup_work(tp);
+	} else {
+		ERRLOG("%s: invalid state\n", __func__);
+	}
 
 	mutex_unlock(&tp->touch_lock);
 }
@@ -1000,12 +1055,12 @@ static irqreturn_t es209ra_touch_irq(int irq, void *handle)
 {
 	struct es209ra_touch *tp = handle;
 
-	schedule_work(&tp->irqwork);
+	schedule_work(&tp->isr_work);
 
 	return IRQ_HANDLED;
 }
 
-static void es209ra_touch_setup(struct es209ra_touch *tp)
+static void es209ra_setup_work(struct es209ra_touch *tp)
 {
 	u8 read_buf = 0xFF;
 
@@ -1018,7 +1073,7 @@ static void es209ra_touch_setup(struct es209ra_touch *tp)
 		tp->state = DRV_STATE_ACTIVE_APP;
 
 		reg_write_byte(tp->spi, TP_REG_CTRL, 0x01);
-		reg_write_byte(tp->spi, TP_REG_GCTRL, 0x44);
+		reg_write_byte(tp->spi, TP_REG_GCTRL, 0x64);
 		reg_write_byte(tp->spi, TP_REG_SLP1TO, 0x96);
 		reg_write_byte(tp->spi, TP_REG_SLP2TO, 0x96);
 		reg_write_byte(tp->spi, TP_REG_SLP1SR, 0x0C);
@@ -1039,8 +1094,9 @@ static void es209ra_touch_setup(struct es209ra_touch *tp)
 		/* app mode */
 		es209ra_touch_reg_read(tp->spi, TP_REG_FWVER,
 						&tp->fw_ver, 1);
-		DBGLOG("%s: firmware version= %d.%d\n",
-			__func__, tp->fw_ver>>4, tp->fw_ver&0x0F);
+		DBGLOG("%s: fw version = %d.%d\n", __func__,
+			tp->fw_ver>>4, tp->fw_ver&0x0F);
+
 		if ((tp->fw_ver < 0x06) || (tp->fw_ver > 0x99)) {
 			ERRLOG("%s: unknown ver = %d\n", __func__, tp->fw_ver);
 			return;
@@ -1053,14 +1109,14 @@ static void es209ra_touch_setup(struct es209ra_touch *tp)
 		if ((tp->update_counter < UPDATE_RETRY_NUMBER)
 		   && (tp->fw_ver >= UPDATE_PERMISSION_VERSION)
 		   && (tp->fw_ver != get_latest_firmware_ver(tp))) {
-			DBGLOG("%s: firmware updated is required\n", __func__);
+			DBGLOG("%s: firmware update is required\n", __func__);
 			tp->update_counter++;
 			update_firmware(tp);
 		} else {
 #endif
 			/* initialze the device */
 			reg_write_byte(tp->spi, TP_REG_CTRL, 0x01);
-			reg_write_byte(tp->spi, TP_REG_GCTRL, 0x44);
+			reg_write_byte(tp->spi, TP_REG_GCTRL, 0x64);
 			reg_write_byte(tp->spi, TP_REG_SLP1TO, 0x96);
 			reg_write_byte(tp->spi, TP_REG_SLP2TO, 0x96);
 			reg_write_byte(tp->spi, TP_REG_SLP1SR, 0x0C);
@@ -1106,15 +1162,15 @@ static int es209ra_touch_suspend(struct spi_device *spi, pm_message_t message)
 	disable_irq(tp->spi->irq);
 
 	/* clear worker and timer */
-	if (work_pending(&tp->irqwork))
-		flush_work(&tp->irqwork);
+	if (work_pending(&tp->isr_work))
+		flush_work(&tp->isr_work);
 
 	if (work_pending(&tp->tmowork))
 		flush_work(&tp->tmowork);
 
 	if (timer_pending(&tp->tickfn)) {
 		del_timer(&tp->tickfn);
-		tp->g_state_err = false;
+		tp->g_state_err = 0;
 	}
 
 	err = es209ra_touch_reg_read(spi, TP_REG_CTRL, &data, 1);
@@ -1267,7 +1323,7 @@ static int es209ra_touch_write(struct file *file, const char __user *buf,
 		if (count != 1)
 			fwver = 0x07;
 #endif
-		DBGLOG("%s: firmware version= %d.%d\n",
+		DBGLOG("%s: firmware version = %d.%d\n",
 				__func__, fwver>>4, fwver&0x0F);
 
 		if (!fwver || (fwver != get_latest_firmware_ver(tp))) {
@@ -1386,7 +1442,7 @@ static int __devinit es209ra_touch_probe(struct spi_device *spi)
 	tp->spi = spi;
 	tp->input = input_dev;
 	tp->state = DRV_STATE_BEGIN_RESET;
-	tp->g_state = 0;
+	tp->g_state = NO_TOUCH;
 	tp->g_state_err = 0;
 	tp->update_counter = 0;
 
@@ -1399,15 +1455,18 @@ static int __devinit es209ra_touch_probe(struct spi_device *spi)
 
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 	input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
-#if defined(CONFIG_BACK_KEY_EMULATION)
-	input_dev->keybit[BIT_WORD(BTN_BACK)] |= BIT_MASK(BTN_BACK);
-	__set_bit(KEY_BACK, input_dev->keybit);
-#endif
-	input_set_abs_params(input_dev, ABS_X, pdata->x_min,
-					pdata->x_max, 0, 0);
-	input_set_abs_params(input_dev, ABS_Y, pdata->y_min,
-					pdata->y_max, 0, 0);
-	input_set_abs_params(input_dev, ABS_PRESSURE, 0, 0, 0, 0);
+
+	DBGLOG("%s: max x = %d, max y = %d\n", __func__,
+				pdata->x_max, pdata->y_max);
+
+	input_set_abs_params(input_dev, ABS_X, 0, pdata->x_max, 0, 0);
+	input_set_abs_params(input_dev, ABS_Y, 0, pdata->y_max, 0, 0);
+	input_set_abs_params(input_dev, ABS_MT_POSITION_X, 0,
+						pdata->x_max, 0, 0);
+	input_set_abs_params(input_dev, ABS_MT_POSITION_Y, 0,
+						pdata->y_max, 0, 0);
+	input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR, 0, 10, 0, 0);
+	input_set_abs_params(input_dev, ABS_MT_WIDTH_MAJOR, 0, 255, 0, 0);
 
 	err = input_register_device(input_dev);
 	if (err)
@@ -1443,7 +1502,7 @@ static int __devinit es209ra_touch_probe(struct spi_device *spi)
 	}
 
 	/* register firmware validation and initialization to workqueue*/
-	INIT_WORK(&tp->irqwork, es209ra_touch_isr);
+	INIT_WORK(&tp->isr_work, es209ra_touch_isr);
 	INIT_WORK(&tp->tmowork, es209ra_touch_tmowork);
 
 	/* GPIO: set up*/
@@ -1505,12 +1564,12 @@ err_cleanup_cdev:
 err_cleanup_chrdev:
 	unregister_chrdev_region(device_t, 1);
 err_cleanup_input:
+
 	input_unregister_device(input_dev);
 	mutex_destroy(&tp->touch_lock);
 err_cleanup_mem:
 	input_free_device(input_dev);
 	kfree(tp);
-
 	return err;
 }
 

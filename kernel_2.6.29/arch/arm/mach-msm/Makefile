@@ -119,7 +119,10 @@ obj-$(CONFIG_DELTA_PROXIMITY_SENSOR) += proximity_platform_delta.o
 obj-$(CONFIG_SEMC_POWER) += semc_power_platform.o
 obj-$(CONFIG_MSM_MISC_MODEM_API) += misc_modem_api.o
 
-obj-$(CONFIG_ES209RA_HEADSET) += es209ra_headset.o
+obj-$(CONFIG_ES209RA_HEADSET) += board-es209ra-headset.o
+obj-$(CONFIG_ES209RA_PROXIMITY_SENSOR) += board-es209ra-proximity.o
+obj-$(CONFIG_ES209RA_WLAN_POWER) += board-es209ra-wlan-power.o
+obj-$(CONFIG_ES209RA_WLAN_POWER) += board-es209ra-touch-mt.o
 
 obj-$(CONFIG_NPA) += npa_resources.o
 obj-$(CONFIG_NPA_REMOTE_ONCRPC)	+= npa_remote_rpc_client.o
