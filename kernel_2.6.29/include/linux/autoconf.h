@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.29
- * Wed Apr  6 22:54:49 2011
+ * Wed Apr  6 23:00:22 2011
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_VIDEO_V4L1_COMPAT 1
@@ -170,6 +170,7 @@
 #define CONFIG_UID16 1
 #define CONFIG_LOCK_KERNEL 1
 #define CONFIG_USB_ANDROID 1
+#define CONFIG_TOUCHSCREEN_ES209RA_TOUCH_MT 1
 #define CONFIG_SCSI_WAIT_SCAN_MODULE 1
 #define CONFIG_CRYPTO_ARC4 1
 #define CONFIG_IKCONFIG 1
