@@ -33,7 +33,7 @@ SEMC_BUILD_TIMESTAMP_UTC := $(shell date --date='$(SEMC_BUILD_TIMESTAMP)' +%s)
 $(KERNEL_OUT)/semc_kernel_time_stamp.prop: kernel/scripts/timestamp_gen.sh $(TARGET_PREBUILT_KERNEL)
 	@echo "ro.build.date=$(SEMC_BUILD_TIMESTAMP)" > $@
 	@echo "ro.build.date.utc=$(SEMC_BUILD_TIMESTAMP_UTC)" >> $@
-	@echo "ro.build.user=zdzihu" >> $@
-	@echo "ro.build.host=wrack" >> $@
+	@echo "ro.build.user=FreeXperia" >> $@
+	@echo "ro.build.host=Tardis" >> $@
 
 endif
