@@ -229,20 +229,6 @@ config MACH_ES209RA
 	help
 	  Support for the ES209RA (Rachael) SEMC product using QSD8x50.
 
-config TOUCHSCREEN_ES209RA_TOUCH_MT
-	default n
-	tristate "es209ra touchscreen driver (multi-touch)"
-	depends on SPI_MASTER
-	help
-	  Say Y here if you have a touchscreen interface es209ra touchscreen
-	  device (multi-touch), and your board-specific setup code includes
-	  that in its table of SPI devices.
-
-	  If unsure, say N (but it's safe to say "Y").
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called es209ra_touch_mt.
-
 config MACH_MSM7X25_SURF
 	depends on ARCH_MSM7X25
 	depends on !MSM_STACKED_MEMORY
@@ -970,6 +956,10 @@ config ES209RA_PROXIMITY_SENSOR
 config ES209RA_WLAN_POWER
 	bool "ES209RA WLAN POWER"
 	default n
+
+config ES209RA_TOUCH_MT
+	bool "ES209RA TOUCH MT"
+	default y
 
 config NPA_REMOTE_ONCRPC
 	bool "Enables NPA remoting through ONCRPC protocol."
