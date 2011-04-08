@@ -37,7 +37,7 @@
 
 #include <linux/power_supply.h>
 #include <linux/i2c.h>
-#include <linux/max17040.h>
+#include "board-es209ra-max17040.h"
 #include <mach/rpc_hsusb.h>
 
 #ifdef CONFIG_SEMC_LOW_BATT_SHUTDOWN

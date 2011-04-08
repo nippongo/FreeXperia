@@ -16,7 +16,7 @@
 
 */
 
-#include "max17040.h"
+#include "board-es209ra-max17040.h"
 
 struct max17040_device_data max17040_dev_data = {
 	.model = {
