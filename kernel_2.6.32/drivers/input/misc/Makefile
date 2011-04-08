@@ -37,7 +37,14 @@ obj-$(CONFIG_PMIC8058_PWRKEY)		+= pmic8058-pwrkey.o
 obj-$(CONFIG_PMIC8058_OTHC)		+= pmic8058-othc.o
 obj-$(CONFIG_INPUT_KP_FLIP_SWITCH)	+= kp_flip_switch.o
 
-obj-$(CONFIG_INPUT_GPIO)		+= gpio_event.o gpio_matrix.o gpio_input.o gpio_output.o gpio_axis.o
+#obj-$(CONFIG_INPUT_GPIO)		+= gpio_event.o gpio_matrix.o gpio_input.o gpio_output.o gpio_axis.o
+obj-$(CONFIG_INPUT_GPIO)		+= gpio_event.o gpio_input.o gpio_output.o gpio_axis.o
+ifeq ($(CONFIG_ES209RA_INPUT_GPIO_MATRIX),y)
+	obj-$(CONFIG_INPUT_GPIO)	+= es209ra_gpio_matrix.o
+else
+	obj-$(CONFIG_INPUT_GPIO)	+= gpio_matrix.o
+endif
+
 obj-$(CONFIG_INPUT_KEYCHORD)	+= keychord.o
 obj-$(CONFIG_INPUT_BMA150)		+= bma150.o
 obj-$(CONFIG_INPUT_BMA150_NG)		+= bma150_ng.o
