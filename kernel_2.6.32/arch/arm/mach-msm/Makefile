@@ -88,7 +88,13 @@ obj-$(CONFIG_MACH_QSD8X50_FFA) += board-qsd8x50.o
 obj-$(CONFIG_MACH_QSD8X50_COMET) += board-comet.o
 obj-$(CONFIG_MACH_QSD8X50A_SURF) += board-qsd8x50.o
 obj-$(CONFIG_MACH_QSD8X50A_FFA) += board-qsd8x50.o
-obj-$(CONFIG_MACH_ES209RA) += board-es209ra.o board-es209ra-keypad.o board-es209ra-headset.o board-es209ra-max17040.o board-es209ra-max17040_gauge.o board-es209ra-leds.o board-es209ra-touch_mt.o
+obj-$(CONFIG_MACH_ES209RA) += board-es209ra.o board-es209ra-keypad.o board-es209ra-max17040.o board-es209ra-max17040_gauge.o board-es209ra-leds.o
+
+obj-$(CONFIG_ES209RA_HEADSET) += board-es209ra-headset.o
+obj-$(CONFIG_ES209RA_PROXIMITY_SENSOR) += board-es209ra-proximity.o
+obj-$(CONFIG_ES209RA_WLAN_POWER) += board-es209ra-wlan-power.o
+obj-$(CONFIG_ES209RA_TOUCH_MT) += board-es209ra-touch-mt.o
+
 obj-$(CONFIG_TROUT_H2W) += board-trout-h2w.o
 obj-$(CONFIG_TROUT_BATTCHG) += htc_battery.o
 obj-$(CONFIG_TROUT_PWRSINK) += htc_pwrsink.o

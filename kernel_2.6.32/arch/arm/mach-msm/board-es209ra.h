@@ -20,34 +20,12 @@
 #ifndef _BOARD_ES209RA_H
 #define _BOARD_ES209RA_H
 
-#define MSM_PMEM_MDP_SIZE	0x1C91000
-
-#define SMEM_SPINLOCK_I2C	"S:6"
-
-#define MSM_PMEM_ADSP_SIZE	0x2196000
-#define MSM_FB_SIZE		0x500000
-#define MSM_AUDIO_SIZE		0x80000
-#define MSM_GPU_PHYS_SIZE 	SZ_2M
-
-#define MSM_SMI_BASE		0x00000000
-
-#define MSM_SHARED_RAM_PHYS	(MSM_SMI_BASE + 0x00100000)
-
-#define MSM_PMEM_SMI_BASE	(MSM_SMI_BASE + 0x02B00000)
-#define MSM_PMEM_SMI_SIZE	0x01500000
-
-#define MSM_FB_BASE		MSM_PMEM_SMI_BASE
-#define MSM_GPU_PHYS_BASE 	(MSM_FB_BASE + MSM_FB_SIZE)
-#define MSM_PMEM_SMIPOOL_BASE	(MSM_GPU_PHYS_BASE + MSM_GPU_PHYS_SIZE)
-#define MSM_PMEM_SMIPOOL_SIZE	(MSM_PMEM_SMI_SIZE - MSM_FB_SIZE - MSM_GPU_PHYS_SIZE)
-
-#define PMEM_KERNEL_EBI1_SIZE	0x28000
-
-#define PMIC_VREG_WLAN_LEVEL	2600
-#define PMIC_VREG_GP6_LEVEL	2850
-
-#define FPGA_SDCC_STATUS	0x70000280
-
+#if defined(CONFIG_ARCH_QSD8X50)
+#include <mach/irqs-8x50.h>
+#include <mach/sirc.h>
+#else
+#include <mach/irqs-7xxx.h>
+#endif
 
 #define INT_ES209RA_GPIO_BATLOW			MSM_GPIO_TO_INT(145)
 #define INT_ES209RA_GPIO_LEDC			MSM_GPIO_TO_INT(144)
@@ -82,11 +60,6 @@
 /* software mode */
 #define STARTUP_REASON_TYPE_APPROVAL	(1 << 28)
 /* SEMC: add bit definition for startup_reason - end */
-
-#define AKM8973_GPIO_RESET_PIN 2
-#define AKM8973_GPIO_RESET_ON 0
-#define AKM8973_GPIO_RESET_OFF 1
-
 
 extern struct max17040_device_data max17040_dev_data;
 

@@ -63,27 +63,6 @@ static unsigned int es209ra_col_gpios[] = { 38, 39, 40, 41, 42 };
 
 #define KEYMAP_INDEX(row, col) ((row)*ARRAY_SIZE(es209ra_col_gpios) + (col))
 
-#ifdef CONFIG_ES209RA_LB
-static const unsigned short es209ra_keymap[ARRAY_SIZE(es209ra_col_gpios) * ARRAY_SIZE(es209ra_row_gpios)] = {
-	[KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,		/* volume up(115) */
-	[KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN,		/* volume down(114) */
-	[KEYMAP_INDEX(0, 2)] = KEY_CAMERA,			/* camera(212) */
-	[KEYMAP_INDEX(0, 3)] = KEY_EMAIL,			/* AF(215) */
-	[KEYMAP_INDEX(0, 4)] = KEY_COFFEE,			/* lock(152) */
-
-	[KEYMAP_INDEX(1, 0)] = KEY_SEND,			/* send(231) */
-	[KEYMAP_INDEX(1, 1)] = KEY_KBDILLUMDOWN,	/* menu(229) */
-	[KEYMAP_INDEX(1, 2)] = KEY_HOME,			/* home(102) */
-	[KEYMAP_INDEX(1, 3)] = KEY_BACK,			/* back(158) */
-	[KEYMAP_INDEX(1, 4)] = KEY_END,				/* end(107) */
-
-	[KEYMAP_INDEX(2, 0)] = KEY_UP,				/* up(103) */
-	[KEYMAP_INDEX(2, 1)] = KEY_DOWN,			/* down(108) */
-	[KEYMAP_INDEX(2, 2)] = KEY_LEFT,			/* left(105) */
-	[KEYMAP_INDEX(2, 3)] = KEY_RIGHT,			/* right(106) */
-	[KEYMAP_INDEX(2, 4)] = KEY_REPLY			/* click(232) */
-};
-#else
 static const unsigned short es209ra_keymap[ARRAY_SIZE(es209ra_col_gpios) * ARRAY_SIZE(es209ra_row_gpios)] = {
 	[KEYMAP_INDEX(0, 0)] = KEY_VOLUMEUP,		/* volume up(115) */
 	[KEYMAP_INDEX(0, 1)] = KEY_VOLUMEDOWN,		/* volume down(114) */
@@ -94,7 +73,6 @@ static const unsigned short es209ra_keymap[ARRAY_SIZE(es209ra_col_gpios) * ARRAY
 	[KEYMAP_INDEX(1, 2)] = KEY_HOME,			/* home(102) */
 	[KEYMAP_INDEX(1, 3)] = KEY_BACK,			/* back(158) */
 };
-#endif
 
 static struct gpio_event_matrix_info es209ra_matrix_info = {
 	.info.func	= gpio_event_matrix_func,

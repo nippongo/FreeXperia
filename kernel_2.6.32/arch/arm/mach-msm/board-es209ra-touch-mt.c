@@ -27,7 +27,7 @@
 #include <linux/interrupt.h>
 #include <linux/slab.h>
 #include <linux/spi/spi.h>
-#include <linux/spi/es209ra_touch_mt.h>
+#include "board-es209ra-touch-mt.h"
 #include <linux/earlysuspend.h>
 #include <linux/syscalls.h>
 #include <linux/cdev.h>
@@ -40,7 +40,7 @@
 #include <linux/ctype.h>
 
 #ifdef CONFIG_FW_HEADER
-#include "board-es209ra-touch_mt_fw.h"
+#include "board-es209ra-touch-mt-fw.h"
 #endif
 
 #ifdef CONFIG_ARM
