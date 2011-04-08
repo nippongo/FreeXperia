@@ -89,11 +89,6 @@ config MSM_GEMINI
 	---help---
 	  Enable support for Gemini Jpeg Engine
 
-config SEMC_IMX046_CAMERA
-	bool "Sensor semc_imx046_camera"
-	depends on MSM_CAMERA
-	---help---
-	  semc imx046 camera
 
 config SONY_5MP_CAMERA_HEAD
 	bool "SONY 5MP camera head"

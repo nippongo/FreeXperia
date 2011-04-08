@@ -23,5 +23,5 @@ obj-$(CONFIG_VX6953) += vx6953.o vx6953_reg.o
 obj-$(CONFIG_VB6801) += vb6801.o
 obj-$(CONFIG_DLT001_CAMERA) += dlt001_cam_devdrv_table.o dlt001_cam_devdrv.o
 obj-$(CONFIG_MSM_GEMINI) += msm_gemini_dev.o msm_gemini_sync.o msm_gemini_core.o msm_gemini_hw.o msm_gemini_platform.o
-obj-$(CONFIG_SEMC_IMX046_CAMERA) += semc_imx046_camera.o
+
 obj-$(CONFIG_DLT002_CAMERA) += dlt002_cam_devdrv_table.o dlt002_cam_devdrv.o

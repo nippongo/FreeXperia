@@ -961,6 +961,12 @@ config ES209RA_TOUCH_MT
 	bool "ES209RA TOUCH MT"
 	default y
 
+config SEMC_IMX046_CAMERA
+	bool "Sensor semc_imx046_camera"
+	depends on MSM_CAMERA
+	---help---
+	  semc imx046 camera
+
 config MAX17040_FUELGAUGE
 	tristate "MAX17040 fuel gauge driver"
 	depends on MACH_ES209RA
