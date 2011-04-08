@@ -247,6 +247,9 @@ struct msm_sync {
 	struct msm_camvfe_fn vfefn;
 	struct msm_camvpe_fn vpefn;
 	struct msm_sensor_ctrl sctrl;
+#ifdef CONFIG_SEMC_IMX046_CAMERA
+	struct wake_lock suspend_lock;
+#endif /* CONFIG_SEMC_IMX046_CAMERA */
 	struct msm_strobe_flash_ctrl sfctrl;
 #if defined(CONFIG_SEMC_CAMERA_MODULE) || defined(CONFIG_SEMC_SUB_CAMERA_MODULE)
 	struct wake_lock suspend_lock;

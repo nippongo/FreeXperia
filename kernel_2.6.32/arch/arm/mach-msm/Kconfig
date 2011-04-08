@@ -951,15 +951,35 @@ config ES209RA_HEADSET
 
 config ES209RA_PROXIMITY_SENSOR
 	bool "ES209RA PROXIMITY SENSOR"
-	default n 
+	default y 
+
+config ES209RA_LEDS
+	bool "ES209RA LEDS"
+	default y 
+
+config ES209RA_TOUCH_MT
+	bool "ES209RA TOUCH MT"
+	default y
+
+config SEMC_IMX046_CAMERA
+	bool "Sensor semc_imx046_camera"
+	depends on MSM_CAMERA
+	---help---
+	  semc imx046 camera
+
+config MAX17040_FUELGAUGE
+	tristate "MAX17040 fuel gauge driver"
+	depends on MACH_ES209RA
+	depends on (USB_FUNCTION_MSM_HSUSB || USB_GADGET_MSM_72K)
+	help
+	  This enable MAX17040 fuel gauge.
+
+
 
 config ES209RA_WLAN_POWER
 	bool "ES209RA WLAN POWER"
 	default n
 
-config ES209RA_TOUCH_MT
-	bool "ES209RA TOUCH MT"
-	default y
 
 config NPA_REMOTE_ONCRPC
 	bool "Enables NPA remoting through ONCRPC protocol."

@@ -88,7 +88,7 @@
 #include <mach/memory.h>
 #include <mach/msm_spi.h>
 #include <mach/msm_tsif.h>
-#include <linux/max17040.h>
+#include "board-es209ra-max17040.h"
 #include <linux/akm8973.h>
 #include "devices.h"
 #include "timer.h"

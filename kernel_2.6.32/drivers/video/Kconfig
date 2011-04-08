@@ -2273,6 +2273,22 @@ config FB_MSM_LCDC_ST15_PANEL
     ---help---
       Support for ST1.5 WXGA (1366x768) panel
 
+config FB_MSM_SEMC_LCD_BACKLIGHT_CONTROL
+	depends on FB_MSM
+	bool "FB lcd backlight control"
+	select FB_MSM_MDDI
+	---help---
+	  Suspend/resume backlight from frambuffer (synchronize with
+	  display power on/off
+
+config FB_MSM_MDDI_TMD_NT35580
+	depends on FB_MSM
+	tristate "MDDI NT35580 LCD FWVGA Panel"
+	select FB_MSM_MDDI
+	---help---
+	  Support for MDDI NT35580 LCD FWVGA (480x854) panel
+
+
 config FB_MSM_LCDC_PRISM_WVGA
 	bool
 	select FB_MSM_LCDC_PANEL

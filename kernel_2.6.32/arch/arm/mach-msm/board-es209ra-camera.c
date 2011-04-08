@@ -52,20 +52,20 @@
 		"SEMC_IMX046_ERR :" fmt, ##args)
 
 /* #define _HIGH_ENA_ */
-#ifdef _HIGH_ENA_
+//#ifdef _HIGH_ENA_
 #define SEMC_IMX046_MSG_HIGH(fmt, args...) printk(KERN_DEBUG \
 		"SEMC_IMX046_HIGH:" fmt, ##args)
-#else
-#define SEMC_IMX046_MSG_HIGH(fmt, args...)
-#endif /*_HIGH_ENA_*/
+//#else
+//#define SEMC_IMX046_MSG_HIGH(fmt, args...)
+//#endif /*_HIGH_ENA_*/
 
 /* #define _DBG_ENA_ */
-#ifdef _DBG_ENA_
+//#ifdef _DBG_ENA_
 #define SEMC_IMX046_MSG_DBG(fmt, args...) printk(KERN_DEBUG \
 		"SEMC_IMX046_DBG :" fmt, ##args)
-#else
-#define SEMC_IMX046_MSG_DBG(fmt, args...)
-#endif /*_DBG_ENA_*/
+//#else
+//#define SEMC_IMX046_MSG_DBG(fmt, args...)
+//#endif /*_DBG_ENA_*/
 
 struct semc_imx046_camera_work_t {
 	struct work_struct work;
