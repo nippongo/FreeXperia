@@ -303,11 +303,11 @@ static void ar6000_enable_mmchost_detect_change(int enable)
         return;
     }
     length = snprintf(buf, sizeof(buf), "%d\n", enable ? 1 : 0);
-    if (android_readwrite_file("/sys/devices/platform/" MMC_MSM_DEV "/detect_change", 
-                               NULL, buf, length) < 0) {
+    //if (android_readwrite_file("/sys/devices/platform/" MMC_MSM_DEV "/detect_change", 
+      //                         NULL, buf, length) < 0) {
         /* fall back to polling */
         android_readwrite_file("/sys/devices/platform/" MMC_MSM_DEV "/polling", NULL, buf, length);
-    }
+    //}
 #endif
 }
 
