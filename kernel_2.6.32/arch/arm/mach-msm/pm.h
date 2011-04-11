@@ -49,8 +49,8 @@ struct msm_pm_platform_data {
 	u32 residency;       /* time threshold in microseconds beyond which
 				staying in the low power mode saves power */
 };
-
-void msm_pm_set_platform_data(struct msm_pm_platform_data *data, int count);
+void msm_pm_set_platform_data(struct msm_pm_platform_data *data);
+//void msm_pm_set_platform_data(struct msm_pm_platform_data *data, int count);
 int msm_pm_idle_prepare(struct cpuidle_device *dev);
 int msm_pm_idle_enter(enum msm_pm_sleep_mode sleep_mode);
 

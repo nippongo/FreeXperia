@@ -105,14 +105,15 @@
 #include "board-es209ra-touch-mt.h"
 #include <asm/setup.h>
 #include "q6audio.h"
-#include <../../../drivers/video/msm/mddi_tmd_nt35580.h>
 #include <mach/semc_low_batt_shutdown.h>
 #include  <linux/semc/msm_pmic_vibrator.h>
-#include "../../../drivers/video/msm/msm_fb_panel.h"
-#include "../../../drivers/video/msm/mddihost.h"
+//#include "../../../drivers/video/msm/msm_fb_panel.h"
+//#include "../../../drivers/video/msm/mddihost.h"
+//#include <../../../drivers/video/msm/mddi_tmd_nt35580.h>
 
 #define TOUCHPAD_SUSPEND 	34
 #define TOUCHPAD_IRQ 		38
+#define NOVATEK_GPIO_RESET			157
 
 #define MSM_PMEM_MDP_SIZE	0x1C91000
 
@@ -823,11 +824,74 @@ static void __init msm_fb_add_devices(void)
 	msm_fb_register_device("lcdc", 0);
 }
 
+static int novatek_power(int on)
+{
+	static int enabled_once;
+	int rc = 0;
+
+	if (on) {
+		if (!enabled_once) {
+			rc = vreg_helper_on("gp6", 2850);
+			if (rc)
+				goto out;
+			rc = vreg_helper_on("gp9", 1800);
+			if (rc) {
+				vreg_helper_off("gp6");
+				goto out;
+			}
+			hr_usleep(21); /* spec says > 20us */
+			gpio_set_value(NOVATEK_GPIO_RESET, 1);
+			hr_msleep(11); /* spec says > 11ms */
+			enabled_once = 1;
+		} else {
+			gpio_set_value(NOVATEK_GPIO_RESET, 0);
+			hr_msleep(4); /* spec says: > 4ms */
+			gpio_set_value(NOVATEK_GPIO_RESET, 1);
+			hr_msleep(11); /* spec says: > 10 ms */
+		}
+	}
+	/* Do not do anything at power off */
+out:
+	return rc;
+}
+
+static struct novatek_fwvga_platform_data novatek_platform_data = {
+	.power = novatek_power,
+	.reset = NULL,
+};
+
+static struct platform_device novatek_device = {
+	.name	= MDDI_NOVATEK_FWVGA_NAME,
+	.id	= -1,
+	.dev	= {
+		.platform_data = &novatek_platform_data,
+	}
+};
+
+static const struct panel_id *novatek_panels[] = {
+#ifdef CONFIG_MDDI_NOVATEK_PANEL_TMD_MDP42
+	&novatek_panel_id_tmd_mdp42_rev_c,
+	&novatek_panel_id_tmd_mdp42_rev_d,
+#endif
+#ifdef CONFIG_MDDI_NOVATEK_PANEL_SHARP_LS040T8LX01
+	&novatek_panel_id_sharp_ls040t8lx01_rev_c_x,	/* SP2.1 support */
+	&novatek_panel_id_sharp_ls040t8lx01_rev_c,
+	&novatek_panel_id_sharp_ls040t8lx01_rev_d,
+#endif
+	NULL,
+};
+
+struct novatek_i2c_pdata novatek_i2c_pdata = {
+	.panels = novatek_panels,
+};
+
+
+
 #define NT35580_GPIO_XRST 100
 static struct vreg *vreg_mmc;
 static struct vreg *vreg_gp2;
 
-static void tmd_wvga_lcd_power_on(void)
+//static void tmd_wvga_lcd_power_on(void)
 {
 	int rc = 0;
 

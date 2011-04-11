@@ -152,23 +152,31 @@ struct msm_camera_sensor_strobe_flash_data {
 struct msm_camera_sensor_info {
 	const char *sensor_name;
 	int sensor_reset;
-	int sub_sensor_reset;
 	int sensor_pwd;
 	int vcm_pwd;
 	int vcm_enable;
 	int mclk;
-	int flash_type;
 	struct msm_camera_device_platform_data *pdata;
 	struct resource *resource;
 	uint8_t num_resources;
 	struct msm_camera_sensor_flash_data *flash_data;
 	int csi_if;
 	struct msm_camera_csi_params csi_params;
+
+	int sensor_int;
+	int sensor_vsync;
+	struct msm_camera_sensor_pwr standby;
+	struct msm_camera_sensor_pwr vcam_sd12;
+	struct msm_camera_sensor_pwr vcam_sdap;
+	struct msm_camera_sensor_pwr vcam_sa28;
 	struct msm_camera_sensor_pwr vcam_io;
+	struct msm_camera_sensor_pwr vcam_af30;
+
+	struct msm_camera_sensor_pwr vcam_l1;
+	struct msm_camera_sensor_pwr vcam_l2;
 	struct msm_camera_sensor_pwr vcam_sd;
 	struct msm_camera_sensor_pwr vcam_af;
 	struct msm_camera_sensor_pwr vcam_sa;
-	struct msm_camera_sensor_strobe_flash_data *strobe_flash_data;
 };
 
 struct clk;
