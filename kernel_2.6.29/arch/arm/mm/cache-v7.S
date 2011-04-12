@@ -147,20 +147,20 @@ ENTRY(v7_coherent_kern_range)
  *	- the Icache does not read data from the write buffer
  */
 ENTRY(v7_coherent_user_range)
-	dcache_line_size r2, r3
-	sub	r3, r2, #1
-	bic	r0, r0, r3
-1:	mcr	p15, 0, r0, c7, c11, 1		@ clean D line to the point of unification
-	dsb
-	mcr	p15, 0, r0, c7, c5, 1		@ invalidate I line
-	add	r0, r0, r2
-	cmp	r0, r1
-	blo	1b
-	mov	r0, #0
-	mcr	p15, 0, r0, c7, c5, 6		@ invalidate BTB
-	dsb
-	isb
-	mov	pc, lr
+dcache_line_size r2, r3
+sub r3, r2, #1
+bic r0, r0, r3
+1: mcr p15, 0, r0, c7, c11, 1
+dsb
+mcr p15, 0, r0, c7, c5, 1
+add r0, r0, r2
+cmp r0, r1
+blo 1b
+mov r0, #0
+mcr p15, 0, r0, c7, c5, 6
+dsb
+isb
+mov pc, lr
 ENDPROC(v7_coherent_kern_range)
 ENDPROC(v7_coherent_user_range)
 

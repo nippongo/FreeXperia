@@ -33,7 +33,6 @@
 
 #include "board-es209ra-proximity.h"
 
-#define DEBUG	0
 
 static unsigned long Proximity_BurstDuration;	/* Burst duration(micro sec) */
 struct wake_lock proximity_wakelock;
@@ -52,9 +51,6 @@ static void Proximity_initialize()
 /* open command for PROXIMITY device file */
 static int Proximity_open(struct inode *inode, struct file *file)
 {
-	#if DEBUG
-	printk("PROXIMITY has been opened\n");
-	#endif
 	Proximity_initialize();
 	return 0;
 }
@@ -62,9 +58,6 @@ static int Proximity_open(struct inode *inode, struct file *file)
 /* release command for PROXIMITY device file */
 static int Proximity_close(struct inode *inode, struct file *file)
 {
-	#if DEBUG
-	printk("PROXIMITY has been closed\n");
-	#endif
 	Proximity_initialize();
 	return 0;
 }
@@ -72,24 +65,6 @@ static int Proximity_close(struct inode *inode, struct file *file)
 /* read command for PROXIMITY */
 static ssize_t Proximity_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
 {
-	#if DEBUG
-	gpio_set_value(PROXIMITY_GPIO_POWER_PIN,PROXIMITY_GPIO_POWER_ON);
-	/* wait */
-	udelay(100);
-	gpio_set_value(PROXIMITY_GPIO_ENBAR_PIN,PROXIMITY_GPIO_ENBAR_ENABLE);
-	/* wait */
-	udelay(20);
-	gpio_set_value(PROXIMITY_GPIO_LEDON_PIN,PROXIMITY_GPIO_LEDON_ENABLE);
-
-	/* wait */
-	udelay(Proximity_BurstDuration);
-
-	printk("PROXIMITY: DOUT : %d\n" , (gpio_get_value(PROXIMITY_GPIO_DOUT_PIN)==PROXIMITY_GPIO_DOUT_ON)?1:0);
-
-	gpio_set_value(PROXIMITY_GPIO_LEDON_PIN,PROXIMITY_GPIO_LEDON_DISABLE);
-	gpio_set_value(PROXIMITY_GPIO_ENBAR_PIN,PROXIMITY_GPIO_ENBAR_DISABLE);
-	gpio_set_value(PROXIMITY_GPIO_POWER_PIN,PROXIMITY_GPIO_POWER_OFF);
-	#endif
 	return 0;
 }
 
@@ -117,16 +92,10 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 	/* check cmd */
 	if(_IOC_TYPE(cmd) != PROXIMITY_IOC_MAGIC)
 	{
-		#if DEBUG
-		printk("cmd magic type error\n");
-		#endif
 		return -ENOTTY;
 	}
 	if(_IOC_NR(cmd) > PROXIMITY_IOC_MAXNR)
 	{
-		#if DEBUG
-		printk("cmd number error\n");
-		#endif
 		return -ENOTTY;
 	}
 
@@ -136,9 +105,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 		err = !access_ok(VERIFY_READ, (void __user*)arg, _IOC_SIZE(cmd));
 	if(err)
 	{
-		#if DEBUG
-		printk("cmd access_ok error\n");
-		#endif
 		return -EFAULT;
 	}
 
@@ -147,9 +113,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 	case PROXIMITY_SET_POWER_STATE:
 		if(copy_from_user((unsigned char*)&data, (unsigned char*)arg, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_from_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		gpio_set_value(PROXIMITY_GPIO_POWER_PIN,
@@ -160,9 +123,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 		data = gpio_get_value(PROXIMITY_GPIO_POWER_PIN);
 		if(copy_to_user((unsigned char*)arg, (unsigned char*)&data, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_to_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		return err;
@@ -170,9 +130,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 	case PROXIMITY_SET_DEVICE_MODE:
 		if(copy_from_user((unsigned char*)&data, (unsigned char*)arg, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_from_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		gpio_set_value(PROXIMITY_GPIO_ENBAR_PIN,
@@ -183,9 +140,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 		data = gpio_get_value(PROXIMITY_GPIO_ENBAR_PIN);
 		if(copy_to_user((unsigned char*)arg, (unsigned char*)&data, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_to_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		return err;
@@ -193,9 +147,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 	case PROXIMITY_SET_LED_MODE:
 		if(copy_from_user((unsigned char*)&data, (unsigned char*)arg, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_from_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		gpio_set_value(PROXIMITY_GPIO_LEDON_PIN,
@@ -206,9 +157,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 		data = gpio_get_value(PROXIMITY_GPIO_LEDON_PIN);
 		if(copy_to_user((unsigned char*)arg, (unsigned char*)&data, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_to_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		return err;
@@ -217,9 +165,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 		data = gpio_get_value(PROXIMITY_GPIO_DOUT_PIN);
 		if(copy_to_user((unsigned char*)arg, (unsigned char*)&data, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_to_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		return err;
@@ -227,29 +172,16 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 	case PROXIMITY_SET_BURST_ON_TIME:
 		if(copy_from_user((unsigned long*)&time, (unsigned long*)arg, sizeof(arg))!=0)
 		{
-			#if DEBUG
-			printk("copy_from_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		if((time < PROXIMITY_BURST_ON_TIME_MIN) || (time > PROXIMITY_BURST_ON_TIME_MAX)) {
-			#if DEBUG
-			printk("Requested time is out of range\n");
-			#endif
 			return -EFAULT;
 		}
-		#if DEBUG
-		Proximity_BurstDuration = time;
-		printk("PROXIMITY: Burst-on-time is set to %ld(us)\n" , time);
-		#endif
 		return err;
 
 	case PROXIMITY_GET_BURST_ON_TIME:
 		if(copy_to_user((unsigned long*)arg, (unsigned long*)&Proximity_BurstDuration, sizeof(arg))!=0)
 		{
-			#if DEBUG
-			printk("copy_to_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		return err;
@@ -273,9 +205,6 @@ static int Proximity_ioctl(struct inode *inode, struct file *file, unsigned int 
 		gpio_set_value(PROXIMITY_GPIO_POWER_PIN,PROXIMITY_GPIO_POWER_OFF);
 		if(copy_to_user((unsigned char*)arg, (unsigned char*)&data, 1)!=0)
 		{
-			#if DEBUG
-			printk("copy_to_user error\n");
-			#endif
 			return -EFAULT;
 		}
 		return err;

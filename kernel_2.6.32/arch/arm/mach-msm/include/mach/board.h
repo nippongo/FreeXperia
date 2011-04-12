@@ -186,6 +186,15 @@ struct snd_endpoint {
 	const char *name;
 };
 
+struct panel_data_ext {
+	void (*power_on) (void);
+	void (*power_off) (void);
+	void (*window_adjust) (u16 x1, u16 x2, u16 y1, u16 y2);
+	void (*exit_deep_standby) (void);
+	int use_dma_edge_pixels_fix;
+	void (*backlight_ctrl) (bool);
+};
+
 struct msm_snd_endpoints {
 	struct snd_endpoint *endpoints;
 	unsigned num;
@@ -263,9 +272,14 @@ struct tvenc_platform_data {
 };
 
 struct mddi_platform_data {
-	int (*mddi_power_save)(int on);
+	void (*mddi_power_save)(int on);
 	int (*mddi_sel_clk)(u32 *clk_rate);
-	int (*mddi_client_power)(u32 client_id);
+	int (*mddi_power_on)(int);
+};
+
+struct msm_fb_platform_data {
+	int (*detect_client)(const char *name);
+	int mddi_prescan;
 };
 
 struct mipi_dsi_platform_data {

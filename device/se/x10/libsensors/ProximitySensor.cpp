@@ -31,7 +31,7 @@
 /*****************************************************************************/
 
 ProximitySensor::ProximitySensor()
-    : SensorBase(CM_DEVICE_NAME, "proximity"),
+    : SensorBase(CM_DEVICE_NAME, "es209ra_proximity"),
       mEnabled(0),
       mInputReader(4),
       mHasPendingEvent(false)
