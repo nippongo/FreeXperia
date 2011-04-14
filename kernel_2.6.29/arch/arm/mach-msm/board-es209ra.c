@@ -1249,54 +1249,19 @@ static void __init audio_size_setup(char **p)
 __early_param("audio_size=", audio_size_setup);
 
 
-/* SEMC:SYS: Get startup reason - start */
-//unsigned int es209ra_startup_reason = 0;
-
-static int __init es209ra_startup_reason_setup(char *str)
-{
-	es209ra_startup_reason = simple_strtoul(str, NULL, 16);
-	return 1;
-}
-__setup_param("startup=", es209ra_startup_reason_setup_1, es209ra_startup_reason_setup, 0);
-__setup_param("semcandroidboot.startup=", es209ra_startup_reason_setup_2, es209ra_startup_reason_setup, 0);
-
-static int es209ra_hw_version = 0;
-
-static int __init es209ra_hw_version_setup(char *str)
-{
-	es209ra_hw_version = simple_strtoul(str, NULL, 0);
-
-	return 1;
-}
-__setup_param("hwversion=", es209ra_hw_version_setup_1, es209ra_hw_version_setup, 0);
-__setup_param("semcandroidboot.hwversion=", es209ra_hw_version_setup_2, es209ra_hw_version_setup, 0);
-
-int get_predecode_repair_cache(void);
-int set_predecode_repair_cache(void);
 static void __init es209ra_init(void)
 {
 	smsm_wait_for_modem();
-	if (socinfo_init() < 0)
-		printk(KERN_ERR "%s: socinfo_init() failed!\n", __func__);
-	printk(KERN_INFO "%s: startup_reason: 0x%08x\n",
-					__func__, es209ra_startup_reason);
-	printk(KERN_ERR "PVR0F2: %x\n", get_predecode_repair_cache());
-	set_predecode_repair_cache();
-	printk(KERN_ERR "PVR0F2: %x\n", get_predecode_repair_cache());
-
 	msm_acpu_clock_init(&qsd8x50_clock_data);
-
-	msm_hsusb_pdata.swfi_latency =
-		msm_pm_data
-		[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
+	msm_hsusb_pdata.swfi_latency = msm_pm_data
+	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
 	msm_device_hsusb_peripheral.dev.platform_data = &msm_hsusb_pdata;
 	msm_device_otg.dev.platform_data = &msm_otg_pdata;
 	msm_device_gadget_peripheral.dev.platform_data = &msm_gadget_pdata;
-
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 	es209ra_init_usb();
 	bt_power_init();
-		audio_gpio_init();
+	audio_gpio_init();
 	msm_device_i2c_init();
 	msm_qsd_spi_init();
 	i2c_register_board_info(0, msm_i2c_board_info,ARRAY_SIZE(msm_i2c_board_info));
