@@ -483,6 +483,33 @@ config TOUCHSCREEN_CY8CTMA300_SPI
 	  To compile this driver as a module, choose M here: the
 	  module will be called cy8ctma300_spi.
 
+config TOUCHSCREEN_ES209RA_TOUCH
+	default n
+	tristate "es209ra touchscreen driver"
+	depends on SPI_MASTER
+	help
+	  Say Y here if you have a touchscreen interface es209ra touchscreen
+	  device, and your board-specific setup code includes that in its table
+	  of SPI devices.
+
+	  If unsure, say N (but it's safe to say "Y").
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called es209ra_touch.
+
+config TOUCHSCREEN_ES209RA_TOUCH_MT
+	default n
+	tristate "es209ra touchscreen driver (multi-touch)"
+	depends on SPI_MASTER
+	help
+	  Say Y here if you have a touchscreen interface es209ra touchscreen
+	  device (multi-touch), and your board-specific setup code includes
+	  that in its table of SPI devices.
+
+	  If unsure, say N (but it's safe to say "Y").
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called es209ra_touch_mt.
 
 config ANDROID_TOUCHSCREEN_MSM_HACKS
 	default y

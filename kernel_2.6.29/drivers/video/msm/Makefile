@@ -53,7 +53,7 @@ msm_mddi_ext-objs := mddihost_e.o mddi_ext.o
 obj-$(CONFIG_FB_MSM_EXTMDDI) += msm_mddi_ext.o
 
 # TVEnc
-#obj-$(CONFIG_FB_MSM_TVOUT) += tvenc.o
+obj-$(CONFIG_FB_MSM_TVOUT) += tvenc.o
 
 # MSM FB Panel
 obj-y += msm_fb_panel.o
@@ -94,9 +94,10 @@ obj-$(CONFIG_FB_MSM_LCDC_SHARP_WVGA_PT) += lcdc_sharp_wvga_pt.o
 obj-$(CONFIG_FB_MSM_HDMI_ADV7520_PANEL) += adv7520.o
 
 
-#obj-$(CONFIG_FB_MSM_TVOUT_NTSC) += tv_ntsc.o
-#obj-$(CONFIG_FB_MSM_TVOUT_PAL) += tv_pal.o
-#obj-$(CONFIG_FB_MSM_EXTMDDI_SVGA) += mddi_ext_lcd.o
+obj-$(CONFIG_FB_MSM_TVOUT_NTSC) += tv_ntsc.o
+obj-$(CONFIG_FB_MSM_TVOUT_PAL) += tv_pal.o
+
+obj-$(CONFIG_FB_MSM_EXTMDDI_SVGA) += mddi_ext_lcd.o
 
 clean:
 	rm *.o .*cmd

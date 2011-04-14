@@ -63,8 +63,8 @@ UTS_TRUNCATE="sed -e s/\(.\{1,$UTS_LEN\}\).*/\1/"
   echo \#define UTS_VERSION \"`echo $UTS_VERSION | $UTS_TRUNCATE`\"
 
   echo \#define LINUX_COMPILE_TIME \"`date --date="$TIMESTAMP" +%R:%S`\"
-  echo \#define LINUX_COMPILE_BY \"TheDoctor\"
-  echo \#define LINUX_COMPILE_HOST \"Tardis\"
+  echo \#define LINUX_COMPILE_BY \"zdzihu\"
+  echo \#define LINUX_COMPILE_HOST \"wrack\"
 
   if [ -x /bin/dnsdomainname ]; then
     echo \#define LINUX_COMPILE_DOMAIN \"`dnsdomainname | $UTS_TRUNCATE`\"

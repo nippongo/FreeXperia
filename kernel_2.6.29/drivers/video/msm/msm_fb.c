@@ -43,9 +43,9 @@
 #define MSM_FB_C
 #include "msm_fb.h"
 #include "mddihosti.h"
-//#include "tvenc.h"
-//#include "mdp.h"
-//#include "mdp4.h"
+#include "tvenc.h"
+#include "mdp.h"
+#include "mdp4.h"
 
 #ifdef CONFIG_FB_MSM_LOGO
 #define INIT_IMAGE_FILE "/logo.rle"

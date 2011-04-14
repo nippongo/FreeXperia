@@ -51,10 +51,8 @@ obj-$(CONFIG_RT2X00)	+= rt2x00/
 
 obj-$(CONFIG_P54_COMMON)	+= p54/
 
-obj-$(CONFIG_ATH_COMMON)	+= ath/
 obj-$(CONFIG_ATH5K)	+= ath5k/
 obj-$(CONFIG_ATH9K)	+= ath9k/
 
 obj-$(CONFIG_MAC80211_HWSIM)	+= mac80211_hwsim.o
 obj-$(CONFIG_LIBRA_SDIOIF)	+= libra/
-obj-$(CONFIG_AR6000_WLAN)	+= ar6000/

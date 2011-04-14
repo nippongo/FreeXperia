@@ -72,7 +72,9 @@
 #include "mddihosti.h"
 
 #define FEATURE_MDDI_UNDERRUN_RECOVERY
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 static void mddi_read_rev_packet(byte *data_ptr);
+#endif
 
 struct timer_list mddi_host_timer;
 
@@ -93,6 +95,7 @@ uint32 mddi_log_stats_frequency = 4000;
 
 #define MDDI_DEFAULT_REV_PKT_SIZE            0x20
 
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 static boolean mddi_rev_ptr_workaround = TRUE;
 static uint32 mddi_reg_read_retry;
 static uint32 mddi_reg_read_retry_max = 20;
@@ -106,6 +109,7 @@ static boolean mddi_enable_reg_read_retry_once = FALSE;
 #define MDDI_VIDEO_REV_PKT_SIZE              0x40
 #define MDDI_REV_BUFFER_SIZE  MDDI_MAX_REV_PKT_SIZE
 static byte rev_packet_data[MDDI_MAX_REV_PKT_SIZE];
+#endif /* FEATURE_MDDI_DISABLE_REVERSE */
 /* leave these variables so graphics will compile */
 
 #define MDDI_MAX_REV_DATA_SIZE  128
@@ -117,6 +121,7 @@ uint32 *mddi_reg_read_value_ptr;
 mddi_client_capability_type mddi_client_capability_pkt;
 static boolean mddi_client_capability_request = FALSE;
 
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 
 #define MAX_MDDI_REV_HANDLERS 2
 #define INVALID_PKT_TYPE 0xFFFF
@@ -133,14 +138,17 @@ static mddi_linked_list_notify_type mddi_rev_user;
 
 spinlock_t mddi_host_spin_lock;
 extern uint32 mdp_in_processing;
+#endif
 
 typedef enum {
-	MDDI_REV_IDLE, 
-	MDDI_REV_REG_READ_ISSUED,
+	MDDI_REV_IDLE
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
+	    , MDDI_REV_REG_READ_ISSUED,
 	MDDI_REV_REG_READ_SENT,
 	MDDI_REV_ENCAP_ISSUED,
 	MDDI_REV_STATUS_REQ_ISSUED,
 	MDDI_REV_CLIENT_CAP_ISSUED
+#endif
 } mddi_rev_link_state_type;
 
 typedef enum {
@@ -252,14 +260,17 @@ static void mddi_report_errors(uint32 int_reg)
 		pmhctl->stats.sec_underflow++;
 		MDDI_MSG_ERR("!!! MDDI Secondary Underflow !!!\n");
 	}
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	if (int_reg & MDDI_INT_REV_OVERFLOW) {
 		pmhctl->stats.rev_overflow++;
 		MDDI_MSG_ERR("!!! MDDI Reverse Overflow !!!\n");
 		pmhctl->rev_ptr_curr = pmhctl->rev_ptr_start;
 		mddi_host_reg_out(REV_PTR, pmhctl->mddi_rev_ptr_write_val);
+
 	}
 	if (int_reg & MDDI_INT_CRC_ERROR)
 		MDDI_MSG_ERR("!!! MDDI Reverse CRC Error !!!\n");
+#endif
 	if (int_reg & MDDI_INT_PRI_OVERWRITE) {
 		pmhctl->stats.pri_overwrite++;
 		MDDI_MSG_ERR("!!! MDDI Primary Overwrite !!!\n");
@@ -268,6 +279,7 @@ static void mddi_report_errors(uint32 int_reg)
 		pmhctl->stats.sec_overwrite++;
 		MDDI_MSG_ERR("!!! MDDI Secondary Overwrite !!!\n");
 	}
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	if (int_reg & MDDI_INT_REV_OVERWRITE) {
 		pmhctl->stats.rev_overwrite++;
 		/* This will show up normally and is not a problem */
@@ -278,6 +290,7 @@ static void mddi_report_errors(uint32 int_reg)
 		pmhctl->stats.rtd_failure++;
 		MDDI_MSG_ERR("!!! MDDI RTD Failure !!!\n");
 	}
+#endif
 	if (int_reg & MDDI_INT_DMA_FAILURE) {
 		pmhctl->stats.dma_failure++;
 		MDDI_MSG_ERR("!!! MDDI DMA Abort !!!\n");
@@ -362,11 +375,13 @@ static void mddi_report_state_change(uint32 int_reg)
 		mddi_gpio_poll_timer_cb, 0, mddi_gpio.polling_interval, 0);
 		}
 #endif
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 		if (mddi_rev_ptr_workaround) {
 			/* HW CR: need to reset reverse register stuff */
 			pmhctl->rev_ptr_written = FALSE;
 			pmhctl->rev_ptr_curr = pmhctl->rev_ptr_start;
 		}
+#endif
 		/* vote on sleep */
 		mddi_vote_to_sleep(host_idx, FALSE);
 
@@ -389,17 +404,27 @@ static void mddi_report_state_change(uint32 int_reg)
 		pmhctl->log_parms.link_hibernate_cnt++;
 		MDDI_MSG_DEBUG("!!! MDDI Hibernating !!!\n");
 		/* now interrupt on link_active */
+#ifdef FEATURE_MDDI_DISABLE_REVERSE
+		mddi_host_reg_outm(INTEN,
+				   (MDDI_INT_MDDI_IN |
+				    MDDI_INT_IN_HIBERNATION |
+				    MDDI_INT_LINK_ACTIVE),
+				   MDDI_INT_LINK_ACTIVE);
+#else
 		mddi_host_reg_outm(INTEN,
 				   (MDDI_INT_MDDI_IN |
 				    MDDI_INT_IN_HIBERNATION |
 				    MDDI_INT_LINK_ACTIVE),
 				   (MDDI_INT_MDDI_IN | MDDI_INT_LINK_ACTIVE));
+
 		pmhctl->rtd_counter = mddi_rtd_frequency;
+
 		if (pmhctl->rev_state != MDDI_REV_IDLE) {
 			/* a rev_encap will not wake up the link, so we do that here */
 			pmhctl->link_state = MDDI_LINK_ACTIVATING;
 			mddi_host_reg_out(CMD, MDDI_CMD_LINK_ACTIVE);
 		}
+#endif
 
 		if (pmhctl->disable_hibernation) {
 			mddi_host_reg_out(CMD, MDDI_CMD_HIBERNATE);
@@ -446,6 +471,11 @@ static void mddi_report_state_change(uint32 int_reg)
 
 void mddi_host_timer_service(unsigned long data)
 {
+#if !defined(FEATURE_MDDI_DISABLE_REVERSE) &&\
+		!defined(CONFIG_FB_MSM_MDDI_TMD_NT35580)
+	unsigned long flags;
+#endif
+
 	mddi_host_type host_idx;
 	mddi_host_cntl_type *pmhctl;
 
@@ -461,7 +491,62 @@ void mddi_host_timer_service(unsigned long data)
 	     host_idx++) {
 		pmhctl = &(mhctl[host_idx]);
 		mddi_log_stats_counter += (uint32) time_ms;
+#if !defined(FEATURE_MDDI_DISABLE_REVERSE) &&\
+		!defined(CONFIG_FB_MSM_MDDI_TMD_NT35580)
+		pmhctl->rtd_counter += (uint32) time_ms;
+		pmhctl->client_status_cnt += (uint32) time_ms;
 
+		if (host_idx == MDDI_HOST_PRIM) {
+			if (pmhctl->client_status_cnt >=
+			    mddi_client_status_frequency) {
+				if ((pmhctl->link_state ==
+				     MDDI_LINK_HIBERNATING)
+				    && (pmhctl->client_status_cnt >
+					mddi_client_status_frequency)) {
+					/*
+					 * special case where we are hibernating
+					 * and mddi_host_isr is not firing, so
+					 * kick the link so that the status can
+					 * be retrieved
+					 */
+
+					/* need to wake up link before issuing
+					 * rev encap command
+					 */
+					MDDI_MSG_INFO("wake up link!\n");
+					spin_lock_irqsave(&mddi_host_spin_lock,
+							  flags);
+					mddi_host_enable_hclk();
+					mddi_host_enable_io_clock();
+					pmhctl->link_state =
+					    MDDI_LINK_ACTIVATING;
+					mddi_host_reg_out(CMD,
+							  MDDI_CMD_LINK_ACTIVE);
+					spin_unlock_irqrestore
+					    (&mddi_host_spin_lock, flags);
+				} else
+				    if ((pmhctl->link_state == MDDI_LINK_ACTIVE)
+					&& pmhctl->disable_hibernation) {
+					/*
+					 * special case where we have disabled
+					 * hibernation and mddi_host_isr
+					 * is not firing, so enable interrupt
+					 * for no pkts pending, which will
+					 * generate an interrupt
+					 */
+					MDDI_MSG_INFO("kick isr!\n");
+					spin_lock_irqsave(&mddi_host_spin_lock,
+							  flags);
+					mddi_host_enable_hclk();
+					mddi_host_reg_outm(INTEN,
+							   MDDI_INT_NO_CMD_PKTS_PEND,
+							   MDDI_INT_NO_CMD_PKTS_PEND);
+					spin_unlock_irqrestore
+					    (&mddi_host_spin_lock, flags);
+				}
+			}
+		}
+#endif
 	}
 
 	/* Check if logging is turned on */
@@ -586,6 +671,8 @@ static void mddi_process_link_list_done(void)
 		MDDI_MSG_ERR("**** getting LL done, but no list ****\n");
 	} else {
 		uint16 idx;
+
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 		if (pmhctl->rev_state == MDDI_REV_REG_READ_ISSUED) {
 			/* special case where a register read packet was sent */
 			pmhctl->rev_state = MDDI_REV_REG_READ_SENT;
@@ -594,6 +681,7 @@ static void mddi_process_link_list_done(void)
 				    ("**** getting LL done, but no list ****\n");
 			}
 		}
+#endif
 		for (idx = pmhctl->llist_info.transmitting_start_idx;;) {
 			uint16 next_idx = pmhctl->llist_notify[idx].next_idx;
 			/* with reg read we don't release the waiting tcb until after
@@ -663,6 +751,7 @@ static void mddi_queue_forward_linked_list(void)
 	first_pkt_index = UNASSIGNED_INDEX;
 
 	if (pmhctl->llist_info.transmitting_start_idx == UNASSIGNED_INDEX) {
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 		if (pmhctl->llist_info.reg_read_waiting) {
 			if (pmhctl->rev_state == MDDI_REV_IDLE) {
 				/*
@@ -675,7 +764,9 @@ static void mddi_queue_forward_linked_list(void)
 				    pmhctl->llist_info.waiting_start_idx;
 				pmhctl->llist_info.reg_read_waiting = FALSE;
 			}
-		} else {
+		} else
+#endif
+		{
 			/*
 			 * not register read to worry about, go ahead and write
 			 * anything that may be on the waiting list.
@@ -704,9 +795,12 @@ static void mddi_queue_forward_linked_list(void)
 		/* enable interrupt when complete */
 		mddi_host_reg_outm(INTEN, MDDI_INT_PRI_LINK_LIST_DONE,
 				   MDDI_INT_PRI_LINK_LIST_DONE);
+
 	}
+
 }
 
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 static void mddi_read_rev_packet(byte *data_ptr)
 {
 	uint16 i, length;
@@ -777,6 +871,12 @@ static void mddi_process_rev_packets(void)
 	/* Get Number of packets */
 	rev_packet_count = mddi_host_reg_in(REV_PKT_CNT);
 
+#ifndef T_MSM7500
+	/* Clear out rev packet counter */
+	mddi_host_reg_out(REV_PKT_CNT, 0x0000);
+#endif
+
+#if defined(CONFIG_FB_MSM_MDP31) || defined(CONFIG_FB_MSM_MDP40)
 	if ((pmhctl->rev_state == MDDI_REV_CLIENT_CAP_ISSUED) &&
 	    (rev_packet_count > 0) &&
 	    (mddi_host_core_version == 0x28 ||
@@ -794,6 +894,7 @@ static void mddi_process_rev_packets(void)
 				break;
 		}
 	}
+#endif
 
 	/* Get CRC error count */
 	crc_errors = mddi_host_reg_in(REV_CRC_ERR);
@@ -802,8 +903,10 @@ static void mddi_process_rev_packets(void)
 		pmhctl->stats.rev_crc_count += crc_errors;
 		MDDI_MSG_ERR("!!! MDDI %d Reverse CRC Error(s) !!!\n",
 			     crc_errors);
+#ifndef T_MSM7500
 		/* Clear CRC error count */
 		mddi_host_reg_out(REV_CRC_ERR, 0x0000);
+#endif
 		/* also issue an RTD to attempt recovery */
 		pmhctl->rtd_counter = mddi_rtd_frequency;
 	}
@@ -912,8 +1015,15 @@ static void mddi_process_rev_packets(void)
 
 				/* Copy register value to location passed in */
 				if (mddi_reg_read_value_ptr) {
+#if defined(T_MSM6280) && !defined(T_MSM7200)
+					/* only least significant 16 bits are valid with 6280 */
+					*mddi_reg_read_value_ptr =
+					    regacc_pkt_ptr->
+					    register_data_list & 0x0000ffff;
+#else
 					*mddi_reg_read_value_ptr =
 					    regacc_pkt_ptr->register_data_list;
+#endif
 					mddi_reg_read_successful = TRUE;
 					mddi_reg_read_value_ptr = NULL;
 				}
@@ -1020,6 +1130,7 @@ static void mddi_process_rev_packets(void)
 			}
 		}
 	} else if (pmhctl->rev_state == MDDI_REV_CLIENT_CAP_ISSUED) {
+#if defined(CONFIG_FB_MSM_MDP31) || defined(CONFIG_FB_MSM_MDP40)
 		if (mddi_host_core_version == 0x28 ||
 		    mddi_host_core_version == 0x30) {
 			mddi_host_reg_out(FIFO_ALLOC, 0x00);
@@ -1029,6 +1140,8 @@ static void mddi_process_rev_packets(void)
 			pmhctl->rev_ptr_curr = pmhctl->rev_ptr_start;
 			mddi_host_reg_out(CMD, 0xC00);
 		}
+#endif
+
 		if (mddi_rev_user.waiting) {
 			mddi_rev_user.waiting = FALSE;
 			complete(&(mddi_rev_user.done_comp));
@@ -1037,7 +1150,9 @@ static void mddi_process_rev_packets(void)
 	} else {
 		pmhctl->rev_state = MDDI_REV_IDLE;
 	}
+
 	/* pmhctl->rev_state = MDDI_REV_IDLE; */
+
 	/* Re-enable interrupt */
 	mddi_host_reg_outm(INTEN, MDDI_INT_REV_DATA_AVAIL,
 			   MDDI_INT_REV_DATA_AVAIL);
@@ -1134,9 +1249,17 @@ static void mddi_issue_reverse_encapsulation(void)
 		    (pmhctl->rev_state == MDDI_REV_STATUS_REQ_ISSUED) ||
 		    (pmhctl->rev_state == MDDI_REV_CLIENT_CAP_ISSUED)) {
 			pmhctl->int_type.rev_encap_count++;
+#if defined(T_MSM6280) && !defined(T_MSM7200)
+			mddi_rev_pointer_written = TRUE;
+			mddi_host_reg_out(REV_PTR, mddi_rev_ptr_write_val);
+			mddi_rev_ptr_curr = mddi_rev_ptr_start;
+			/* force new rev ptr command */
+			mddi_host_reg_out(CMD, 0xC00);
+#else
 			if (!pmhctl->rev_ptr_written) {
 				MDDI_MSG_DEBUG("writing reverse pointer!\n");
 				pmhctl->rev_ptr_written = TRUE;
+#if defined(CONFIG_FB_MSM_MDP31) || defined(CONFIG_FB_MSM_MDP40)
 				if ((pmhctl->rev_state ==
 				     MDDI_REV_CLIENT_CAP_ISSUED) &&
 				    (mddi_host_core_version == 0x28 ||
@@ -1147,7 +1270,13 @@ static void mddi_issue_reverse_encapsulation(void)
 					mddi_host_reg_out(REV_PTR,
 						  pmhctl->
 						  mddi_rev_ptr_write_val);
+#else
+				mddi_host_reg_out(REV_PTR,
+						  pmhctl->
+						  mddi_rev_ptr_write_val);
+#endif
 			}
+#endif
 			if (mddi_debug_clear_rev_data) {
 				uint16 i;
 				for (i = 0; i < MDDI_MAX_REV_DATA_SIZE / 4; i++)
@@ -1205,11 +1334,14 @@ static void mddi_process_client_initiated_wakeup(void)
 						   &mddi_gpio.polling_val);
 	}
 }
+#endif /* FEATURE_MDDI_DISABLE_REVERSE */
 
 static void mddi_host_isr(void)
 {
 	uint32 int_reg, int_en;
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	uint32 status_reg;
+#endif
 	mddi_host_type host_idx = mddi_curr_host;
 	mddi_host_cntl_type *pmhctl = &(mhctl[host_idx]);
 
@@ -1223,7 +1355,11 @@ static void mddi_host_isr(void)
 	pmhctl->saved_int_en = int_en;
 	int_reg = int_reg & int_en;
 	pmhctl->int_type.count++;
+
+
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	status_reg = mddi_host_reg_in(STAT);
+
 	if ((int_reg & MDDI_INT_MDDI_IN) ||
 	    ((int_en & MDDI_INT_MDDI_IN) &&
 	     ((int_reg == 0) || (status_reg & MDDI_STAT_CLIENT_WAKEUP_REQ)))) {
@@ -1241,6 +1377,8 @@ static void mddi_host_isr(void)
 			pmhctl->int_type.in_count++;
 		mddi_process_client_initiated_wakeup();
 	}
+#endif
+
 	if (int_reg & MDDI_INT_LINK_STATE_CHANGES) {
 		pmhctl->int_type.state_change_count++;
 		mddi_report_state_change(int_reg);
@@ -1250,18 +1388,25 @@ static void mddi_host_isr(void)
 		pmhctl->int_type.ll_done_count++;
 		mddi_process_link_list_done();
 	}
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	if (int_reg & MDDI_INT_REV_DATA_AVAIL) {
 		pmhctl->int_type.rev_avail_count++;
 		mddi_process_rev_packets();
 	}
+#endif
+
 	if (int_reg & MDDI_INT_ERROR_CONDITIONS) {
 		pmhctl->int_type.error_count++;
 		mddi_report_errors(int_reg);
+
 		mddi_host_reg_out(INT, int_reg & MDDI_INT_ERROR_CONDITIONS);
 	}
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	mddi_issue_reverse_encapsulation();
+
 	if ((pmhctl->rev_state != MDDI_REV_ENCAP_ISSUED) &&
 	    (pmhctl->rev_state != MDDI_REV_STATUS_REQ_ISSUED))
+#endif
 		/* don't want simultaneous reverse and forward with Eagle */
 		mddi_queue_forward_linked_list();
 
@@ -1354,11 +1499,13 @@ static void mddi_host_initialize_registers(mddi_host_type host_idx)
 	/* Reverse Rate Divisor register (= 0x2) */
 	mddi_host_reg_out(REV_RATE_DIV, MDDI_HOST_REV_RATE_DIV);
 
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	/* Reverse Pointer Size */
 	mddi_host_reg_out(REV_SIZE, MDDI_REV_BUFFER_SIZE);
 
 	/* Rev Encap Size */
 	mddi_host_reg_out(REV_ENCAP_SZ, pmhctl->rev_pkt_size);
+#endif
 
 	/* Periodic Rev Encap */
 	/* don't send periodically */
@@ -1371,23 +1518,58 @@ static void mddi_host_initialize_registers(mddi_host_type host_idx)
 		mddi_host_reg_out(PAD_CTL, 0x08000);
 		udelay(5);
 	}
+#if defined(T_MSM7200)
+	/* Recommendation from PAD hw team */
+	mddi_host_reg_out(PAD_CTL, 0xa850a);
+	/* Recommendation from PAD hw team */
+#elif defined(CONFIG_FB_MSM_MDDI_2)
+	mddi_host_reg_out(PAD_CTL, 0x402a850f);
+#else
 	mddi_host_reg_out(PAD_CTL, 0xa850f);
+#endif
+
+#if defined(CONFIG_FB_MSM_MDDI_TMD_NT35580)
 	pad_reg_val = 0x00cc0020;
+#else
+	pad_reg_val = 0x00220020;
+#endif
+
+#ifdef CONFIG_FB_MSM_MDDI_2
+	pad_reg_val |= 0x10000000;
+#endif
+
+#if defined(CONFIG_FB_MSM_MDP31) || defined(CONFIG_FB_MSM_MDP40)
 	mddi_host_reg_out(PAD_IO_CTL, 0x00320000);
 	mddi_host_reg_out(PAD_CAL, pad_reg_val);
+#endif
+
 	mddi_host_core_version = mddi_host_reg_inm(CORE_VER, 0xffff);
+
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	if (mddi_host_core_version >= 8)
 		mddi_rev_ptr_workaround = FALSE;
 	pmhctl->rev_ptr_curr = pmhctl->rev_ptr_start;
+#endif
+
 	if ((mddi_host_core_version > 8) && (mddi_host_core_version < 0x19))
 		mddi_host_reg_out(TEST, 0x2);
+
 	/* Need an even number for counts */
 	mddi_host_reg_out(DRIVER_START_CNT, 0x60006);
+
+#ifndef T_MSM7500
+	/* Setup defaults for MDP related register */
+	mddi_host_reg_out(MDP_VID_FMT_DES, 0x5666);
+	mddi_host_reg_out(MDP_VID_PIX_ATTR, 0x00C3);
+	mddi_host_reg_out(MDP_VID_CLIENTID, 0);
+#endif
+
 	/* automatically hibernate after 1 empty subframe */
 	if (pmhctl->disable_hibernation)
 		mddi_host_reg_out(CMD, MDDI_CMD_HIBERNATE);
 	else
 		mddi_host_reg_out(CMD, MDDI_CMD_HIBERNATE | 1);
+
 	/* Bring up link if display (client) requests it */
 #ifdef MDDI_HOST_DISP_LISTEN
 	mddi_host_reg_out(CMD, MDDI_CMD_DISP_LISTEN);
@@ -1431,6 +1613,13 @@ void mddi_host_configure_interrupts(mddi_host_type host_idx, boolean enable)
 			else
 				int_mddi_ext_flag = TRUE;
 		}
+
+		/* Set MDDI Interrupt enable reg -- Enable Reverse data avail */
+#ifdef FEATURE_MDDI_DISABLE_REVERSE
+		mddi_host_reg_out(INTEN,
+				  MDDI_INT_ERROR_CONDITIONS |
+				  MDDI_INT_LINK_STATE_CHANGES);
+#else
 		/* Reverse Pointer register */
 		pmhctl->rev_ptr_written = FALSE;
 
@@ -1440,6 +1629,7 @@ void mddi_host_configure_interrupts(mddi_host_type host_idx, boolean enable)
 				  MDDI_INT_LINK_STATE_CHANGES);
 		pmhctl->rtd_counter = mddi_rtd_frequency;
 		pmhctl->client_status_cnt = 0;
+#endif
 	} else {
 		if (pmhctl->driver_state == MDDI_DRIVER_ENABLED)
 			pmhctl->driver_state = MDDI_DRIVER_DISABLED;
@@ -1502,6 +1692,10 @@ void mddi_host_init(mddi_host_type host_idx)
 			pmhctl->llist_dma_ptr =
 			    (mddi_linked_list_type *) (void *)pmhctl->
 			    llist_dma_addr;
+#ifdef FEATURE_MDDI_DISABLE_REVERSE
+			pmhctl->rev_data_buf = NULL;
+			if (pmhctl->llist_ptr == NULL)
+#else
 			mddi_rev_user.waiting = FALSE;
 			init_completion(&(mddi_rev_user.done_comp));
 			pmhctl->rev_data_buf =
@@ -1510,6 +1704,7 @@ void mddi_host_init(mddi_host_type host_idx)
 					       GFP_KERNEL);
 			if ((pmhctl->llist_ptr == NULL)
 			    || (pmhctl->rev_data_buf == NULL))
+#endif
 			{
 				MDDI_MSG_CRIT
 				    ("unable to alloc non-cached memory\n");
@@ -1595,12 +1790,17 @@ void mddi_host_init(mddi_host_type host_idx)
 			pmhctl->log_parms.fwd_crc_cnt = 0;
 			pmhctl->log_parms.rev_crc_cnt = 0;
 			pmhctl->log_parms.vsync_response_cnt = 0;
+
 			prev_parms[host_idx] = pmhctl->log_parms;
 			mddi_client_capability_pkt.packet_length = 0;
 		}
+
+#ifndef T_MSM7500
 		/* tell clock driver we are user of this PLL */
 		MDDI_HOST_ENABLE_IO_CLOCK;
+#endif
 	}
+
 	mddi_host_powerup(host_idx);
 	pmhctl = &(mhctl[host_idx]);
 }
@@ -1613,6 +1813,7 @@ static uint32 mddi_client_id;
 uint32 mddi_get_client_id(void)
 {
 
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 	mddi_host_type host_idx = MDDI_HOST_PRIM;
 	static boolean client_detection_try = FALSE;
 	mddi_host_cntl_type *pmhctl;
@@ -1708,6 +1909,7 @@ uint32 mddi_get_client_id(void)
 	}
 #endif
 
+#endif
 
 	return mddi_client_id;
 }
@@ -1799,6 +2001,11 @@ uint16 mddi_get_next_free_llist_item(mddi_host_type host_idx, boolean wait)
 
 uint16 mddi_get_reg_read_llist_item(mddi_host_type host_idx, boolean wait)
 {
+#ifdef FEATURE_MDDI_DISABLE_REVERSE
+	MDDI_MSG_CRIT("No reverse link available\n");
+	(void)wait;
+	return FALSE;
+#else
 	unsigned long flags;
 	uint16 ret_idx;
 	boolean error = FALSE;
@@ -1822,6 +2029,7 @@ uint16 mddi_get_reg_read_llist_item(mddi_host_type host_idx, boolean wait)
 	if (error)
 		MDDI_MSG_ERR("***** Reg read still in progress! ****\n");
 	return ret_idx;
+#endif
 
 }
 
@@ -1862,12 +2070,14 @@ void mddi_queue_forward_packets(uint16 first_llist_idx,
 	    (pmhctl->llist_info.waiting_start_idx == UNASSIGNED_INDEX) &&
 	    (pmhctl->rev_state == MDDI_REV_IDLE)) {
 		/* no packets are currently transmitting */
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 		if (first_llist_idx == pmhctl->llist_info.reg_read_idx) {
 			/* This is the special case where the packet is a register read. */
 			pmhctl->rev_state = MDDI_REV_REG_READ_ISSUED;
 			mddi_reg_read_retry = 0;
 			/* mddi_rev_reg_read_attempt = 1; */
 		}
+#endif
 		/* assign transmitting index values */
 		pmhctl->llist_info.transmitting_start_idx = first_llist_idx;
 		pmhctl->llist_info.transmitting_end_idx = last_llist_idx;
@@ -1885,6 +2095,7 @@ void mddi_queue_forward_packets(uint16 first_llist_idx,
 				   MDDI_INT_PRI_LINK_LIST_DONE);
 
 	} else if (pmhctl->llist_info.waiting_start_idx == UNASSIGNED_INDEX) {
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 		if (first_llist_idx == pmhctl->llist_info.reg_read_idx) {
 			/*
 			 * we have a register read to send but need to wait
@@ -1894,11 +2105,14 @@ void mddi_queue_forward_packets(uint16 first_llist_idx,
 			/* mddi_rev_reg_read_attempt = 0; */
 			pmhctl->llist_info.reg_read_waiting = TRUE;
 		}
+#endif
+
 		/* assign waiting index values */
 		pmhctl->llist_info.waiting_start_idx = first_llist_idx;
 		pmhctl->llist_info.waiting_end_idx = last_llist_idx;
 	} else {
 		uint16 prev_end_idx = pmhctl->llist_info.waiting_end_idx;
+#ifndef FEATURE_MDDI_DISABLE_REVERSE
 		if (first_llist_idx == pmhctl->llist_info.reg_read_idx) {
 			/*
 			 * we have a register read to send but need to wait
@@ -1908,15 +2122,21 @@ void mddi_queue_forward_packets(uint16 first_llist_idx,
 			/* mddi_rev_reg_read_attempt = 0; */
 			pmhctl->llist_info.reg_read_waiting = TRUE;
 		}
+#endif
+
 		llist = pmhctl->llist_ptr;
+
 		/* clear end flag in previous last packet */
 		llist[prev_end_idx].link_controller_flags = 0;
 		pmhctl->llist_notify[prev_end_idx].next_idx = first_llist_idx;
+
 		/* set the next_packet_pointer of the previous last packet */
 		llist[prev_end_idx].next_packet_pointer =
 		    (void *)(&llist_dma[first_llist_idx]);
+
 		/* clean cache so MDDI host can read data */
 		memory_barrier();
+
 		/* assign new waiting last index value */
 		pmhctl->llist_info.waiting_end_idx = last_llist_idx;
 	}
@@ -1932,6 +2152,10 @@ void mddi_host_write_pix_attr_reg(uint32 value)
 
 void mddi_queue_reverse_encapsulation(boolean wait)
 {
+#ifdef FEATURE_MDDI_DISABLE_REVERSE
+	MDDI_MSG_CRIT("No reverse link available\n");
+	(void)wait;
+#else
 	unsigned long flags;
 	boolean error = FALSE;
 	mddi_host_type host_idx = MDDI_HOST_PRIM;
@@ -1965,11 +2189,18 @@ void mddi_queue_reverse_encapsulation(boolean wait)
 		MDDI_MSG_ERR("Reverse Encap request already in progress\n");
 	} else if (wait)
 		wait_for_completion_killable(&(mddi_rev_user.done_comp));
+#endif
 }
 
 /* ISR to be executed */
 boolean mddi_set_rev_handler(mddi_rev_handler_type handler, uint16 pkt_type)
 {
+#ifdef FEATURE_MDDI_DISABLE_REVERSE
+	MDDI_MSG_CRIT("No reverse link available\n");
+	(void)handler;
+	(void)pkt_type;
+	return (FALSE);
+#else
 	unsigned long flags;
 	uint16 hdlr;
 	boolean handler_set = FALSE;
@@ -2027,11 +2258,16 @@ boolean mddi_set_rev_handler(mddi_rev_handler_type handler, uint16 pkt_type)
 			}
 		}
 	}
+
 	/* Restore interrupts */
 	spin_unlock_irqrestore(&mddi_host_spin_lock, flags);
+
 	if (overwrite)
 		MDDI_MSG_ERR("Overwriting previous rev packet handler\n");
+
 	return handler_set;
+
+#endif
 }				/* mddi_set_rev_handler */
 
 void mddi_host_disable_hibernation(boolean disable)

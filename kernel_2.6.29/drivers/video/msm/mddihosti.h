@@ -153,8 +153,19 @@ do { \
 * significantly increasing latency of waiting for next subframe */
 #define MDDI_HOST_BYTES_PER_SUBFRAME  0x3C00
 
+#if defined(CONFIG_FB_MSM_MDP31) || defined(CONFIG_FB_MSM_MDP40)
 #define MDDI_HOST_TA2_LEN       0x001a
 #define MDDI_HOST_REV_RATE_DIV  0x0004
+#else
+/*
+ * SEMC Patch: TA2 length should be 9 according to HITACHI specs
+ *
+ * #define MDDI_HOST_TA2_LEN       0x000c
+ */
+#define MDDI_HOST_TA2_LEN       0x0009
+
+#define MDDI_HOST_REV_RATE_DIV  0x0002
+#endif
 
 #define MDDI_ACCESS_PKT_REG_DATA_EXT	126
 

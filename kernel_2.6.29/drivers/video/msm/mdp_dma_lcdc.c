@@ -75,7 +75,7 @@
 
 #include "mdp.h"
 #include "msm_fb.h"
-//#include "mdp4.h"
+#include "mdp4.h"
 
 #ifdef CONFIG_FB_MSM_MDP40
 #define LCDC_BASE	0xC0000

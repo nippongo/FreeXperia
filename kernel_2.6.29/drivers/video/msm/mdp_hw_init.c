@@ -64,6 +64,7 @@ uint32 mdp_plv[] = { 0x10, 0xeb, 0x10, 0xf0 };
 struct mdp_ccs mdp_ccs_yuv2rgb = {
 	MDP_CCS_YUV2RGB,
 	{
+#if defined(CONFIG_FB_MSM_MDDI_TMD_NT35580)
 		0x200,
 		0x000,
 		0x2cd,
@@ -73,11 +74,32 @@ struct mdp_ccs mdp_ccs_yuv2rgb = {
 		0x200,
 		0x386,
 		0x000,
+#else
+		0x254,
+		0x000,
+		0x331,
+		0x254,
+		0xff38,
+		0xfe61,
+		0x254,
+		0x409,
+		0x000,
+#endif
 	},
 	{
+#ifdef CONFIG_FB_MSM_MDP31
+#if defined(CONFIG_FB_MSM_MDDI_TMD_NT35580)
 		0x000,
+#else
+		0x1f0,
+#endif
 		0x180,
 		0x180
+#else
+		0x10,
+		0x80,
+		0x80
+#endif
 	}
 };
 
@@ -95,11 +117,13 @@ struct mdp_ccs mdp_ccs_rgb2yuv = {
 		0xff45,
 		0xffdc,
 	},
+#ifdef CONFIG_FB_MSM_MDP31
 	{
 		0x10,
 		0x80,
 		0x80
 	}
+#endif
 };
 
 static void mdp_load_lut_param(void)
@@ -667,11 +691,13 @@ void mdp_hw_init(void)
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x01e0, 0);
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x01e4, 0);
 
+#ifndef CONFIG_FB_MSM_MDP22
 	MDP_OUTP(MDP_BASE + 0xE0000, 0);
 	MDP_OUTP(MDP_BASE + 0x100, 0xffffffff);
 	MDP_OUTP(MDP_BASE + 0x90070, 0);
 	MDP_OUTP(MDP_BASE + 0x94010, 1);
 	MDP_OUTP(MDP_BASE + 0x9401c, 2);
+#endif
 
 	/*
 	 * limit vector
@@ -683,6 +709,7 @@ void mdp_hw_init(void)
 	writel(mdp_plv[2], MDP_CSC_PRE_LV1n(2));
 	writel(mdp_plv[3], MDP_CSC_PRE_LV1n(3));
 
+#ifdef CONFIG_FB_MSM_MDP31
 	writel(mdp_plv[2], MDP_CSC_PRE_LV1n(4));
 	writel(mdp_plv[3], MDP_CSC_PRE_LV1n(5));
 
@@ -706,18 +733,20 @@ void mdp_hw_init(void)
 	writel(mdp_plv[3], MDP_CSC_POST_LV2n(3));
 	writel(mdp_plv[2], MDP_CSC_POST_LV2n(4));
 	writel(mdp_plv[3], MDP_CSC_POST_LV2n(5));
+#endif
 
 	/* primary forward matrix */
 	for (i = 0; i < MDP_CCS_SIZE; i++)
 		writel(mdp_ccs_rgb2yuv.ccs[i], MDP_CSC_PFMVn(i));
 
+#ifdef CONFIG_FB_MSM_MDP31
 	for (i = 0; i < MDP_BV_SIZE; i++)
 		writel(mdp_ccs_rgb2yuv.bv[i], MDP_CSC_POST_BV2n(i));
 
 	writel(0, MDP_CSC_PRE_BV2n(0));
 	writel(0, MDP_CSC_PRE_BV2n(1));
 	writel(0, MDP_CSC_PRE_BV2n(2));
-
+#endif
 	/* primary reverse matrix */
 	for (i = 0; i < MDP_CCS_SIZE; i++)
 		writel(mdp_ccs_yuv2rgb.ccs[i], MDP_CSC_PRMVn(i));
@@ -725,6 +754,7 @@ void mdp_hw_init(void)
 	for (i = 0; i < MDP_BV_SIZE; i++)
 		writel(mdp_ccs_yuv2rgb.bv[i], MDP_CSC_PRE_BV1n(i));
 
+#ifdef CONFIG_FB_MSM_MDP31
 	writel(0, MDP_CSC_POST_BV1n(0));
 	writel(0, MDP_CSC_POST_BV1n(1));
 	writel(0, MDP_CSC_POST_BV1n(2));
@@ -733,10 +763,13 @@ void mdp_hw_init(void)
 	outpdw(MDP_BASE + 0x30014, 0x0360);
 	outpdw(MDP_BASE + 0x30018, 0x0120);
 	outpdw(MDP_BASE + 0x3001c, 0x0140);
+#endif
 	mdp_init_scale_table();
 
+#ifndef CONFIG_FB_MSM_MDP31
 	MDP_OUTP(MDP_CMD_DEBUG_ACCESS_BASE + 0x0104,
 		 ((16 << 6) << 16) | (16) << 6);
+#endif
 
 	/* MDP cmd block disable */
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
