@@ -942,13 +942,6 @@ config MSM_MISC_MODEM_API
 	help
 	  This option enables misc modem API driver
 
-config ES209RA_HEADSET
-	bool "ES209RA headset detection driver"
-	default y if MACH_ES209RA
-	help
-	  Provides support for detecting 3.5mm audio jack, such as wired
-	  headset, on the es209ra platform.
-
 config NPA_REMOTE_ONCRPC
 	bool "Enables NPA remoting through ONCRPC protocol."
 	depends on NPA && MSM_ONCRPCROUTER
