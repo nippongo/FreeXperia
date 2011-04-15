@@ -44,7 +44,7 @@
 #include <linux/usb/android.h>
 #include "board-es209ra.h"
 #include "board-es209ra-keypad.h"
-#include "es209ra_headset.h"
+#include "board-es209ra_headset.h"
 #include <linux/spi/es209ra_touch.h>
 #include <asm/setup.h>
 #include  <linux/semc/msm_pmic_vibrator.h>
