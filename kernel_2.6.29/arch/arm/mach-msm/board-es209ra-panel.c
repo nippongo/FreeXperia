@@ -99,7 +99,6 @@ static void tmd_wvga_lcd_power_off(void)
 {
 	gpio_set_value(NT35580_GPIO_XRST, 0);
 	msleep(10);
-
 	local_irq_disable();
 	vreg_disable(vreg_mmc);
 	vreg_disable(vreg_gp2);
@@ -141,15 +140,14 @@ static void __init msm_mddi_tmd_fwvga_display_device_init(void)
 	panel_data->panel_info.lcd.v_back_porch = 12;
 	panel_data->panel_info.lcd.v_front_porch = 2;
 	panel_data->panel_info.lcd.v_pulse_width = 0;
-	panel_data->panel_info.lcd.hw_vsync_mode = TRUE;
+	panel_data->panel_info.lcd.hw_vsync_mode = 0;
 	panel_data->panel_info.lcd.vsync_notifier_period = 0;
 
 	panel_data->panel_info.lcd.refx100 = 100000000 / 16766;
 
 	panel_data->panel_ext = &tmd_wvga_panel_ext;
 
-	mddi_tmd_wvga_display_device.dev.platform_data =
-						&tmd_wvga_panel_data;
+	mddi_tmd_wvga_display_device.dev.platform_data =&tmd_wvga_panel_data;
 
 	vreg_gp2 = vreg_get(NULL, "gp2");
 	if (IS_ERR(vreg_gp2)) {

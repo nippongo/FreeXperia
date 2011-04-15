@@ -228,18 +228,18 @@ static int  android_bind_config(struct usb_configuration *c)
 			if (ret)
 				return ret;
 			break;
-		case ANDROID_CDROM:
-			ret = mass_storage_function_add(dev->cdev, c,
-								dev->nluns, ANDROID_CDROM);
-			if (ret)
-				return ret;
-			break;
-		case ANDROID_MSC_CDROM:
-			ret = mass_storage_function_add(dev->cdev, c,
-						2, ANDROID_MSC_CDROM);
-			if (ret)
-				return ret;
-			break;
+//		case ANDROID_CDROM:
+//			ret = mass_storage_function_add(dev->cdev, c,
+//								dev->nluns, ANDROID_CDROM);
+//			if (ret)
+//				return ret;
+//			break;
+//		case ANDROID_MSC_CDROM:
+//			ret = mass_storage_function_add(dev->cdev, c,
+//						2, ANDROID_MSC_CDROM);
+//			if (ret)
+//				return ret;
+//			break;
 		case ANDROID_ACM_MODEM:
 			ret = acm_bind_config(c, 0);
 			if (ret)
@@ -373,9 +373,9 @@ static int  android_bind(struct usb_composite_dev *cdev)
 
 	dev->cdev = cdev;
 	dev->gadget = gadget;
-	cdev->cdrom_lun_conf = dev->pdata->cdrom_lun_conf;
+//	cdev->cdrom_lun_conf = dev->pdata->cdrom_lun_conf;
 	cdev->msc_lun_conf = dev->pdata->msc_lun_conf;
-	cdev->msc_cdrom_lun_conf = dev->pdata->msc_cdrom_lun_conf;
+//	cdev->msc_cdrom_lun_conf = dev->pdata->msc_cdrom_lun_conf;
 
 #if defined(CONFIG_USB_ANDROID_CDC_ECM) || defined(CONFIG_USB_ANDROID_RNDIS)
 	/* set up network link layer */

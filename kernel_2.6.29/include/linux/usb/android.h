@@ -56,9 +56,9 @@ struct android_usb_platform_data {
 	/* number of LUNS for mass storage function */
 	int nluns;
 
-	struct usb_mass_storage_lun_config *cdrom_lun_conf;
+//	struct usb_mass_storage_lun_config *cdrom_lun_conf;
 	struct usb_mass_storage_lun_config *msc_lun_conf;
-	struct usb_mass_storage_lun_config *msc_cdrom_lun_conf;
+//	struct usb_mass_storage_lun_config *msc_cdrom_lun_conf;
 	int self_powered;
 };
 /* composition support structure */
