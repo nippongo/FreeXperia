@@ -88,7 +88,7 @@ CC :=$(ATH_CROSS_COMPILE_TYPE)gcc
 LD :=$(ATH_CROSS_COMPILE_TYPE)ld
 STRIP :=$(ATH_CROSS_COMPILE_TYPE)strip
 ATH_HIF_TYPE :=`echo $(ATH_BUS_TYPE) | tr [:upper:] [:lower:]`
-ATH_LINUXPATH :=$(shell pwd)/../../../kernel_2.6.29/
+ATH_LINUXPATH :=$(shell pwd)/../../../../kernel/
 export  STRIP
 
 #export compiler variables for 3rd party applications (like the WPA supplicant)
