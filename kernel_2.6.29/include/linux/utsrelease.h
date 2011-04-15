@@ -1,1 +1,1 @@
-#define UTS_RELEASE "2.6.29-FreeXperia_beta3"
+#define UTS_RELEASE "2.6.29-FreeXperia"

@@ -942,6 +942,7 @@ config MSM_MISC_MODEM_API
 	help
 	  This option enables misc modem API driver
 
+
 config NPA_REMOTE_ONCRPC
 	bool "Enables NPA remoting through ONCRPC protocol."
 	depends on NPA && MSM_ONCRPCROUTER

@@ -1870,6 +1870,7 @@ static void add_default_services(void)
 		{0x40000101, 0x00010001}, // ## unknown ##
 		{0x3000fe00, 0xa82d4624}, // RESTART_DAEMON NUMBER 0
 		{0x3000008c, 0x00020001}, // ## unknown ##
+    {0x3000008c, 0x00040000}, // GPS //J  
 		{0x3000006b, 0x00010001}, // OEM_RAPI
 		{0x3000000e, 0x00040001}, // NV
 		{0x30000089, 0x00010003}, // VBATT_REMOTE

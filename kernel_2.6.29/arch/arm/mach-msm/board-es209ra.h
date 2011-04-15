@@ -69,6 +69,7 @@
 #define STARTUP_REASON_TYPE_APPROVAL	(1 << 28)
 /* SEMC: add bit definition for startup_reason - end */
 
+
 extern struct max17040_device_data max17040_dev_data;
 
 #endif

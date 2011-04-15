@@ -45,7 +45,7 @@
 #include "board-es209ra.h"
 #include "board-es209ra-keypad.h"
 #include "board-es209ra-headset.h"
-#include <linux/spi/es209ra_touch.h>
+#include <linux/spi/es209ra_touch_mt.h>
 #include <asm/setup.h>
 #include  <linux/semc/msm_pmic_vibrator.h>
 #include "q6audio.h"
