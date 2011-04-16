@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.29
- * Fri Apr 15 20:02:58 2011
+ * Sat Apr 16 15:13:51 2011
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_VIDEO_V4L1_COMPAT 1
@@ -332,7 +332,7 @@
 #define CONFIG_INPUT 1
 #define CONFIG_VIRT_TO_BUS 1
 #define CONFIG_MSM_SMD_TTY 1
-#define CONFIG_LOCALVERSION "-FreeXperia"
+#define CONFIG_LOCALVERSION "-FreeXperia_beta4"
 #define CONFIG_USB_MSM_OTG_72K 1
 #define CONFIG_DIAG_CHAR 1
 #define CONFIG_SCSI_SCAN_ASYNC 1
