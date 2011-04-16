@@ -29,7 +29,7 @@ ATH_ANDROID_ROOT=/opt/qc8k
 
   # Some common variable
   ATH_ARCH_CPU_TYPE := arm 
-  ATH_CROSS_COMPILE_TYPE := /android/android-cm-g/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-
+  ATH_CROSS_COMPILE_TYPE := arm-eabi-
   ATH_BUS_TYPE := SDIO
   ATH_OS_SUB_TYPE := linux_2_6
   ATH_BUS_SUBTYPE := linux_sdio

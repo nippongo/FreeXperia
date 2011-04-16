@@ -1,8 +1,8 @@
-cmd_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := /android/android-cm-g/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/arm-eabi-gcc -Wp,-MD,/android/android-cm-g/vendor/atheros/wlan/host/os/linux/.engine.o.d  -nostdinc -isystem /android/android-cm-g/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/../lib/gcc/arm-eabi/4.4.0/include -Iinclude  -I/android/kernel_2.6.29/arch/arm/include -include include/linux/autoconf.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-msm/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror -Werror-implicit-function-declaration -Os -marm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -mabi=aapcs-linux -mno-thumb-interwork -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -Wframe-larger-than=2048 -fno-stack-protector -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -Wdeclaration-after-statement -Wno-pointer-sign -fwrapv -fno-dwarf2-cfi-asm -D__linux__ -Wno-error -I/android/android-cm-g/vendor/atheros/wlan/host/include -I/android/android-cm-g/vendor/atheros/wlan/host/../include -I/android/android-cm-g/vendor/atheros/wlan/host/../include/AR6002 -I/android/android-cm-g/vendor/atheros/wlan/host/wlan/include -I/android/android-cm-g/vendor/atheros/wlan/host/os/linux/include -I/android/android-cm-g/vendor/atheros/wlan/host/os/ -I/android/android-cm-g/vendor/atheros/wlan/host/bmi/include -DLINUX -DDEBUG -D__KERNEL__ -DTCMD -DSEND_EVENT_TO_APP -DUSER_KEYS -DNO_SYNC_FLUSH -DWAPI_ENABLE -DANDROID_ENV -DSOFTMAC_USED -DREGION_CODE_FILE_USED -DKERNEL_2_6 -I/android/android-cm-g/vendor/atheros/wlan/host/hif/sdio/linux_sdio/include -DSDIO -I/src/include -DMODULE -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(engine)"  -D"KBUILD_MODNAME=KBUILD_STR(ar6000)"  -c -o /android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o /android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.c
+cmd_/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.o := arm-eabi-gcc -Wp,-MD,/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/.engine.o.d  -nostdinc -isystem /home/bin4ry/android-ndk-r4b/build/prebuilt/linux-x86/arm-eabi-4.4.0/bin/../lib/gcc/arm-eabi/4.4.0/include -Iinclude  -I/home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include -include include/linux/autoconf.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-msm/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror -Werror-implicit-function-declaration -Os -marm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -mabi=aapcs-linux -mno-thumb-interwork -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -Wframe-larger-than=2048 -fno-stack-protector -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -Wdeclaration-after-statement -Wno-pointer-sign -fwrapv -fno-dwarf2-cfi-asm -D__linux__ -Wno-error -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/include -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/../include -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/../include/AR6002 -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/wlan/include -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/include -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/ -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/bmi/include -DLINUX -DDEBUG -D__KERNEL__ -DTCMD -DSEND_EVENT_TO_APP -DUSER_KEYS -DNO_SYNC_FLUSH -DWAPI_ENABLE -DANDROID_ENV -DSOFTMAC_USED -DREGION_CODE_FILE_USED -DKERNEL_2_6 -I/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/hif/sdio/linux_sdio/include -DSDIO -I/src/include -DMODULE -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(engine)"  -D"KBUILD_MODNAME=KBUILD_STR(ar6000)"  -c -o /home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.o /home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.c
 
-deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
-  /android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.c \
-  /android/android-cm-g/vendor/atheros/wlan/host/os/linux/include/engine.h \
+deps_/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.o := \
+  /home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.c \
+  /home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/include/engine.h \
   include/linux/version.h \
   include/linux/module.h \
     $(wildcard include/config/modules.h) \
@@ -35,24 +35,24 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/phys/addr/t/64bit.h) \
     $(wildcard include/config/64bit.h) \
   include/linux/posix_types.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/posix_types.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/types.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/posix_types.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/types.h \
   include/asm-generic/int-ll64.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/processor.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/processor.h \
     $(wildcard include/config/mmu.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/ptrace.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/ptrace.h \
     $(wildcard include/config/arm/thumb.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/hwcap.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/cache.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/hwcap.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/cache.h \
     $(wildcard include/config/arm/l1/cache/shift.h) \
     $(wildcard include/config/aeabi.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/system.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/system.h \
     $(wildcard include/config/cpu/xsc3.h) \
     $(wildcard include/config/cpu/fa526.h) \
     $(wildcard include/config/arch/msm.h) \
     $(wildcard include/config/cpu/sa1100.h) \
     $(wildcard include/config/cpu/sa110.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/memory.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/memory.h \
     $(wildcard include/config/page/offset.h) \
     $(wildcard include/config/dram/size.h) \
     $(wildcard include/config/dram/base.h) \
@@ -65,13 +65,13 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/arch/msm7x27.h) \
     $(wildcard include/config/cache/l2x0.h) \
     $(wildcard include/config/arch/msm/scorpion.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/sizes.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/sizes.h \
   include/asm-generic/memory_model.h \
     $(wildcard include/config/flatmem.h) \
     $(wildcard include/config/sparsemem/vmemmap.h) \
     $(wildcard include/config/sparsemem.h) \
   include/linux/linkage.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/linkage.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/linkage.h \
   include/linux/irqflags.h \
     $(wildcard include/config/trace/irqflags.h) \
     $(wildcard include/config/irqsoff/tracer.h) \
@@ -79,11 +79,11 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/trace/irqflags/support.h) \
     $(wildcard include/config/x86.h) \
   include/linux/typecheck.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/irqflags.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/irqflags.h \
   include/asm-generic/cmpxchg-local.h \
   include/asm-generic/cmpxchg.h \
   include/linux/stat.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/stat.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/stat.h \
   include/linux/time.h \
   include/linux/cache.h \
     $(wildcard include/config/arch/has/cache/line/size.h) \
@@ -95,12 +95,12 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/dynamic/printk/debug.h) \
     $(wildcard include/config/numa.h) \
     $(wildcard include/config/ftrace/mcount/record.h) \
-  /android/android-cm-g/prebuilt/linux-x86/toolchain/arm-eabi-4.4.0/bin/../lib/gcc/arm-eabi/4.4.0/include/stdarg.h \
+  /home/bin4ry/android-ndk-r4b/build/prebuilt/linux-x86/arm-eabi-4.4.0/bin/../lib/gcc/arm-eabi/4.4.0/include/stdarg.h \
   include/linux/bitops.h \
     $(wildcard include/config/generic/find/first/bit.h) \
     $(wildcard include/config/generic/find/last/bit.h) \
     $(wildcard include/config/generic/find/next/bit.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/bitops.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/bitops.h \
   include/asm-generic/bitops/non-atomic.h \
   include/asm-generic/bitops/fls64.h \
   include/asm-generic/bitops/sched.h \
@@ -111,15 +111,15 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/arch/has/ilog2/u64.h) \
   include/linux/ratelimit.h \
   include/linux/param.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/param.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/param.h \
     $(wildcard include/config/hz.h) \
   include/linux/dynamic_printk.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/byteorder.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/byteorder.h \
   include/linux/byteorder/little_endian.h \
   include/linux/swab.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/swab.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/swab.h \
   include/linux/byteorder/generic.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/bug.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/bug.h \
     $(wildcard include/config/bug.h) \
     $(wildcard include/config/debug/bugverbose.h) \
   include/asm-generic/bug.h \
@@ -135,12 +135,12 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/preempt/notifiers.h) \
   include/linux/thread_info.h \
     $(wildcard include/config/compat.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/thread_info.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/thread_info.h \
     $(wildcard include/config/arm/thumbee.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/fpstate.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/fpstate.h \
     $(wildcard include/config/vfpv3.h) \
     $(wildcard include/config/iwmmxt.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/domain.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/domain.h \
     $(wildcard include/config/io/36.h) \
     $(wildcard include/config/emulate/domain/manager/v7.h) \
   include/linux/stringify.h \
@@ -153,10 +153,10 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/generic/hardirqs.h) \
   include/linux/spinlock_up.h \
   include/linux/spinlock_api_up.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/atomic.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/atomic.h \
   include/asm-generic/atomic.h \
   include/linux/math64.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/div64.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/div64.h \
   include/linux/kmod.h \
   include/linux/gfp.h \
     $(wildcard include/config/zone/dma32.h) \
@@ -176,7 +176,7 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/nodes/span/other/nodes.h) \
     $(wildcard include/config/holes/in/zone.h) \
   include/linux/wait.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/current.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/current.h \
   include/linux/threads.h \
     $(wildcard include/config/nr/cpus.h) \
     $(wildcard include/config/base/small.h) \
@@ -187,19 +187,19 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
   include/linux/nodemask.h \
   include/linux/bitmap.h \
   include/linux/string.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/string.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/string.h \
   include/linux/pageblock-flags.h \
     $(wildcard include/config/hugetlb/page.h) \
     $(wildcard include/config/hugetlb/page/size/variable.h) \
   include/linux/bounds.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/page.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/page.h \
     $(wildcard include/config/cpu/copy/v3.h) \
     $(wildcard include/config/cpu/copy/v4wt.h) \
     $(wildcard include/config/cpu/copy/v4wb.h) \
     $(wildcard include/config/cpu/copy/feroceon.h) \
     $(wildcard include/config/cpu/xscale.h) \
     $(wildcard include/config/cpu/copy/v6.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/glue.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/glue.h \
     $(wildcard include/config/cpu/arm610.h) \
     $(wildcard include/config/cpu/arm710.h) \
     $(wildcard include/config/cpu/abrt/lv4t.h) \
@@ -217,7 +217,7 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/memory/hotremove.h) \
   include/linux/notifier.h \
   include/linux/errno.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/errno.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/errno.h \
   include/asm-generic/errno.h \
   include/asm-generic/errno-base.h \
   include/linux/mutex.h \
@@ -236,12 +236,12 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/debug/per/cpu/maps.h) \
   include/linux/smp.h \
     $(wildcard include/config/use/generic/smp/helpers.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/topology.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/topology.h \
   include/asm-generic/topology.h \
   include/linux/elf.h \
   include/linux/elf-em.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/elf.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/user.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/elf.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/user.h \
   include/linux/kobject.h \
   include/linux/sysfs.h \
   include/linux/kref.h \
@@ -264,15 +264,15 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
     $(wildcard include/config/debug/slab.h) \
   include/linux/slab_def.h \
   include/linux/kmalloc_sizes.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/percpu.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/percpu.h \
   include/asm-generic/percpu.h \
     $(wildcard include/config/have/setup/per/cpu/area.h) \
   include/linux/completion.h \
   include/linux/rcuclassic.h \
     $(wildcard include/config/rcu/cpu/stall/detector.h) \
-  /android/kernel_2.6.29/arch/arm/include/asm/local.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/local.h \
   include/asm-generic/local.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/module.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/module.h \
   include/linux/device.h \
     $(wildcard include/config/debug/devres.h) \
   include/linux/ioport.h \
@@ -280,7 +280,7 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
   include/linux/pm.h \
     $(wildcard include/config/pm/sleep.h) \
   include/linux/semaphore.h \
-  /android/kernel_2.6.29/arch/arm/include/asm/device.h \
+  /home/bin4ry/FreeXperia/kernel_2.6.29/arch/arm/include/asm/device.h \
     $(wildcard include/config/dmabounce.h) \
   include/linux/pm_wakeup.h \
     $(wildcard include/config/pm.h) \
@@ -289,6 +289,6 @@ deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o := \
   include/linux/firmware.h \
     $(wildcard include/config/fw/loader.h) \
 
-/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o: $(deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o)
+/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.o: $(deps_/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.o)
 
-$(deps_/android/android-cm-g/vendor/atheros/wlan/host/os/linux/engine.o):
+$(deps_/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/engine.o):
