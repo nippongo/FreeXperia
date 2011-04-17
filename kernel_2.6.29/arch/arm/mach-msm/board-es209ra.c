@@ -843,7 +843,7 @@ static struct resource kgsl_resources[] = {
 		.flags = IORESOURCE_MEM,
        },
        {
-		.name  = "kgsl_yamato_irq",
+//		.name  = "kgsl_yamato_irq",
 		.start = INT_GRAPHICS,
 		.end   = INT_GRAPHICS,
 		.flags = IORESOURCE_IRQ,
@@ -1050,11 +1050,6 @@ static void __init es209ra_init_irq(void)
 	msm_init_sirc();
 }
 
-static void kgsl_phys_memory_init(void)
-{
-	request_mem_region(kgsl_resources[1].start,
-		resource_size(&kgsl_resources[1]), "kgsl");
-}
 
 static void __init es209ra_init_usb(void)
 {
@@ -1138,7 +1133,6 @@ static struct msm_i2c_platform_data msm_i2c_pdata = {
 	.rsl_id = SMEM_SPINLOCK_I2C,
 	.pri_clk = 95,
 	.pri_dat = 96,
-/* SEMC:SYS: Es209ra has only primary I2C. */
 	.msm_i2c_config_gpio = msm_i2c_gpio_config,
 };
 
@@ -1146,13 +1140,8 @@ static void __init msm_device_i2c_init(void)
 {
 	if (gpio_request(95, "i2c_pri_clk")) pr_err("failed to request gpio i2c_pri_clk\n");
 	if (gpio_request(96, "i2c_pri_dat")) pr_err("failed to request gpio i2c_pri_dat\n");
-
-/* SEMC:SYS: Es209ra has only primary I2C. */
-
 	msm_i2c_pdata.rmutex = (uint32_t)smem_alloc(SMEM_I2C_MUTEX, 8);
-	msm_i2c_pdata.pm_lat =
-		msm_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN]
-		.latency;
+	msm_i2c_pdata.pm_lat =msm_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].latency;
 	msm_device_i2c.dev.platform_data = &msm_i2c_pdata;
 }
 
@@ -1190,8 +1179,7 @@ static void __init es209ra_init(void)
 {
 	smsm_wait_for_modem();
 	msm_acpu_clock_init(&qsd8x50_clock_data);
-	msm_hsusb_pdata.swfi_latency = msm_pm_data
-	[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
+	msm_hsusb_pdata.swfi_latency = msm_pm_data[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
 	msm_device_hsusb_peripheral.dev.platform_data = &msm_hsusb_pdata;
 	msm_device_otg.dev.platform_data = &msm_otg_pdata;
 	msm_device_gadget_peripheral.dev.platform_data = &msm_gadget_pdata;
@@ -1204,7 +1192,6 @@ static void __init es209ra_init(void)
 	i2c_register_board_info(0, msm_i2c_board_info,ARRAY_SIZE(msm_i2c_board_info));
 	spi_register_board_info(msm_spi_board_info,ARRAY_SIZE(msm_spi_board_info));
 	msm_pm_set_platform_data(msm_pm_data);
-	kgsl_phys_memory_init();
 	platform_device_register(&es209ra_keypad_device);
 }
 
