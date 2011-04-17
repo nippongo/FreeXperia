@@ -243,7 +243,6 @@ ssize_t SensorDevice::poll(sensors_event_t* buffer, size_t count) {
                 }
             }
 #endif
-
             pollsDone++;
         }
         return pollsDone;

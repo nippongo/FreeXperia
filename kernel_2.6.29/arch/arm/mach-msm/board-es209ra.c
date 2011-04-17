@@ -56,9 +56,7 @@
 
 #define SMEM_SPINLOCK_I2C	"S:6"
 
-#define MSM_AUDIO_SIZE		    0x00080000
-#define MSM_PMEM_SMIPOOL_BASE	0x03200000
-#define MSM_PMEM_SMIPOOL_SIZE	0x00E00000
+#define MSM_AUDIO_SIZE		0x00080000
 #define PMEM_KERNEL_EBI1_SIZE	0x28000
 
 
@@ -100,20 +98,6 @@ static struct platform_device vibrator_device = {
 	},
 };
 
-static struct resource ram_console_resources[] = {
-	{
-		.start	= MSM_RAM_CONSOLE_BASE,
-		.end	= MSM_RAM_CONSOLE_BASE + MSM_RAM_CONSOLE_SIZE - 1,
-		.flags	= IORESOURCE_MEM,
-	},
-};
-
-static struct platform_device ram_console_device = {
-	.name		= "ram_console",
-	.id		= -1,
-	.num_resources	= ARRAY_SIZE(ram_console_resources),
-	.resource	= ram_console_resources,
-};
 
 
 
@@ -344,6 +328,21 @@ static int msm_hsusb_native_phy_reset(void __iomem *addr)
 static struct msm_hsusb_platform_data msm_hsusb_pdata = {
 };
 
+static struct resource ram_console_resources[] = {
+	{
+		.start	= MSM_RAM_CONSOLE_BASE,
+		.end	= MSM_RAM_CONSOLE_BASE + MSM_RAM_CONSOLE_SIZE - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+static struct platform_device ram_console_device = {
+	.name		= "ram_console",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(ram_console_resources),
+	.resource	= ram_console_resources,
+};
+
 static struct android_pmem_platform_data android_pmem_kernel_ebi1_pdata = {
 	.name = PMEM_KERNEL_EBI1_DATA_NAME,
 	/* if no allocator_type, defaults to PMEM_ALLOCATORTYPE_BITMAP,
@@ -448,8 +447,8 @@ static struct resource qsd_spi_resources[] = {
 	},
 	{
 		.name   = "spi_base",
-		.start	= 0xA1200000,
-		.end	= 0xA1200000 + SZ_4K - 1,
+		.start	= MSM_SPI_PHYS,
+		.end	= MSM_SPI_PHYS + MSM_SPI_SIZE - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 	{
@@ -597,12 +596,6 @@ static struct resource msm_audio_resources[] = {
 		.start  = 71,
 		.end    = 71,
 		.flags  = IORESOURCE_IO,
-	},
-	{
-		.name	= "audio_base_addr",
-		.start	= 0xa0700000,
-		.end	= 0xa0700000 + 4,
-		.flags	= IORESOURCE_MEM,
 	},
 };
 
@@ -788,14 +781,12 @@ static int bluetooth_power(int on)
 		/* units of mV, steps of 50 mV */
 		rc = vreg_set_level(vreg_wlan, PMIC_VREG_WLAN_LEVEL);
 		if (rc) {
-			printk(KERN_ERR "%s: vreg wlan set level failed (%d)\n",
-			       __func__, rc);
+			printk(KERN_ERR "%s: vreg wlan set level failed (%d)\n",__func__, rc);
 			return -EIO;
 		}
 		rc = vreg_enable(vreg_wlan);
 		if (rc) {
-			printk(KERN_ERR "%s: vreg wlan enable failed (%d)\n",
-			       __func__, rc);
+			printk(KERN_ERR "%s: vreg wlan enable failed (%d)\n",__func__, rc);
 			return -EIO;
 		}
 
@@ -808,26 +799,21 @@ static int bluetooth_power(int on)
 
 		rc = vreg_disable(vreg_wlan);
 		if (rc) {
-			printk(KERN_ERR "%s: vreg wlan disable failed (%d)\n",
-			       __func__, rc);
+			printk(KERN_ERR "%s: vreg wlan disable failed (%d)\n", __func__, rc);
 			return -EIO;
-		}
+			}
 		rc = vreg_disable(vreg_bt);
 		if (rc) {
-			printk(KERN_ERR "%s: vreg bt disable failed (%d)\n",
-			       __func__, rc);
+			printk(KERN_ERR "%s: vreg bt disable failed (%d)\n", __func__, rc);
 			return -EIO;
-		}
+			}
 
 		for (pin = 0; pin < ARRAY_SIZE(bt_config_power_off); pin++) {
-			rc = gpio_tlmm_config(bt_config_power_off[pin],
-					      GPIO_ENABLE);
+			rc = gpio_tlmm_config(bt_config_power_off[pin],GPIO_ENABLE);
 			if (rc) {
-				printk(KERN_ERR
-				       "%s: gpio_tlmm_config(%#x)=%d\n",
-				       __func__, bt_config_power_off[pin], rc);
+				printk(KERN_ERR "%s: gpio_tlmm_config(%#x)=%d\n", __func__, bt_config_power_off[pin], rc);
 				return -EIO;
-			}
+				}
 		}
 	}
 
@@ -846,20 +832,20 @@ static void __init bt_power_init(void)
 static struct resource kgsl_resources[] = {
        {
 		.name  = "kgsl_reg_memory",
-		.start = 0xA0000000,
-		.end = 0xA001ffff,
+		.start = MSM_GPU_REG_PHYS,
+		.end   = MSM_GPU_REG_PHYS + MSM_GPU_REG_SIZE -1,
 		.flags = IORESOURCE_MEM,
        },
        {
-		.name   = "kgsl_phys_memory",
+		.name  = "kgsl_phys_memory",
 		.start = MSM_GPU_MEM_BASE,
-		.end = MSM_GPU_MEM_BASE + MSM_GPU_MEM_SIZE - 1,
+		.end   = MSM_GPU_MEM_BASE + MSM_GPU_MEM_SIZE - 1,
 		.flags = IORESOURCE_MEM,
        },
        {
-		.name = "kgsl_yamato_irq",
+		.name  = "kgsl_yamato_irq",
 		.start = INT_GRAPHICS,
-		.end = INT_GRAPHICS,
+		.end   = INT_GRAPHICS,
 		.flags = IORESOURCE_IRQ,
        },
 };
@@ -880,7 +866,7 @@ static struct platform_device msm_device_kgsl = {
        .resource = kgsl_resources,
 	.dev = {
 		.platform_data = &kgsl_pdata,
-	},
+		},
 };
 
 struct es209ra_headset_platform_data es209ra_headset_data = {
@@ -934,13 +920,13 @@ static struct max17040_i2c_platform_data max17040_platform_data = {
 static int ak8973_gpio_config(int enable)
 {
 	if (enable) {
-		if (gpio_request(AKM8973_GPIO_RESET_PIN, "akm8973_xres")) {
-			printk(KERN_ERR "%s: gpio_req xres"
-				" - Fail!", __func__);
+		if (gpio_request(AKM8973_GPIO_RESET_PIN, "akm8973_xres")) 
+		{
+			printk(KERN_ERR "%s: gpio_req xres"" - Fail!", __func__);
 			return -EIO;
 		}
-		if (gpio_tlmm_config(GPIO_CFG(AKM8973_GPIO_RESET_PIN, 0,
-			GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA),GPIO_ENABLE)) {
+		if (gpio_tlmm_config(GPIO_CFG(AKM8973_GPIO_RESET_PIN, 0,GPIO_OUTPUT, GPIO_NO_PULL, GPIO_2MA),GPIO_ENABLE)) 
+		{
 			printk(KERN_ERR "%s: gpio_tlmm_conf xres"
 				" - Fail!", __func__);
 			goto ak8973_gpio_fail_0;
@@ -1052,7 +1038,6 @@ static struct platform_device *devices[] __initdata = {
 	&msm_device_uart_dm2,
 	&msm_device_kgsl,
 	&hs_device,
-	//&msm_camera_sensor_semc_imx046_camera,
 	&vibrator_device,
 	&ram_console_device,
 	&es209ra_audio_jack_device,
@@ -1074,15 +1059,17 @@ static void kgsl_phys_memory_init(void)
 static void __init es209ra_init_usb(void)
 {
 	hs_clk = clk_get(NULL, "usb_hs_clk");
-	if (IS_ERR(hs_clk)) {
-		printk(KERN_ERR "%s: hs_clk clk get failed\n", __func__);
-		return;
+	if (IS_ERR(hs_clk)) 
+	{
+	printk(KERN_ERR "%s: hs_clk clk get failed\n", __func__);
+	return;
 	}
 
 	phy_clk = clk_get(NULL, "usb_phy_clk");
-	if (IS_ERR(phy_clk)) {
-		printk(KERN_ERR "%s: phy_clk clk get failed\n", __func__);
-		return;
+	if (IS_ERR(phy_clk)) 
+	{
+	printk(KERN_ERR "%s: phy_clk clk get failed\n", __func__);
+	return;
 	}
 	platform_device_register(&msm_device_otg);
 	platform_device_register(&msm_device_gadget_peripheral);
@@ -1136,17 +1123,13 @@ static void msm_i2c_gpio_config(int iface, int config_type)
 	
 	if (config_type)
 	{
-		gpio_tlmm_config(GPIO_CFG(gpio_scl, 1, GPIO_INPUT,
-					GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
-		gpio_tlmm_config(GPIO_CFG(gpio_sda, 1, GPIO_INPUT,
-					GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
+		gpio_tlmm_config(GPIO_CFG(gpio_scl, 1, GPIO_INPUT,GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
+		gpio_tlmm_config(GPIO_CFG(gpio_sda, 1, GPIO_INPUT,GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
 	}
 	else
 	{
-		gpio_tlmm_config(GPIO_CFG(gpio_scl, 0, GPIO_OUTPUT,
-					GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
-		gpio_tlmm_config(GPIO_CFG(gpio_sda, 0, GPIO_OUTPUT,
-					GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
+		gpio_tlmm_config(GPIO_CFG(gpio_scl, 0, GPIO_OUTPUT,GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
+		gpio_tlmm_config(GPIO_CFG(gpio_sda, 0, GPIO_OUTPUT,GPIO_NO_PULL, GPIO_16MA), GPIO_ENABLE);
 	}
 }
 
@@ -1161,10 +1144,8 @@ static struct msm_i2c_platform_data msm_i2c_pdata = {
 
 static void __init msm_device_i2c_init(void)
 {
-	if (gpio_request(95, "i2c_pri_clk"))
-		pr_err("failed to request gpio i2c_pri_clk\n");
-	if (gpio_request(96, "i2c_pri_dat"))
-		pr_err("failed to request gpio i2c_pri_dat\n");
+	if (gpio_request(95, "i2c_pri_clk")) pr_err("failed to request gpio i2c_pri_clk\n");
+	if (gpio_request(96, "i2c_pri_dat")) pr_err("failed to request gpio i2c_pri_dat\n");
 
 /* SEMC:SYS: Es209ra has only primary I2C. */
 
@@ -1237,8 +1218,7 @@ static void __init es209ra_allocate_memory_regions(void)
 		addr = alloc_bootmem_aligned(size, 0x100000);
 		android_pmem_kernel_ebi1_pdata.start = __pa(addr);
 		android_pmem_kernel_ebi1_pdata.size = size;
-		pr_info("allocating %lu bytes at %p (%lx physical) for kernel"
-			" ebi1 pmem arena\n", size, addr, __pa(addr));
+		pr_info("allocating %lu bytes at %p (%lx physical) for kernel"" ebi1 pmem arena\n", size, addr, __pa(addr));
 	}
 
 
@@ -1247,8 +1227,7 @@ static void __init es209ra_allocate_memory_regions(void)
 		addr = alloc_bootmem(size);
 		android_pmem_pdata.start = __pa(addr);
 		android_pmem_pdata.size = size;
-		pr_info("allocating %lu bytes at %p (%lx physical) for mdp "
-			"pmem arena\n", size, addr, __pa(addr));
+		pr_info("allocating %lu bytes at %p (%lx physical) for mdp ""pmem arena\n", size, addr, __pa(addr));
 	}
 
 	size = pmem_adsp_size;
@@ -1256,23 +1235,20 @@ static void __init es209ra_allocate_memory_regions(void)
 		addr = alloc_bootmem(size);
 		android_pmem_adsp_pdata.start = __pa(addr);
 		android_pmem_adsp_pdata.size = size;
-		pr_info("allocating %lu bytes at %p (%lx physical) for adsp "
-			"pmem arena\n", size, addr, __pa(addr));
+		pr_info("allocating %lu bytes at %p (%lx physical) for adsp ""pmem arena\n", size, addr, __pa(addr));
 	}
 
 	size = MSM_FB_SIZE;
 	addr = (void *)MSM_FB_BASE;
 	msm_fb_resources[0].start = (unsigned long)addr;
 	msm_fb_resources[0].end = msm_fb_resources[0].start + size - 1;
-	pr_info("using %lu bytes of SMI at %lx physical for fb\n",
-	       size, (unsigned long)addr);
+	pr_info("using %lu bytes of SMI at %lx physical for fb\n",size, (unsigned long)addr);
 
 	size = audio_size ? : MSM_AUDIO_SIZE;
 	addr = alloc_bootmem(size);
 	msm_audio_resources[0].start = __pa(addr);
 	msm_audio_resources[0].end = msm_audio_resources[0].start + size - 1;
-	pr_info("allocating %lu bytes at %p (%lx physical) for audio\n",
-		size, addr, __pa(addr));
+	pr_info("allocating %lu bytes at %p (%lx physical) for audio\n",size, addr, __pa(addr));
 }
 
 static void __init es209ra_fixup(struct machine_desc *desc, struct tag *tags,
