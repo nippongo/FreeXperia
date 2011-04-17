@@ -41,7 +41,12 @@
 #include "smd_private.h"
 #include "proc_comm.h"
 #include <linux/msm_kgsl.h>
+#ifdef CONFIG_USB_FUNCTION
+#include <linux/usb/mass_storage_function.h>
+#endif
+#ifdef CONFIG_USB_ANDROID
 #include <linux/usb/android.h>
+#endif
 #include "board-es209ra.h"
 #include "board-es209ra-keypad.h"
 #include "board-es209ra-headset.h"
@@ -98,24 +103,72 @@ static struct platform_device vibrator_device = {
 	},
 };
 
+#ifdef CONFIG_USB_FUNCTION
+static struct usb_mass_storage_lun_config mass_storage_lun_config[] = {
+	{	/*lun#0*/
+		.is_cdrom = false,
+		.shift_size = 9,
+		.can_stall = true,
+	},
+	{   /*lun#1*/
+		.is_cdrom = true,
+		.shift_size = 11,
+		.can_stall = false,
+	},
+};
 
+static struct usb_mass_storage_platform_data usb_mass_storage_pdata = {
+	.nluns          = ARRAY_SIZE(mass_storage_lun_config),
+	.buf_size       = 16384,
+	.vendor         = "SEMC",
+	.product        = "Mass storage",
+	.release        = 0xffff,
+	.lun_conf       = mass_storage_lun_config,
+};
 
+static struct platform_device mass_storage_device = {
+	.name           = "usb_mass_storage",
+	.id             = -1,
+	.dev            = {
+		.platform_data          = &usb_mass_storage_pdata,
+	},
+};
+#endif
 
+#ifdef CONFIG_USB_ANDROID
 /* dynamic composition */
 static struct usb_composition usb_func_composition[] = {
 	{
 		/* MSC( + CDROM) */
 		.product_id	= 0x312E,
-		.functions	= 0x2,
+		.functions	= 0xD,
 		/* MSC( + CDROM) + ADB */
 		.adb_product_id	= 0x212E,
-		.adb_functions	= 0x12,
+		.adb_functions	= 0x1D,
 		/* DIAG + ADB + MODEM + NMEA + MSC( + CDROM) */
 		.eng_product_id	= 0x2146,
-		.eng_functions	= 0x27614,
+		.eng_functions	= 0xD7614,
 	},
-	};
-static struct usb_mass_storage_lun_config msc_lun_config = {
+	{
+		/* MSC */
+		.product_id	= 0xE12E,
+		.functions	= 0x02,
+		/* MSC + ADB */
+		.adb_product_id	= 0x612E,
+		.adb_functions	= 0x12,
+		/* MSC + ADB + MODEM + NMEA + DIAG */
+		.eng_product_id	= 0x6146,
+		.eng_functions	= 0x47612,
+	},
+	{
+		/* ADB+MSC+ECM */
+		.product_id	= 0x3146,
+		.functions	= 0x821,
+		.adb_product_id	= 0x3146,
+		.adb_functions	= 0x821,
+	},
+};
+	 static struct usb_mass_storage_lun_config msc_lun_config = {
 	.is_cdrom	= false,
 	.shift_size	= 9,
 	.can_stall	= true,
@@ -123,7 +176,32 @@ static struct usb_mass_storage_lun_config msc_lun_config = {
 	.product	= "Mass Storage",
 	.release	= 0x0001,
 };
-
+static struct usb_mass_storage_lun_config cdrom_lun_config = {
+	.is_cdrom	= true,
+	.shift_size	= 11,
+	.can_stall	= false,
+	.vendor		= "SEMC",
+	.product	= "CD-ROM",
+	.release	= 0x0001,
+};
+static struct usb_mass_storage_lun_config msc_cdrom_lun_config[] = {
+	{
+		.is_cdrom	= false,
+		.shift_size	= 9,
+		.can_stall	= true,
+		.vendor		= "SEMC",
+		.product	= "Mass Storage",
+		.release	= 0x0001,
+	},
+	{
+		.is_cdrom	= true,
+		.shift_size	= 11,
+		.can_stall	= false,
+		.vendor		= "SEMC",
+		.product	= "CD-ROM",
+		.release	= 0x0001,
+	},
+};
 static struct android_usb_platform_data android_usb_pdata = {
 	.vendor_id		= 0x0FCE,
 	.version		= 0x0100,
@@ -133,7 +211,9 @@ static struct android_usb_platform_data android_usb_pdata = {
 	.product_name		= "SEMC HSUSB Device",
 	.manufacturer_name	= "SEMC",
 	.nluns			= 1,
+	.cdrom_lun_conf		= &cdrom_lun_config,
 	.msc_lun_conf		= &msc_lun_config,
+	.msc_cdrom_lun_conf	= msc_cdrom_lun_config,
 };
 
 static struct platform_device android_usb_device = {
@@ -143,6 +223,7 @@ static struct platform_device android_usb_device = {
 		.platform_data = &android_usb_pdata,
 	},
 };
+#endif
 
  
 static struct platform_device hs_device = {
@@ -153,6 +234,61 @@ static struct platform_device hs_device = {
 	},
 };
 
+#ifdef CONFIG_USB_FUNCTION
+static struct usb_function_map usb_functions_map[] = {
+	{"mass_storage", 0},
+	{"adb", 1},
+	{"modem", 2},
+	{"nmea", 3},
+	{"diag", 4},
+	{"ethernet", 5},
+#ifdef CONFIG_USB_FUNCTION_GG
+	{"gg", 6},
+#endif
+};
+
+static struct usb_composition usb_func_composition[] = {
+	{	/*  (ms) */
+		.product_id         = 0xE12E,
+		.functions	    = 0x01, /* 00001 */
+	},
+
+	{	/* (ms+adb+modem+nmea+diag) */
+		.product_id         = 0xD12E,
+		.functions	    = 0x1F, /* 11111 */
+	},
+	{	/* (ms+nmea+modem+diag) */
+		.product_id         = 0x0146,
+		.functions	    = 0x1D, /* 11101 */
+	},
+
+	{	/* (ms+nmea+modem+adb+diag) */
+		.product_id         = 0x2146,
+		.functions	    = 0x1F, /* 11111 */
+	},
+
+	{	/* (eth+ms+adb) */
+		.product_id         = 0x3146,
+		.functions	    = 0x32, /* 110010 */
+	},
+
+	{	/* (eth+ms+nmea+modem+diag) */
+		.product_id         = 0xD146,
+		.functions	    = 0x3D, /* 111101 */
+	},
+
+	{	/* (eth+ms+nmea+modem+adb+diag) */
+		.product_id         = 0xE146,
+		.functions	    = 0x3F, /* 111111 */
+	},
+#ifdef CONFIG_USB_FUNCTION_GG
+	{
+		.product_id         = 0xADDE,
+		.functions	    = 0x40, /* 1000010 */
+	},
+#endif
+};
+#endif /* CONFIG_USB_FUNCTION */
 
 #define MSM_USB_BASE              ((unsigned)addr)
 static unsigned ulpi_read(void __iomem *addr, unsigned reg)
