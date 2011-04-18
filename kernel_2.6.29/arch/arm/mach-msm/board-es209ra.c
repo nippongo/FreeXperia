@@ -106,15 +106,33 @@ static struct usb_composition usb_func_composition[] = {
 	{
 		/* MSC( + CDROM) */
 		.product_id	= 0x312E,
-		.functions	= 0x2,
+		.functions	= 0xD,
 		/* MSC( + CDROM) + ADB */
 		.adb_product_id	= 0x212E,
-		.adb_functions	= 0x12,
+		.adb_functions	= 0x1D,
 		/* DIAG + ADB + MODEM + NMEA + MSC( + CDROM) */
 		.eng_product_id	= 0x2146,
-		.eng_functions	= 0x27614,
+		.eng_functions	= 0xD7614,
 	},
-	};
+	{
+		/* MSC */
+		.product_id	= 0xE12E,
+		.functions	= 0x02,
+		/* MSC + ADB */
+		.adb_product_id	= 0x612E,
+		.adb_functions	= 0x12,
+		/* MSC + ADB + MODEM + NMEA + DIAG */
+		.eng_product_id	= 0x6146,
+		.eng_functions	= 0x47612,
+	},
+	{
+		/* ADB+MSC+ECM */
+		.product_id	= 0x3146,
+		.functions	= 0x821,
+		.adb_product_id	= 0x3146,
+		.adb_functions	= 0x821,
+	},
+};
 static struct usb_mass_storage_lun_config msc_lun_config = {
 	.is_cdrom	= false,
 	.shift_size	= 9,
@@ -123,7 +141,32 @@ static struct usb_mass_storage_lun_config msc_lun_config = {
 	.product	= "Mass Storage",
 	.release	= 0x0001,
 };
-
+static struct usb_mass_storage_lun_config cdrom_lun_config = {
+	.is_cdrom	= true,
+	.shift_size	= 11,
+	.can_stall	= false,
+	.vendor		= "SEMC",
+	.product	= "CD-ROM",
+	.release	= 0x0001,
+};
+static struct usb_mass_storage_lun_config msc_cdrom_lun_config[] = {
+	{
+		.is_cdrom	= false,
+		.shift_size	= 9,
+		.can_stall	= true,
+		.vendor		= "SEMC",
+		.product	= "Mass Storage",
+		.release	= 0x0001,
+	},
+	{
+		.is_cdrom	= true,
+		.shift_size	= 11,
+		.can_stall	= false,
+		.vendor		= "SEMC",
+		.product	= "CD-ROM",
+		.release	= 0x0001,
+	},
+};
 static struct android_usb_platform_data android_usb_pdata = {
 	.vendor_id		= 0x0FCE,
 	.version		= 0x0100,
@@ -133,9 +176,10 @@ static struct android_usb_platform_data android_usb_pdata = {
 	.product_name		= "SEMC HSUSB Device",
 	.manufacturer_name	= "SEMC",
 	.nluns			= 1,
+	.cdrom_lun_conf		= &cdrom_lun_config,
 	.msc_lun_conf		= &msc_lun_config,
+	.msc_cdrom_lun_conf	= msc_cdrom_lun_config,
 };
-
 static struct platform_device android_usb_device = {
 	.name	= "android_usb",
 	.id		= -1,
@@ -143,7 +187,6 @@ static struct platform_device android_usb_device = {
 		.platform_data = &android_usb_pdata,
 	},
 };
-
  
 static struct platform_device hs_device = {
 	.name   = "msm-handset",
