@@ -57,8 +57,6 @@
 #define SMEM_SPINLOCK_I2C	"S:6"
 
 #define MSM_AUDIO_SIZE		    0x00080000
-#define MSM_PMEM_SMIPOOL_BASE	0x03200000
-#define MSM_PMEM_SMIPOOL_SIZE	0x00E00000
 #define PMEM_KERNEL_EBI1_SIZE	0x28000
 
 
@@ -100,20 +98,6 @@ static struct platform_device vibrator_device = {
 	},
 };
 
-static struct resource ram_console_resources[] = {
-	{
-		.start	= MSM_RAM_CONSOLE_BASE,
-		.end	= MSM_RAM_CONSOLE_BASE + MSM_RAM_CONSOLE_SIZE - 1,
-		.flags	= IORESOURCE_MEM,
-	},
-};
-
-static struct platform_device ram_console_device = {
-	.name		= "ram_console",
-	.id		= -1,
-	.num_resources	= ARRAY_SIZE(ram_console_resources),
-	.resource	= ram_console_resources,
-};
 
 
 
@@ -344,6 +328,21 @@ static int msm_hsusb_native_phy_reset(void __iomem *addr)
 static struct msm_hsusb_platform_data msm_hsusb_pdata = {
 };
 
+static struct resource ram_console_resources[] = {
+	{
+		.start	= MSM_RAM_CONSOLE_BASE,
+		.end	= MSM_RAM_CONSOLE_BASE + MSM_RAM_CONSOLE_SIZE - 1,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+static struct platform_device ram_console_device = {
+	.name		= "ram_console",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(ram_console_resources),
+	.resource	= ram_console_resources,
+};
+
 static struct android_pmem_platform_data android_pmem_kernel_ebi1_pdata = {
 	.name = PMEM_KERNEL_EBI1_DATA_NAME,
 	/* if no allocator_type, defaults to PMEM_ALLOCATORTYPE_BITMAP,
@@ -367,13 +366,13 @@ static struct android_pmem_platform_data android_pmem_adsp_pdata = {
 	.cached = 0,
 };
 
-static struct android_pmem_platform_data android_pmem_smipool_pdata = {
-	.name = "pmem_smipool",
-	.start = MSM_PMEM_SMIPOOL_BASE,
-	.size = MSM_PMEM_SMIPOOL_SIZE,
-	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
-	.cached = 0,
-};
+//static struct android_pmem_platform_data android_pmem_smipool_pdata = {
+//	.name = "pmem_smipool",
+//	.start = MSM_PMEM_SMIPOOL_BASE,
+//	.size = MSM_PMEM_SMIPOOL_SIZE,
+//	.allocator_type = PMEM_ALLOCATORTYPE_BITMAP,
+//	.cached = 0,
+//};
 
 static struct platform_device android_pmem_device = {
 	.name = "android_pmem",
@@ -387,11 +386,11 @@ static struct platform_device android_pmem_adsp_device = {
 	.dev = { .platform_data = &android_pmem_adsp_pdata },
 };
 
-static struct platform_device android_pmem_smipool_device = {
-	.name = "android_pmem",
-	.id = 2,
-	.dev = { .platform_data = &android_pmem_smipool_pdata },
-};
+//static struct platform_device android_pmem_smipool_device = {
+//	.name = "android_pmem",
+//	.id = 2,
+//	.dev = { .platform_data = &android_pmem_smipool_pdata },
+//};
 
 static struct platform_device android_pmem_kernel_ebi1_device = {
 	.name = "android_pmem",
@@ -863,24 +862,24 @@ static struct resource kgsl_resources[] = {
 		.flags = IORESOURCE_IRQ,
        },
 };
-static struct kgsl_platform_data kgsl_pdata = {
-	.high_axi_3d = 128000, /*Max for 8K*/
-	.max_grp2d_freq = 0,
-	.min_grp2d_freq = 0,
-	.set_grp2d_async = NULL,
-	.max_grp3d_freq = 0,
-	.min_grp3d_freq = 0,
-	.set_grp3d_async = NULL,
-};
+//static struct kgsl_platform_data kgsl_pdata = {
+//	.high_axi_3d = 128000, /*Max for 8K*/
+//	.max_grp2d_freq = 0,
+//	.min_grp2d_freq = 0,
+//	.set_grp2d_async = NULL,
+//	.max_grp3d_freq = 0,
+//	.min_grp3d_freq = 0,
+//	.set_grp3d_async = NULL,
+//};
 
 static struct platform_device msm_device_kgsl = {
        .name = "kgsl",
        .id = -1,
        .num_resources = ARRAY_SIZE(kgsl_resources),
        .resource = kgsl_resources,
-	.dev = {
-		.platform_data = &kgsl_pdata,
-	},
+//	.dev = {
+//		.platform_data = &kgsl_pdata,
+//	},
 };
 
 struct es209ra_headset_platform_data es209ra_headset_data = {
@@ -1039,7 +1038,7 @@ static struct platform_device *devices[] __initdata = {
 	&android_pmem_kernel_ebi1_device,
 	&android_pmem_device,
 	&android_pmem_adsp_device,
-	&android_pmem_smipool_device,
+//	&android_pmem_smipool_device,
 	&msm_device_nand,
 	&msm_device_i2c,
 	&qsd_device_spi,
@@ -1064,10 +1063,10 @@ static void __init es209ra_init_irq(void)
 	msm_init_sirc();
 }
 
-static void kgsl_phys_memory_init(void)
-{
-	request_mem_region(kgsl_resources[1].start,resource_size(&kgsl_resources[1]), "kgsl");
-}
+//static void kgsl_phys_memory_init(void)
+//{
+//	request_mem_region(kgsl_resources[1].start,resource_size(&kgsl_resources[1]), "kgsl");
+//}
 
 static void __init es209ra_init_usb(void)
 {
@@ -1216,7 +1215,7 @@ static void __init es209ra_init(void)
 	i2c_register_board_info(0, msm_i2c_board_info,ARRAY_SIZE(msm_i2c_board_info));
 	spi_register_board_info(msm_spi_board_info,ARRAY_SIZE(msm_spi_board_info));
 	msm_pm_set_platform_data(msm_pm_data);
-	kgsl_phys_memory_init();
+//	kgsl_phys_memory_init();
 	platform_device_register(&es209ra_keypad_device);
 }
 
