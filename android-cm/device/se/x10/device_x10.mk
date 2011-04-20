@@ -15,15 +15,21 @@ PRODUCT_PACKAGES += \
     copybit.es209ra \
     libOmxCore \
     libOmxVidEnc \
+    libOmxVdec \
     libmm-omxcore
 
+
 # not ready yet
-#    sensors.es209ra \
+#
+#    sensors.es209ra 
+#    bmiloader\
+#    eeprom.AR6002\
+#    recevent\
+#    wmiconfig
 
 # Extra apps
-PRODUCT_PACKAGES += \
-	SETorch \
-	SEparts
+#PRODUCT_PACKAGES += \
+#	SETorch 
 
 # Live wallpaper packages
 PRODUCT_PACKAGES += \
@@ -52,7 +58,8 @@ LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
 
 PRODUCT_COPY_FILES:= \
-    $(LOCAL_KERNEL):kernel
+    $(LOCAL_KERNEL):kernel \
+    $(LOCAL_KERNEL):obj/KERNEL_OBJ/arch/arm/boot/Image
 
 
 
@@ -81,8 +88,8 @@ PRODUCT_COPY_FILES += \
 
 
 ## OMX proprietaries
-PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so 
+#PRODUCT_COPY_FILES += \
+#    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so 
 
 ## Hardware properties 
 PRODUCT_COPY_FILES += \
@@ -107,11 +114,16 @@ PRODUCT_COPY_FILES += \
 
 ## Atheros AR6002 firmware
 PRODUCT_COPY_FILES += \
+    device/se/x10/prebuilt/ar6000.ko:system/lib/modules/ar6000.ko \
     vendor/se/x10/proprietary/bin/eeprom.AR6002:system/bin/eeprom.AR6002 \
     vendor/se/x10/proprietary/bin/wlan_mac:system/bin/wlan_mac \
     vendor/se/x10/proprietary/bin/wlan_tool:system/bin/wlan_tool \
-    vendor/se/x10/proprietary/lib/modules/wifi.ko:system/lib/modules/wifi.ko
-#    device/se/x10/prebuilt/tun.ko:system/lib/modules/tun.ko 
+    vendor/se/x10/proprietary/bin/bmiloader:system/bin/bmiloader \
+    vendor/se/x10/proprietary/bin/eeprom.AR6002:system/bin/eeprom.AR6002 \
+    vendor/se/x10/proprietary/bin/recEvent:system/bin/recEvent \
+    vendor/se/x10/proprietary/bin/wmiconfig:system/bin/wmiconfig \
+    vendor/se/x10/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant 
+    
 
 ## BT proprietary
 PRODUCT_COPY_FILES += \
@@ -129,24 +141,25 @@ PRODUCT_COPY_FILES += \
 
 #kernel modules
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
-    device/se/x10/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
-    device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
-    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
     vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so
+#    device/se/x10/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
+#    device/se/x10/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
+#    device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
+#    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
 
 
 ## Other libraries and proprietary binaries
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/model:system/recovery/model \
     device/se/x10/prebuilt/chargemon:system/bin/chargemon \
-    device/se/x10/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
+    device/se/x10/prebuilt/model:system/recovery/model \
     device/se/x10/prebuilt/sh:system/recovery/sh \
     device/se/x10/prebuilt/recovery.tar.bz2:system/recovery/recovery.tar.bz2 \
     device/se/x10/prebuilt/hw_config.sh:system/etc/hw_config.sh \
     vendor/se/x10/proprietary/etc/sensors.conf:system/etc/sensors.conf \
     vendor/se/x10/proprietary/bin/akmd2:system/bin/akmd2 \
     vendor/se/x10/proprietary/etc/DualMicControl.txt:system/etc/DualMicControl.txt 
+
+#    device/se/x10/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
 
 #offline charging animation
 PRODUCT_COPY_FILES += \
@@ -183,7 +196,11 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/se/x10/prebuilt/boot.img:system/kernel/boot.img \
     device/se/x10/prebuilt/miniloader:system/kernel/miniloader \
-    device/se/x10/prebuilt/splboot.ko:system/kernel/splboot.ko
+    device/se/x10/prebuilt/splboot.ko:system/kernel/splboot.ko \
+
+#FreeXperia BootLogo
+PRODUCT_COPY_FILES += \
+    device/se/x10/prebuilt/bootanimation.zip:system/media/bootanimation.zip
 
 $(call inherit-product, build/target/product/full_base.mk)
 

@@ -1,7 +1,0 @@
-adb push boot.img /data/local/tmp
-
-
-
-
-
-touch /data/local/tmp/kexec

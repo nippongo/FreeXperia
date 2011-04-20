@@ -35,7 +35,7 @@
 
 extern "C" {
 #include <linux/android_pmem.h>
-#include "msm_camera.h"
+#include <msm_camera.h>
 }
 
 struct str_map {
@@ -111,16 +111,16 @@ typedef struct {
 	unsigned short picture_height;
 	unsigned short display_width;
 	unsigned short display_height;
-	unsigned short orig_picture_dx;
-	unsigned short orig_picture_dy;
-	unsigned short ui_thumbnail_height;
-	unsigned short ui_thumbnail_width;
 	unsigned short thumbnail_width;
 	unsigned short thumbnail_height;
 	unsigned short raw_picture_height;
 	unsigned short raw_picture_width;
 	unsigned short video_width;
 	unsigned short video_height;
+	unsigned short orig_picture_dx;
+	unsigned short orig_picture_dy;
+	unsigned short ui_thumbnail_height;
+	unsigned short ui_thumbnail_width;
 	unsigned short filler7;
 	unsigned short filler8;
 } cam_ctrl_dimension_t;

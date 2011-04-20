@@ -35,8 +35,8 @@ then
     exit
 fi
 
-if [ -e /data/local/tmp/kexecboot ]
-then
+/system/bin/charger
+
     rm -r /data/local/tmp/kexecboot
     stop
     stop servicemanager
@@ -62,25 +62,5 @@ then
     sync
     cat /system/kernel/miniloader > /proc/splboot/image
     cat /system/kernel/boot.img > /proc/splboot/boot_img
-    sleep 5
+    sleep 1
     echo > /proc/splboot/boot
-fi
-
-/system/bin/charger
-
-if [ -e /system/bin/ramdisk.tar ]
-then
-     # remount rw
-     mount -o remount,rw rootfs /
-     cd /
-     rm -r /sdcard
-     rm init*
-     rm logo.rle
-     rm default.prop
-     tar -xf /system/bin/ramdisk.tar
-     chroot / /init
-     exit
-fi
-
-# Continue booting
-exit

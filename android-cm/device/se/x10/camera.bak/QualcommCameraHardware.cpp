@@ -70,7 +70,7 @@ extern "C" {
 #include <sys/time.h>
 #include <stdlib.h>
 
-#include "msm_camera.h"
+#include <msm_camera.h>
 
 #define DEFAULT_PICTURE_WIDTH 640
 #define DEFAULT_PICTURE_HEIGHT 480
@@ -78,7 +78,7 @@ extern "C" {
 #define MAX_ZOOM_LEVEL 5
 #define NOT_FOUND -1
 // Number of video buffers held by kernal (initially 1,2 &3)
-#define ACTIVE_VIDEO_BUFFERS 3
+#define ACTIVE_VIDEO_BUFFERS 1
 
 #if DLOPEN_LIBMMCAMERA
 #include <dlfcn.h>

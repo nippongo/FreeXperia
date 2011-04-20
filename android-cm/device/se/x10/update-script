@@ -20,7 +20,6 @@ symlink toolbox SYSTEM:bin/ionice
 symlink toolbox SYSTEM:bin/kill
 symlink toolbox SYSTEM:bin/log
 symlink toolbox SYSTEM:bin/lsmod
-symlink toolbox SYSTEM:bin/mkdir
 symlink toolbox SYSTEM:bin/nandread
 symlink toolbox SYSTEM:bin/netstat
 symlink toolbox SYSTEM:bin/newfs_msdos
@@ -107,6 +106,7 @@ symlink busybox SYSTEM:xbin/lsusb
 symlink busybox SYSTEM:xbin/lzop
 symlink busybox SYSTEM:xbin/lzopcat
 symlink busybox SYSTEM:xbin/md5sum
+symlink busybox SYSTEM:xbin/mkdir
 symlink busybox SYSTEM:xbin/mkfifo
 symlink busybox SYSTEM:xbin/mkfs.ext2
 symlink busybox SYSTEM:xbin/mknod

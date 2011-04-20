@@ -19,19 +19,7 @@ echo 14 99 99 107 107 107 107 111 111 111 111 115 115 115 115 119 119 > $dev/als
 echo 15 115 115 115 115 115 115 115 115 115 123 123 123 123 123 123 123 > $dev/als_config
 echo 16 123 123 123 123 123 123 123 123 123 123 123 123 123 123 123 123 > $dev/als_config
 
-
-# Z: cpufreq fix
-echo "ondemand" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-echo 90 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/up_threshold
-echo 30 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/down_differential
-echo 500000 > /sys/devices/system/cpu/cpu0/cpufreq/ondemand/sampling_rate
-
-# modules
-insmod /system/lib/modules/tun.ko
-insmod /system/lib/modules/dm-mod.ko
-insmod /system/lib/modules/dm-crypt.ko
-insmod /system/lib/modules/twofish_common.ko
-insmod /system/lib/modules/twofish.ko
+echo 1024 >/sys/devices/virtual/bdi/179:0/read_ahead_kb
 
 # Z&J fixes 0660 usualy
 chmod 777 /dev/oncrpc
@@ -46,9 +34,7 @@ chmod 777 /dev/cpu_*
 chmod 777 /dev/msm_camera/control0
 chmod 777 /dev/graphics/fb0
 
-#sleep 15
-#if [ ! -e /data/boot_complete ]; then
-#    echo >/data/boot_complete
-#    killall servicemanager
-#fi
-
+#J WIFI FIX
+rm -r /data/system/wpa_supplicant
+mkdir /data/system/wpa_supplicant
+chown wifi.wifi /data/system/wpa_supplicant
