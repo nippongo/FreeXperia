@@ -79,40 +79,32 @@ static struct vreg *vreg_mmc;
 static void msm_sdcc_setup_gpio(int dev_id, unsigned int enable)
 {
 	int i, rc;
-
 	if (!(test_bit(dev_id, &gpio_sts)^enable))
 		return;
-
 	if (enable)
 		set_bit(dev_id, &gpio_sts);
 	else
 		clear_bit(dev_id, &gpio_sts);
-
-	for (i = 0; i < ARRAY_SIZE(sdcc_cfg_data[dev_id - 1]); i++) {
-		rc = gpio_tlmm_config(sdcc_cfg_data[dev_id - 1][i],
-			enable ? GPIO_ENABLE : GPIO_DISABLE);
+	for (i = 0; i < ARRAY_SIZE(sdcc_cfg_data[dev_id - 1]); i++) 
+		{
+		rc = gpio_tlmm_config(sdcc_cfg_data[dev_id - 1][i],enable ? GPIO_ENABLE : GPIO_DISABLE);
 		if (rc)
-			printk(KERN_ERR "%s: gpio_tlmm_config(%#x)=%d\n",
-				__func__, sdcc_cfg_data[dev_id - 1][i], rc);
-	}
+			printk(KERN_ERR "%s: gpio_tlmm_config(%#x)=%d\n",__func__, sdcc_cfg_data[dev_id - 1][i], rc);
+		}
 }
 
 static uint32_t msm_sdcc_setup_power(struct device *dv, unsigned int vdd)
 {
 	int rc = 0;
 	struct platform_device *pdev;
-
 	pdev = container_of(dv, struct platform_device, dev);
 	msm_sdcc_setup_gpio(pdev->id, !!vdd);
-
-	if (vdd == 0) {
+	if (vdd == 0) 
+		{
 		if (!vreg_sts)
 			return 0;
-
 		clear_bit(pdev->id, &vreg_sts);
-
-		if (!vreg_sts) {
-		}
+//		if (!vreg_sts) {}
 		return 0;
 	}
 
@@ -154,11 +146,11 @@ static struct mmc_platform_data es209ra_sdcc_data2 = {
 static void __init es209ra_mmc(void)
 {
 	vreg_mmc = vreg_get(NULL, "gp6");
-	if (IS_ERR(vreg_mmc)) {
-		printk(KERN_ERR "%s: vreg get failed (%ld)\n",
-		       __func__, PTR_ERR(vreg_mmc));
+	if (IS_ERR(vreg_mmc)) 
+		{
+		printk(KERN_ERR "%s: vreg get failed (%ld)\n", __func__, PTR_ERR(vreg_mmc));
 		return;
-	}
+		}
 
 	sdcc_gpio_init();
 	msm_add_sdcc(1, &es209ra_sdcc_data1);

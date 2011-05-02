@@ -13,7 +13,7 @@
  *
  */
 
-/*#define DEBUG*/
+//#define DEBUG
 /*#define CONFIG_FWUPDATE_IGNORE*/
 #define CONFIG_FW_HEADER
 #ifdef CONFIG_EARLYSUSPEND

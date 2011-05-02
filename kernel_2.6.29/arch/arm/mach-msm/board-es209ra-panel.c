@@ -10,6 +10,7 @@
 #include <asm/io.h>
 #include <asm/mach-types.h>
 #include <mach/msm_fb.h>
+#include <mach/board.h>
 #include <mach/msm_iomap.h>
 #include <mach/vreg.h>
 #include "proc_comm.h"
@@ -32,15 +33,14 @@ static void msm_fb_mddi_power_save(int on)
 
 	mddi_power_save_on = flag_on;
 
-	ret = pmic_lp_mode_control(flag_on ? OFF_CMD : ON_CMD,
-		PM_VREG_LP_MSME2_ID);
+	ret = pmic_lp_mode_control(flag_on ? OFF_CMD : ON_CMD,PM_VREG_LP_MSME2_ID);
 	if (ret)
 		printk(KERN_ERR "%s: pmic_lp_mode failed!\n", __func__);
 }
 
 static int msm_fb_mddi_sel_clk(u32 *clk_rate)
 {
-	*clk_rate *= 2;
+	*clk_rate *= 4;
 	return 0;
 }
 
@@ -137,15 +137,14 @@ static void __init msm_mddi_tmd_fwvga_display_device_init(void)
 	panel_data->panel_info.mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
 
 	panel_data->panel_info.lcd.vsync_enable = TRUE;
-	panel_data->panel_info.lcd.v_back_porch = 12;
-	panel_data->panel_info.lcd.v_front_porch = 2;
+	panel_data->panel_info.lcd.v_back_porch = 12;//12
+	panel_data->panel_info.lcd.v_front_porch = 12;//2
 	panel_data->panel_info.lcd.v_pulse_width = 0;
-	panel_data->panel_info.lcd.hw_vsync_mode = 0;
+	panel_data->panel_info.lcd.hw_vsync_mode = FALSE;
 	panel_data->panel_info.lcd.vsync_notifier_period = 0;
 
-	//panel_data->panel_info.lcd.refx100 = 100000000 / 16766;
 	panel_data->panel_info.lcd.refx100 = 200000000 / 16766;
-   
+
 	panel_data->panel_ext = &tmd_wvga_panel_ext;
 
 	mddi_tmd_wvga_display_device.dev.platform_data =&tmd_wvga_panel_data;

@@ -1,7 +1,13 @@
-service wpa_supplicant /system/bin/wpa_supplicant -Dar6000 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
+service wpa_supplicant /system/bin/wpa_supplicant -D awext -i wlan0 -c/data/misc/wifi/wpa_supplicant.conf
     socket wlan0 dgram 660 wifi wifi
     disabled
     oneshot
+
+service hostapd /system/bin/hostapd /etc/wifi/hostapd.conf
+    socket hostapd_athap0 dgram 660 wifi wifi
+    group wifi inet
+    oneshot
+    disabled
 
 service dhcp-service /system/bin/netcfg eth0 dhcp
 	oneshot
@@ -11,14 +17,14 @@ service dhcpcd /system/bin/dhcpcd -B wlan0
     oneshot
 
 
-service wlan_tool /system/bin/wlan_tool
-    socket wlan0 dgram 660 wifi wifi
-    disabled
-    oneshot
+#service wlan_tool /system/bin/wlan_tool
+#    socket wlan0 dgram 660 wifi wifi
+#    disabled
+#    oneshot
 
-service abtfilt /system/bin/abtfilt -d -z -n
-    disabled
-    oneshot
+#service abtfilt /system/bin/abtfilt -d -z -n
+#    disabled
+#    oneshot
 
 service wlan_mac /system/bin/wlan_mac
     user root
@@ -93,7 +99,7 @@ on boot
 
     #create  WIFI filesystem structure
     mkdir /data/misc 01771 system misc
-    mkdir /data/misc/wifi 0770 system wifi
+    mkdir /data/misc/wifi 0775 system wifi
     mkdir /data/misc/wifi/sockets
     chown system wifi /data/misc/wifi/sockets
     chmod 770 /data/misc/wifi/sockets

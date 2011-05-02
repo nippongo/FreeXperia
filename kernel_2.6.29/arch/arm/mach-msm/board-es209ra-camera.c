@@ -72,8 +72,8 @@ static void config_camera_off_gpios(void)
 
 static struct resource msm_camera_resources[] = {
 	{
-		.start	= 0xA0F00000,
-		.end	= 0xA0F00000 + SZ_1M - 1,
+		.start	= MSM_VFE_PHYS, //MSM_PMEM_CAMERA_BASE,
+		.end	= MSM_VFE_PHYS + MSM_VFE_SIZE -1 ,//MSM_PMEM_CAMERA_BASE + MSM_PMEM_CAMERA_SIZE - 1,
 		.flags	= IORESOURCE_MEM,
 	},
 	{
