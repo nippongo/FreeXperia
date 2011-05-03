@@ -1,56 +1,52 @@
-## This device is the X10
+PRODUCT_SPECIFIC_DEFINES += TARGET_PRELINKER_MAP=$(TOP)/device/se/x10/prelink-linux-arm-x10.map
 
-# The gps config appropriate for this device
-$(call inherit-product, device/common/gps/gps_us_supl.mk)
+# These is the hardware-specific overlay, which points to the location
+# of hardware-specific resource overrides, typically the frameworks and
+# application settings that are stored in resourced.
+DEVICE_PACKAGE_OVERLAYS := device/se/x10/overlay
 
-$(call inherit-product-if-exists, vendor/se/x10/x10-vendor.mk)
+# These are the hardware-specific configuration files
+PRODUCT_COPY_FILES := \
+	device/se/x10/prebuilt/vold.fstab:system/etc/vold.fstab \
+	device/se/x10/prebuilt/egl.cfg:system/lib/egl/egl.cfg
 
-DEVICE_PACKAGE_OVERLAYS += device/se/x10/overlay
+# Init files
+PRODUCT_COPY_FILES += \
+	device/se/x10/init.es209ra.rc:root/init.es209ra.rc 
 
-# HAL libs and other system binaries
-PRODUCT_PACKAGES += \
-    gps.qsd8k \
-    lights.es209ra \
-    gralloc.es209ra \
-    copybit.es209ra \
-    libOmxCore \
-    libOmxVidEnc \
-    libOmxVdec \
-    libmm-omxcore
+# Prebuilt kl keymaps
+PRODUCT_COPY_FILES += \
+	device/se/x10/es209ra_handset.kl:system/usr/keylayout/es209ra_handset.kl \
+	device/se/x10/es209ra_keypad.kl:system/usr/keylayout/es209ra_keypad.kl 
+
+# These are the hardware-specific features
+PRODUCT_COPY_FILES += \
+	frameworks/base/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
+	frameworks/base/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
+	frameworks/base/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
+	frameworks/base/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml \
+	frameworks/base/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
+	frameworks/base/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
+	frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
+	frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
+	frameworks/base/data/etc/android.hardware.sensor.gyroscope.xml:system/etc/permissions/android.hardware.sensor.gyroscope.xml \
+	frameworks/base/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
+	frameworks/base/data/etc/android.hardware.nfc.xml:system/etc/permissions/android.hardware.nfc.xml \
+	frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
+	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml
+
+# The OpenGL ES API level that is natively supported by this device.
+# This is a 16.16 fixed point number
+PRODUCT_PROPERTY_OVERRIDES := \
+    ro.opengles.version=131072
 
 
-# not ready yet
-#
-#    sensors.es209ra 
-#    bmiloader\
-#    eeprom.AR6002\
-#    recevent\
-#    wmiconfig
-
-# Extra apps
-#PRODUCT_PACKAGES += \
-#	SETorch 
-
-# Live wallpaper packages
-PRODUCT_PACKAGES += \
-    LiveWallpapersPicker \
-    librs_jni 
-
+# Screen density is actually considered a locale (since it is taken into account
+# the the build-time selection of resources). The product definitions including
+# this file must pay attention to the fact that the first entry in the final
+# PRODUCT_LOCALES expansion must not be a density.
 PRODUCT_LOCALES := hdpi
 
-PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.heapsize=32m \
-    persisit.sys.vm.heapsize=32m \
-    ro.media.dec.jpeg.memcap=20000000\
-    ro.com.google.locationfeatures=1 \
-    ro.com.google.networklocation=1
-
-#we can hold precise data
-PRODUCT_TAGS +=dalvik.gc.type-precise
-
-# Publish that we support the live wallpaper feature.
-PRODUCT_COPY_FILES += \
-    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml
 
 
 ifeq ($(TARGET_PREBUILT_KERNEL),)
@@ -59,13 +55,40 @@ else
 LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
 
-PRODUCT_COPY_FILES:= \
-    $(LOCAL_KERNEL):kernel \
-    $(LOCAL_KERNEL):obj/KERNEL_OBJ/arch/arm/boot/Image
+PRODUCT_COPY_FILES += \
+    $(LOCAL_KERNEL):kernel
+
+PRODUCT_PACKAGES += \
+    gps.qsd8k \
+    lights.es209ra \
+    sensors.es209ra \
+    gralloc.es209ra \
+    copybit.es209ra \
+    libOmxCore \
+    libOmxVdec \
+    libOmxVidEnc \
+    libmm-omxcore \
+    AndroidTerm \
+    CMParts \
+    CMStats \
+    DSPManager \
+    libcyanogen-dsp \
+    Pacman \
+    SETorch
+
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.heapsize=32m \
+    persisit.sys.vm.heapsize=32m \
+    ro.media.dec.jpeg.memcap=20000000\
+    ro.com.google.locationfeatures=1 \
+    ro.com.google.networklocation=1
+
+## OMX Video decoder 
+#PRODUCT_COPY_FILES += \
+#    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so
 
 
-
-## RIL related stuff // no more
+## RIL related stuff 
 PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/bin/port-bridge:system/bin/port-bridge \
     vendor/se/x10/proprietary/bin/qmuxd:system/bin/qmuxd \
@@ -89,21 +112,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/lib/libwmsts.so:system/lib/libwmsts.so
 
 
-## OMX proprietaries
-#PRODUCT_COPY_FILES += \
-#    device/se/x10/prebuilt/libOmxVdec.so:system/lib/libOmxVdec.so 
-
-## Hardware properties 
-PRODUCT_COPY_FILES += \
-    frameworks/base/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
-    frameworks/base/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
-    frameworks/base/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml \
-    frameworks/base/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
-    frameworks/base/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
-    frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
-    frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
-    frameworks/base/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml
-
 ## Camera proprietaries
 PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/lib/liboemcamera.so:system/lib/liboemcamera.so \
@@ -124,7 +132,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/bin/eeprom.AR6002:system/bin/eeprom.AR6002 \
     vendor/se/x10/proprietary/bin/recEvent:system/bin/recEvent \
     vendor/se/x10/proprietary/bin/wmiconfig:system/bin/wmiconfig 
-#    vendor/se/x10/proprietary/bin/wpa_supplicant:system/bin/wpa_supplicant 
     
 
 ## BT proprietary
@@ -141,13 +148,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/lib/egl/libEGL_adreno200.so:system/lib/egl/libEGL_adreno200.so \
     vendor/se/x10/proprietary/lib/egl/libGLESv2_adreno200.so:system/lib/egl/libGLESv2_adreno200.so 
 
-#kernel modules
-PRODUCT_COPY_FILES += \
-    vendor/se/x10/proprietary/lib/hw/sensors.default.so:system/lib/hw/sensors.es209ra.so
-#    device/se/x10/prebuilt/dm-mod.ko:system/lib/modules/dm-mod.ko \
-#    device/se/x10/prebuilt/dm-crypt.ko:system/lib/modules/dm-crypt.ko \
-#    device/se/x10/prebuilt/twofish.ko:system/lib/modules/twofish.ko \
-#    device/se/x10/prebuilt/twofish_common.ko:system/lib/modules/twofish_common.ko \
 
 
 ## Other libraries and proprietary binaries
@@ -160,8 +160,6 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/etc/sensors.conf:system/etc/sensors.conf \
     vendor/se/x10/proprietary/bin/akmd2:system/bin/akmd2 \
     vendor/se/x10/proprietary/etc/DualMicControl.txt:system/etc/DualMicControl.txt 
-
-#    device/se/x10/prebuilt/ramdisk.tar:system/bin/ramdisk.tar \
 
 #offline charging animation
 PRODUCT_COPY_FILES += \
@@ -186,13 +184,7 @@ PRODUCT_COPY_FILES += \
     vendor/se/x10/proprietary/etc/dhcpcd/dhcpcd-hooks/01-test:system/etc/dhcpcd/dhcpcd-hooks/01-test \
     vendor/se/x10/proprietary/etc/dhcpcd/dhcpcd-run-hooks:system/etc/dhcpcd/dhcpcd-run-hooks \
     vendor/se/x10/proprietary/etc/dhcpcd/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf 
-#    device/se/x10/prebuilt/hosts:system/etc/hosts \
-#    device/se/x10/prebuilt/bladewififix.apk:system/app/bladewififix.apk \
 
-PRODUCT_COPY_FILES += \
-    vendor/se/x10/proprietary/usr/keylayout/es209ra_keypad.kl:system/usr/keylayout/es209ra_keypad.kl \
-    vendor/se/x10/proprietary/usr/keylayout/es209ra_handset.kl:system/usr/keylayout/es209ra_handset.kl \
-    vendor/se/x10/proprietary/usr/keychars/es209ra_keypad.kcm.bin:system/usr/keychars/es209ra_keypad.kcm.bin 
 
 #testing kernel
 PRODUCT_COPY_FILES += \
@@ -202,13 +194,13 @@ PRODUCT_COPY_FILES += \
 
 #FreeXperia BootLogo
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/bootanimation.zip:system/media/bootanimation.zip
+    device/se/x10/prebuilt/bootanimation.zip:system/media/bootanimation.zip \
+    device/se/x10/prebuilt/Superuser.apk:system/app/Superuser.apk
 
 
-PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
-PRODUCT_NAME := x10
-PRODUCT_DEVICE := x10
-PRODUCT_MODEL := Xperia x10
 
-
-$(call inherit-product, build/target/product/full_base.mk)
+# See comment at the top of this file. This is where the other
+# half of the device-specific product definition file takes care
+# of the aspects that require proprietary drivers that aren't
+# commonly available
+$(call inherit-product-if-exists, vendor/se/x10/device-vendor.mk)
