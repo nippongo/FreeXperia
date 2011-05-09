@@ -68,7 +68,7 @@ public class LightsService {
     static {
         File ff = new File(FLASHLIGHT_FILE_SPOTLIGHT);
         File fd = new File(FLASHLIGHT_FILE_FLED);
-         if (ff.exists()) {
+         if (fd.exists()) {
              FLASHLIGHT_FILE = FLASHLIGHT_FILE_FLED;
  	}else{
 	 if (ff.exists()) {

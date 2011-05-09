@@ -1,3 +1,29 @@
+$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
+$(call inherit-product, device/common/gps/gps_eu_supl.mk)
+
+# Discard inherited values and use our own instead.
+PRODUCT_NAME := X10
+PRODUCT_DEVICE := X10
+PRODUCT_MODEL := X10
+
+PRODUCT_PACKAGES += \
+    gps.qsd8k \
+    lights.es209ra \
+    sensors.es209ra \
+    gralloc.es209ra \
+    copybit.es209ra \
+    libOmxCore \
+    libOmxVdec \
+    libOmxVidEnc \
+    libmm-omxcore \
+    SETorch
+
+# proprietary side of the device
+$(call inherit-product-if-exists, vendor/se/x10/x10-vendor.mk)
+
+DISABLE_DEXPREOPT := false
+
 PRODUCT_SPECIFIC_DEFINES += TARGET_PRELINKER_MAP=$(TOP)/device/se/x10/prelink-linux-arm-x10.map
 
 # These is the hardware-specific overlay, which points to the location
@@ -18,6 +44,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
 	device/se/x10/es209ra_handset.kl:system/usr/keylayout/es209ra_handset.kl \
 	device/se/x10/es209ra_keypad.kl:system/usr/keylayout/es209ra_keypad.kl 
+#	device/se/x10/es209ra_keypad.kcm.bin:system/usr/keychars/es209ra_keypad.kcm.bin 
 
 # These are the hardware-specific features
 PRODUCT_COPY_FILES += \
@@ -35,19 +62,6 @@ PRODUCT_COPY_FILES += \
 	frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
 	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml
 
-# The OpenGL ES API level that is natively supported by this device.
-# This is a 16.16 fixed point number
-PRODUCT_PROPERTY_OVERRIDES := \
-    ro.opengles.version=131072
-
-
-# Screen density is actually considered a locale (since it is taken into account
-# the the build-time selection of resources). The product definitions including
-# this file must pay attention to the fact that the first entry in the final
-# PRODUCT_LOCALES expansion must not be a density.
-PRODUCT_LOCALES := hdpi
-
-
 
 ifeq ($(TARGET_PREBUILT_KERNEL),)
 LOCAL_KERNEL := device/se/x10/kernel
@@ -58,30 +72,8 @@ endif
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
 
-PRODUCT_PACKAGES += \
-    gps.qsd8k \
-    lights.es209ra \
-    sensors.es209ra \
-    gralloc.es209ra \
-    copybit.es209ra \
-    libOmxCore \
-    libOmxVdec \
-    libOmxVidEnc \
-    libmm-omxcore \
-    AndroidTerm \
-    CMParts \
-    CMStats \
-    DSPManager \
-    libcyanogen-dsp \
-    Pacman \
-    SETorch
 
-PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.heapsize=32m \
-    persisit.sys.vm.heapsize=32m \
-    ro.media.dec.jpeg.memcap=20000000\
-    ro.com.google.locationfeatures=1 \
-    ro.com.google.networklocation=1
+
 
 ## OMX Video decoder 
 #PRODUCT_COPY_FILES += \
@@ -194,13 +186,49 @@ PRODUCT_COPY_FILES += \
 
 #FreeXperia BootLogo
 PRODUCT_COPY_FILES += \
-    device/se/x10/prebuilt/bootanimation.zip:system/media/bootanimation.zip \
-    device/se/x10/prebuilt/Superuser.apk:system/app/Superuser.apk
+    device/se/x10/prebuilt/bootanimation.zip:system/media/bootanimation.zip 
 
+PRODUCT_PROPERTY_OVERRIDES := \
+    keyguard.no_require_sim=true \
+    ro.ril.hsxpa=1 \
+    ro.ril.gprsclass=10 \
+    ro.media.dec.jpeg.memcap=10000000
 
+PRODUCT_PROPERTY_OVERRIDES += \
+    rild.libpath=/system/lib/libril-qc-1.so \
+    rild.libargs=-d/dev/smd0 \
+    keyguard.no_require_sim=true \
+    ro.ril.hsxpa=2 \
+    ro.ril.gprsclass=10 \
+    ro.telephony.default_network=0 \
+    ro.telephony.call_ring.multiple=false \
+    wifi.interface=wlan0 \
+    wifi.supplicant_scan_interval=15 \
 
-# See comment at the top of this file. This is where the other
-# half of the device-specific product definition file takes care
-# of the aspects that require proprietary drivers that aren't
-# commonly available
-$(call inherit-product-if-exists, vendor/se/x10/device-vendor.mk)
+#MT 
+PRODUCT_PROPERTY_OVERRIDES += \
+ro.product.multi_touch_enabled=true \
+ro.product.max_num_touch=2 
+
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.sf.lcd_density=240 \
+    qemu.sf.lcd_density=240 \
+    ro.sf.hwrotation=180
+
+# X10 uses high-density artwork where available
+PRODUCT_LOCALES += hdpi
+
+# we have enough storage space to hold precise GC data
+PRODUCT_TAGS += dalvik.gc.type-precise
+
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.com.google.locationfeatures=1 \
+    dalvik.vm.lockprof.threshold=500 \
+    dalvik.vm.dexopt-flags=m=y \
+    dalvik.vm.heapsize=32m \
+    dalvik.vm.execution-mode=int:jit \
+    dalvik.vm.dexopt-data-only=1 \
+    ro.opengles.version=131072  \
+    ro.compcache.default=0\
+    ro.product.locale.language=en \
+    ro.product.locale.region=US

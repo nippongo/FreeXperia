@@ -29,6 +29,4 @@ PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/cyanogen_z71.mk \
     $(LOCAL_DIR)/cyanogen_zeppelin.mk \
     $(LOCAL_DIR)/cyanogen_zero.mk \
-    $(LOCAL_DIR)/cyanogen_x10.mk \
-    $(LOCAL_DIR)/cyanogen_x10mini.mk \
-    $(LOCAL_DIR)/cyanogen_x8.mk
+    $(LOCAL_DIR)/cyanogen_x10.mk

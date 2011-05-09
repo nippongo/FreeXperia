@@ -1,1 +1,0 @@
-cmd_/home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/ar6000.ko := arm-eabi-ld -EL -r   --build-id -o /home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/ar6000.ko /home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/ar6000.o /home/bin4ry/FreeXperia/vendor/atheros/wlan/host/os/linux/ar6000.mod.o

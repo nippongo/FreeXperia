@@ -11,7 +11,7 @@ LOCAL_C_INCLUDES := \
 LOCAL_CFLAGS+= 
 LOCAL_SRC_FILES:= bmiloader.c
 LOCAL_MODULE := bmiloader
-
+LOCAL_MODULE_TAGS :=optional
 include $(BUILD_EXECUTABLE)
 
 

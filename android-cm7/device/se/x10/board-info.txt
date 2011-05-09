@@ -1,3 +1,0 @@
-require board=es209ra
-require version-bootloader=
-require version-baseband=

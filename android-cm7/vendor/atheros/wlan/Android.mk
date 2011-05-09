@@ -1,4 +1,4 @@
-ifeq ($(BOARD_WPA_SUPPLICANT_DRIVER),AR6000)
+ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),es209ra)
 ifneq ($(TARGET_SIMULATOR),true)
 
 LOCAL_PATH := $(call my-dir)

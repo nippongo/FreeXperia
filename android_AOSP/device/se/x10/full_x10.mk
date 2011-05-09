@@ -41,4 +41,6 @@ $(call inherit-product, device/se/x10/device.mk)
 PRODUCT_NAME := full_x10
 PRODUCT_DEVICE := x10
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := Full Android on x10
+PRODUCT_MODEL := X10
+PRODUCT_MANUFACTURER := Sony Ericsson
+ro.modversion=CyanogenMod-7.0.2-X10-J018

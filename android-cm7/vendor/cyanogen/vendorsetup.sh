@@ -28,8 +28,6 @@ add_lunch_combo cyanogen_vision-eng
 add_lunch_combo cyanogen_z71-eng
 add_lunch_combo cyanogen_zeppelin-eng
 add_lunch_combo cyanogen_zero-eng
-add_lunch_combo cyanogen_x10-eng
-add_lunch_combo cyanogen_X10mini-eng
-add_lunch_combo cyanogen_x8-eng
+add_lunch_combo cyanogen_x10-userdebug
 
 PATH=$PATH:$PWD/vendor/cyanogen/tools ; export PATH
