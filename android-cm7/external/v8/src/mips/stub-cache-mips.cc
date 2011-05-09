@@ -27,8 +27,6 @@
 
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_MIPS)
-
 #include "ic-inl.h"
 #include "codegen-inl.h"
 #include "stub-cache.h"
@@ -74,6 +72,20 @@ void StubCompiler::GenerateLoadArrayLength(MacroAssembler* masm,
 }
 
 
+// Generate code to load the length from a string object and return the length.
+// If the receiver object is not a string or a wrapped string object the
+// execution continues at the miss label. The register containing the
+// receiver is potentially clobbered.
+void StubCompiler::GenerateLoadStringLength2(MacroAssembler* masm,
+                                             Register receiver,
+                                             Register scratch1,
+                                             Register scratch2,
+                                             Label* miss) {
+  UNIMPLEMENTED_MIPS();
+  __ break_(0x249);
+}
+
+
 void StubCompiler::GenerateLoadFunctionPrototype(MacroAssembler* masm,
                                                  Register receiver,
                                                  Register scratch1,
@@ -87,6 +99,7 @@ void StubCompiler::GenerateLoadFunctionPrototype(MacroAssembler* masm,
 // After executing generated code, the receiver_reg and name_reg
 // may be clobbered.
 void StubCompiler::GenerateStoreField(MacroAssembler* masm,
+                                      Builtins::Name storage_extend,
                                       JSObject* object,
                                       int index,
                                       Map* transition,
@@ -105,6 +118,18 @@ void StubCompiler::GenerateLoadMiss(MacroAssembler* masm, Code::Kind kind) {
 
 #undef __
 #define __ ACCESS_MASM(masm())
+
+
+Register StubCompiler::CheckPrototypes(JSObject* object,
+                                       Register object_reg,
+                                       JSObject* holder,
+                                       Register holder_reg,
+                                       Register scratch,
+                                       String* name,
+                                       Label* miss) {
+  UNIMPLEMENTED_MIPS();
+  return at;    // UNIMPLEMENTED RETURN
+}
 
 
 void StubCompiler::GenerateLoadField(JSObject* object,
@@ -162,58 +187,15 @@ void StubCompiler::GenerateLoadInterceptor(JSObject* object,
 
 
 Object* StubCompiler::CompileLazyCompile(Code::Flags flags) {
-  // Registers:
-  // a1: function
-  // ra: return address
-
-  // Enter an internal frame.
-  __ EnterInternalFrame();
-  // Preserve the function.
-  __ Push(a1);
-  // Setup aligned call.
-  __ SetupAlignedCall(t0, 1);
-  // Push the function on the stack as the argument to the runtime function.
-  __ Push(a1);
-  // Call the runtime function
-  __ CallRuntime(Runtime::kLazyCompile, 1);
-  __ ReturnFromAlignedCall();
-  // Calculate the entry point.
-  __ addiu(t9, v0, Code::kHeaderSize - kHeapObjectTag);
-  // Restore saved function.
-  __ Pop(a1);
-  // Tear down temporary frame.
-  __ LeaveInternalFrame();
-  // Do a tail-call of the compiled function.
-  __ Jump(t9);
-
-  return GetCodeWithFlags(flags, "LazyCompileStub");
+  UNIMPLEMENTED_MIPS();
+  return reinterpret_cast<Object*>(NULL);   // UNIMPLEMENTED RETURN
 }
 
 
-Object* CallStubCompiler::CompileCallField(JSObject* object,
+Object* CallStubCompiler::CompileCallField(Object* object,
                                            JSObject* holder,
                                            int index,
                                            String* name) {
-  UNIMPLEMENTED_MIPS();
-  return reinterpret_cast<Object*>(NULL);   // UNIMPLEMENTED RETURN
-}
-
-
-Object* CallStubCompiler::CompileArrayPushCall(Object* object,
-                                               JSObject* holder,
-                                               JSFunction* function,
-                                               String* name,
-                                               CheckType check) {
-  UNIMPLEMENTED_MIPS();
-  return reinterpret_cast<Object*>(NULL);   // UNIMPLEMENTED RETURN
-}
-
-
-Object* CallStubCompiler::CompileArrayPopCall(Object* object,
-                                              JSObject* holder,
-                                              JSFunction* function,
-                                              String* name,
-                                              CheckType check) {
   UNIMPLEMENTED_MIPS();
   return reinterpret_cast<Object*>(NULL);   // UNIMPLEMENTED RETURN
 }
@@ -229,7 +211,7 @@ Object* CallStubCompiler::CompileCallConstant(Object* object,
 }
 
 
-Object* CallStubCompiler::CompileCallInterceptor(JSObject* object,
+Object* CallStubCompiler::CompileCallInterceptor(Object* object,
                                                  JSObject* holder,
                                                  String* name) {
   UNIMPLEMENTED_MIPS();
@@ -400,4 +382,3 @@ Object* ConstructStubCompiler::CompileConstructStub(
 
 } }  // namespace v8::internal
 
-#endif  // V8_TARGET_ARCH_MIPS

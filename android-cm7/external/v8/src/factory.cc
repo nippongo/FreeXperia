@@ -43,11 +43,9 @@ Handle<FixedArray> Factory::NewFixedArray(int size, PretenureFlag pretenure) {
 }
 
 
-Handle<FixedArray> Factory::NewFixedArrayWithHoles(int size,
-                                                   PretenureFlag pretenure) {
+Handle<FixedArray> Factory::NewFixedArrayWithHoles(int size) {
   ASSERT(0 <= size);
-  CALL_HEAP_FUNCTION(Heap::AllocateFixedArrayWithHoles(size, pretenure),
-                     FixedArray);
+  CALL_HEAP_FUNCTION(Heap::AllocateFixedArrayWithHoles(size), FixedArray);
 }
 
 
@@ -284,26 +282,31 @@ Handle<FixedArray> Factory::CopyFixedArray(Handle<FixedArray> array) {
 }
 
 
-Handle<JSFunction> Factory::BaseNewFunctionFromSharedFunctionInfo(
-    Handle<SharedFunctionInfo> function_info,
+Handle<JSFunction> Factory::BaseNewFunctionFromBoilerplate(
+    Handle<JSFunction> boilerplate,
     Handle<Map> function_map,
     PretenureFlag pretenure) {
+  ASSERT(boilerplate->IsBoilerplate());
+  ASSERT(!boilerplate->has_initial_map());
+  ASSERT(!boilerplate->has_prototype());
+  ASSERT(boilerplate->properties() == Heap::empty_fixed_array());
+  ASSERT(boilerplate->elements() == Heap::empty_fixed_array());
   CALL_HEAP_FUNCTION(Heap::AllocateFunction(*function_map,
-                                            *function_info,
+                                            boilerplate->shared(),
                                             Heap::the_hole_value(),
                                             pretenure),
                      JSFunction);
 }
 
 
-Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
-    Handle<SharedFunctionInfo> function_info,
+Handle<JSFunction> Factory::NewFunctionFromBoilerplate(
+    Handle<JSFunction> boilerplate,
     Handle<Context> context,
     PretenureFlag pretenure) {
-  Handle<JSFunction> result = BaseNewFunctionFromSharedFunctionInfo(
-      function_info, Top::function_map(), pretenure);
+  Handle<JSFunction> result = BaseNewFunctionFromBoilerplate(
+      boilerplate, Top::function_map(), pretenure);
   result->set_context(*context);
-  int number_of_literals = function_info->num_literals();
+  int number_of_literals = boilerplate->NumberOfLiterals();
   Handle<FixedArray> literals =
       Factory::NewFixedArray(number_of_literals, pretenure);
   if (number_of_literals > 0) {
@@ -314,6 +317,7 @@ Handle<JSFunction> Factory::NewFunctionFromSharedFunctionInfo(
                   context->global_context());
   }
   result->set_literals(*literals);
+  ASSERT(!result->IsBoilerplate());
   return result;
 }
 
@@ -486,6 +490,36 @@ Handle<JSFunction> Factory::NewFunction(Handle<String> name,
 }
 
 
+Handle<JSFunction> Factory::NewFunctionBoilerplate(Handle<String> name,
+                                                   int number_of_literals,
+                                                   Handle<Code> code) {
+  Handle<JSFunction> function = NewFunctionBoilerplate(name);
+  function->set_code(*code);
+  int literals_array_size = number_of_literals;
+  // If the function contains object, regexp or array literals,
+  // allocate extra space for a literals array prefix containing the
+  // object, regexp and array constructor functions.
+  if (number_of_literals > 0) {
+    literals_array_size += JSFunction::kLiteralsPrefixSize;
+  }
+  Handle<FixedArray> literals =
+      Factory::NewFixedArray(literals_array_size, TENURED);
+  function->set_literals(*literals);
+  ASSERT(!function->has_initial_map());
+  ASSERT(!function->has_prototype());
+  return function;
+}
+
+
+Handle<JSFunction> Factory::NewFunctionBoilerplate(Handle<String> name) {
+  Handle<SharedFunctionInfo> shared = NewSharedFunctionInfo(name);
+  CALL_HEAP_FUNCTION(Heap::AllocateFunction(Heap::boilerplate_function_map(),
+                                            *shared,
+                                            Heap::the_hole_value()),
+                     JSFunction);
+}
+
+
 Handle<JSFunction> Factory::NewFunctionWithPrototype(Handle<String> name,
                                                      InstanceType type,
                                                      int instance_size,
@@ -513,16 +547,6 @@ Handle<JSFunction> Factory::NewFunctionWithPrototype(Handle<String> name,
 }
 
 
-Handle<JSFunction> Factory::NewFunctionWithoutPrototype(Handle<String> name,
-                                                        Handle<Code> code) {
-  Handle<JSFunction> function = NewFunctionWithoutPrototype(name);
-  function->set_code(*code);
-  ASSERT(!function->has_initial_map());
-  ASSERT(!function->has_prototype());
-  return function;
-}
-
-
 Handle<Code> Factory::NewCode(const CodeDesc& desc,
                               ZoneScopeInfo* sinfo,
                               Code::Flags flags,
@@ -533,11 +557,6 @@ Handle<Code> Factory::NewCode(const CodeDesc& desc,
 
 Handle<Code> Factory::CopyCode(Handle<Code> code) {
   CALL_HEAP_FUNCTION(Heap::CopyCode(*code), Code);
-}
-
-
-Handle<Code> Factory::CopyCode(Handle<Code> code, Vector<byte> reloc_info) {
-  CALL_HEAP_FUNCTION(Heap::CopyCode(*code, reloc_info), Code);
 }
 
 
@@ -662,22 +681,6 @@ Handle<JSArray> Factory::NewJSArrayWithElements(Handle<FixedArray> elements,
 }
 
 
-Handle<SharedFunctionInfo> Factory::NewSharedFunctionInfo(
-    Handle<String> name, int number_of_literals, Handle<Code> code) {
-  Handle<SharedFunctionInfo> shared = NewSharedFunctionInfo(name);
-  shared->set_code(*code);
-  int literals_array_size = number_of_literals;
-  // If the function contains object, regexp or array literals,
-  // allocate extra space for a literals array prefix containing the
-  // context.
-  if (number_of_literals > 0) {
-    literals_array_size += JSFunction::kLiteralsPrefixSize;
-  }
-  shared->set_num_literals(literals_array_size);
-  return shared;
-}
-
-
 Handle<SharedFunctionInfo> Factory::NewSharedFunctionInfo(Handle<String> name) {
   CALL_HEAP_FUNCTION(Heap::AllocateSharedFunctionInfo(*name),
                      SharedFunctionInfo);
@@ -710,24 +713,6 @@ Handle<JSFunction> Factory::NewFunctionHelper(Handle<String> name,
 Handle<JSFunction> Factory::NewFunction(Handle<String> name,
                                         Handle<Object> prototype) {
   Handle<JSFunction> fun = NewFunctionHelper(name, prototype);
-  fun->set_context(Top::context()->global_context());
-  return fun;
-}
-
-
-Handle<JSFunction> Factory::NewFunctionWithoutPrototypeHelper(
-    Handle<String> name) {
-  Handle<SharedFunctionInfo> function_share = NewSharedFunctionInfo(name);
-  CALL_HEAP_FUNCTION(Heap::AllocateFunction(
-                         *Top::function_without_prototype_map(),
-                         *function_share,
-                         *the_hole_value()),
-                     JSFunction);
-}
-
-
-Handle<JSFunction> Factory::NewFunctionWithoutPrototype(Handle<String> name) {
-  Handle<JSFunction> fun = NewFunctionWithoutPrototypeHelper(name);
   fun->set_context(Top::context()->global_context());
   return fun;
 }
@@ -881,7 +866,6 @@ Handle<JSFunction> Factory::CreateApiFunction(
     map->set_instance_descriptors(*array);
   }
 
-  ASSERT(result->shared()->IsApiFunction());
   return result;
 }
 

@@ -28,7 +28,6 @@
 #include "v8.h"
 
 #include "frame-element.h"
-#include "zone-inl.h"
 
 namespace v8 {
 namespace internal {

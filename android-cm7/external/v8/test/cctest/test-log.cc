@@ -13,7 +13,6 @@
 
 #include "v8.h"
 #include "log.h"
-#include "cpu-profiler.h"
 #include "v8threads.h"
 #include "cctest.h"
 
@@ -53,9 +52,13 @@ TEST(GetMessages) {
   CHECK_EQ(0, Logger::GetLogLines(0, NULL, 0));
   char log_lines[100];
   memset(log_lines, 0, sizeof(log_lines));
+  // Requesting data size which is smaller than first log message length.
+  CHECK_EQ(0, Logger::GetLogLines(0, log_lines, 3));
   // See Logger::StringEvent.
   const char* line_1 = "aaa,\"bbb\"\n";
   const int line_1_len = StrLength(line_1);
+  // Still smaller than log message length.
+  CHECK_EQ(0, Logger::GetLogLines(0, log_lines, line_1_len - 1));
   // The exact size.
   CHECK_EQ(line_1_len, Logger::GetLogLines(0, log_lines, line_1_len));
   CHECK_EQ(line_1, log_lines);
@@ -69,6 +72,8 @@ TEST(GetMessages) {
   const int line_2_len = StrLength(line_2);
   // Now start with line_2 beginning.
   CHECK_EQ(0, Logger::GetLogLines(line_1_len, log_lines, 0));
+  CHECK_EQ(0, Logger::GetLogLines(line_1_len, log_lines, 3));
+  CHECK_EQ(0, Logger::GetLogLines(line_1_len, log_lines, line_2_len - 1));
   CHECK_EQ(line_2_len, Logger::GetLogLines(line_1_len, log_lines, line_2_len));
   CHECK_EQ(line_2, log_lines);
   memset(log_lines, 0, sizeof(log_lines));
@@ -169,11 +174,12 @@ namespace {
 
 class ScopedLoggerInitializer {
  public:
-  explicit ScopedLoggerInitializer(bool prof_lazy)
-      : saved_prof_lazy_(i::FLAG_prof_lazy),
+  explicit ScopedLoggerInitializer(bool log, bool prof_lazy)
+      : saved_log_(i::FLAG_log),
+        saved_prof_lazy_(i::FLAG_prof_lazy),
         saved_prof_(i::FLAG_prof),
         saved_prof_auto_(i::FLAG_prof_auto),
-        trick_to_run_init_flags_(init_flags_(prof_lazy)),
+        trick_to_run_init_flags_(init_flags_(log, prof_lazy)),
         need_to_set_up_logger_(i::V8::IsRunning()),
         scope_(),
         env_(v8::Context::New()) {
@@ -187,12 +193,14 @@ class ScopedLoggerInitializer {
     i::FLAG_prof_lazy = saved_prof_lazy_;
     i::FLAG_prof = saved_prof_;
     i::FLAG_prof_auto = saved_prof_auto_;
+    i::FLAG_log = saved_log_;
   }
 
   v8::Handle<v8::Context>& env() { return env_; }
 
  private:
-  static bool init_flags_(bool prof_lazy) {
+  static bool init_flags_(bool log, bool prof_lazy) {
+    i::FLAG_log = log;
     i::FLAG_prof = true;
     i::FLAG_prof_lazy = prof_lazy;
     i::FLAG_prof_auto = false;
@@ -200,6 +208,7 @@ class ScopedLoggerInitializer {
     return prof_lazy;
   }
 
+  const bool saved_log_;
   const bool saved_prof_lazy_;
   const bool saved_prof_;
   const bool saved_prof_auto_;
@@ -311,7 +320,7 @@ static void CheckThatProfilerWorks(LogBufferMatcher* matcher) {
 
 
 TEST(ProfLazyMode) {
-  ScopedLoggerInitializer initialize_logger(true);
+  ScopedLoggerInitializer initialize_logger(false, true);
 
   // No sampling should happen prior to resuming profiler.
   CHECK(!LoggerTestHelper::IsSamplerActive());
@@ -385,19 +394,19 @@ class LoopingThread : public v8::internal::Thread {
 class LoopingJsThread : public LoopingThread {
  public:
   void RunLoop() {
-    v8::Locker locker;
-    CHECK(v8::internal::ThreadManager::HasId());
-    SetV8ThreadId();
+    {
+      v8::Locker locker;
+      CHECK(v8::internal::ThreadManager::HasId());
+      SetV8ThreadId();
+    }
     while (IsRunning()) {
+      v8::Locker locker;
       v8::HandleScope scope;
       v8::Persistent<v8::Context> context = v8::Context::New();
-      CHECK(!context.IsEmpty());
-      {
-        v8::Context::Scope context_scope(context);
-        SignalRunning();
-        CompileAndRunScript(
-            "var j; for (var i=0; i<10000; ++i) { j = Math.sin(i); }");
-      }
+      v8::Context::Scope context_scope(context);
+      SignalRunning();
+      CompileAndRunScript(
+          "var j; for (var i=0; i<10000; ++i) { j = Math.sin(i); }");
       context.Dispose();
       i::OS::Sleep(1);
     }
@@ -531,7 +540,7 @@ static v8::Handle<v8::Value> ObjMethod1(const v8::Arguments& args) {
 }
 
 TEST(LogCallbacks) {
-  ScopedLoggerInitializer initialize_logger(false);
+  ScopedLoggerInitializer initialize_logger(false, false);
   LogBufferMatcher matcher;
 
   v8::Persistent<v8::FunctionTemplate> obj =
@@ -581,7 +590,7 @@ static v8::Handle<v8::Value> Prop2Getter(v8::Local<v8::String> property,
 }
 
 TEST(LogAccessorCallbacks) {
-  ScopedLoggerInitializer initialize_logger(false);
+  ScopedLoggerInitializer initialize_logger(false, false);
   LogBufferMatcher matcher;
 
   v8::Persistent<v8::FunctionTemplate> obj =
@@ -616,7 +625,7 @@ TEST(LogAccessorCallbacks) {
 
 
 TEST(LogTags) {
-  ScopedLoggerInitializer initialize_logger(false);
+  ScopedLoggerInitializer initialize_logger(true, false);
   LogBufferMatcher matcher;
 
   const char* open_tag = "open-tag,";
@@ -698,35 +707,6 @@ TEST(LogTags) {
   // Must be no tags, because logging must be disabled.
   CHECK_EQ(NULL, matcher.Find(open_tag3));
   CHECK_EQ(NULL, matcher.Find(close_tag3));
-}
-
-
-TEST(IsLoggingPreserved) {
-  ScopedLoggerInitializer initialize_logger(false);
-
-  CHECK(Logger::is_logging());
-  Logger::ResumeProfiler(v8::PROFILER_MODULE_CPU, 1);
-  CHECK(Logger::is_logging());
-  Logger::PauseProfiler(v8::PROFILER_MODULE_CPU, 1);
-  CHECK(Logger::is_logging());
-
-  CHECK(Logger::is_logging());
-  Logger::ResumeProfiler(
-      v8::PROFILER_MODULE_HEAP_STATS | v8::PROFILER_MODULE_JS_CONSTRUCTORS, 1);
-  CHECK(Logger::is_logging());
-  Logger::PauseProfiler(
-      v8::PROFILER_MODULE_HEAP_STATS | v8::PROFILER_MODULE_JS_CONSTRUCTORS, 1);
-  CHECK(Logger::is_logging());
-
-  CHECK(Logger::is_logging());
-  Logger::ResumeProfiler(
-      v8::PROFILER_MODULE_CPU |
-      v8::PROFILER_MODULE_HEAP_STATS | v8::PROFILER_MODULE_JS_CONSTRUCTORS, 1);
-  CHECK(Logger::is_logging());
-  Logger::PauseProfiler(
-      v8::PROFILER_MODULE_CPU |
-      v8::PROFILER_MODULE_HEAP_STATS | v8::PROFILER_MODULE_JS_CONSTRUCTORS, 1);
-  CHECK(Logger::is_logging());
 }
 
 

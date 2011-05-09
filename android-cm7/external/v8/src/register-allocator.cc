@@ -29,7 +29,6 @@
 
 #include "codegen-inl.h"
 #include "register-allocator-inl.h"
-#include "virtual-frame-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -38,11 +37,11 @@ namespace internal {
 // Result implementation.
 
 
-Result::Result(Register reg, TypeInfo info) {
+Result::Result(Register reg, NumberInfo::Type info) {
   ASSERT(reg.is_valid() && !RegisterAllocator::IsReserved(reg));
   CodeGeneratorScope::Current()->allocator()->Use(reg);
   value_ = TypeField::encode(REGISTER)
-      | TypeInfoField::encode(info.ToInt())
+      | NumberInfoField::encode(info)
       | DataField::encode(reg.code_);
 }
 
@@ -50,6 +49,23 @@ Result::Result(Register reg, TypeInfo info) {
 Result::ZoneObjectList* Result::ConstantList() {
   static ZoneObjectList list(10);
   return &list;
+}
+
+
+NumberInfo::Type Result::number_info() {
+  ASSERT(is_valid());
+  if (!is_constant()) return NumberInfoField::decode(value_);
+  Handle<Object> value = handle();
+  if (value->IsSmi()) return NumberInfo::kSmi;
+  if (value->IsHeapNumber()) return NumberInfo::kHeapNumber;
+  return NumberInfo::kUnknown;
+}
+
+
+void Result::set_number_info(NumberInfo::Type info) {
+  ASSERT(is_valid());
+  value_ = value_ & ~NumberInfoField::mask();
+  value_ = value_ | NumberInfoField::encode(info);
 }
 
 
@@ -84,16 +100,15 @@ Result RegisterAllocator::Allocate() {
 
 Result RegisterAllocator::Allocate(Register target) {
   // If the target is not referenced, it can simply be allocated.
-  if (!is_used(RegisterAllocator::ToNumber(target))) {
+  if (!is_used(target)) {
     return Result(target);
   }
   // If the target is only referenced in the frame, it can be spilled and
   // then allocated.
   ASSERT(cgen_->has_valid_frame());
-  if (cgen_->frame()->is_used(RegisterAllocator::ToNumber(target)) &&
-      count(target) == 1)  {
+  if (cgen_->frame()->is_used(target) && count(target) == 1)  {
     cgen_->frame()->Spill(target);
-    ASSERT(!is_used(RegisterAllocator::ToNumber(target)));
+    ASSERT(!is_used(target));
     return Result(target);
   }
   // Otherwise (if it's referenced outside the frame) we cannot allocate it.

@@ -195,9 +195,9 @@ void FastCodeGenSyntaxChecker::VisitFunctionLiteral(FunctionLiteral* expr) {
 }
 
 
-void FastCodeGenSyntaxChecker::VisitSharedFunctionInfoLiteral(
-    SharedFunctionInfoLiteral* expr) {
-  BAILOUT("SharedFunctionInfoLiteral");
+void FastCodeGenSyntaxChecker::VisitFunctionBoilerplateLiteral(
+    FunctionBoilerplateLiteral* expr) {
+  BAILOUT("FunctionBoilerplateLiteral");
 }
 
 
@@ -436,6 +436,9 @@ Handle<Code> FastCodeGenerator::MakeCode(CompilationInfo* info) {
   AstLabeler labeler;
   labeler.Label(info);
 
+  LivenessAnalyzer analyzer;
+  analyzer.Analyze(info->function());
+
   CodeGenerator::MakeCodePrologue(info);
 
   const int kInitialBufferSize = 4 * KB;
@@ -560,8 +563,8 @@ void FastCodeGenerator::VisitFunctionLiteral(FunctionLiteral* expr) {
 }
 
 
-void FastCodeGenerator::VisitSharedFunctionInfoLiteral(
-    SharedFunctionInfoLiteral* expr) {
+void FastCodeGenerator::VisitFunctionBoilerplateLiteral(
+    FunctionBoilerplateLiteral* expr) {
   UNREACHABLE();
 }
 
@@ -595,8 +598,8 @@ void FastCodeGenerator::VisitVariableProxy(VariableProxy* expr) {
     Comment cmnt(masm(), ";; Global");
     if (FLAG_print_ir) {
       SmartPointer<char> name = expr->name()->ToCString();
-      PrintF("%d: t%d = Global(%s)\n", expr->num(),
-             expr->num(), *name);
+      PrintF("%d: t%d = Global(%s)  // last_use = %d\n", expr->num(),
+             expr->num(), *name, expr->var_def()->last_use()->num());
     }
     EmitGlobalVariableLoad(cell);
   }
@@ -650,8 +653,9 @@ void FastCodeGenerator::VisitAssignment(Assignment* expr) {
     SmartPointer<char> name_string = name->ToCString();
     PrintF("%d: ", expr->num());
     if (!destination().is(no_reg)) PrintF("t%d = ", expr->num());
-    PrintF("Store(this, \"%s\", t%d)\n", *name_string,
-           expr->value()->num());
+    PrintF("Store(this, \"%s\", t%d)  // last_use(this) = %d\n", *name_string,
+           expr->value()->num(),
+           expr->var_def()->last_use()->num());
   }
 
   EmitThisPropertyStore(name);
@@ -674,8 +678,9 @@ void FastCodeGenerator::VisitProperty(Property* expr) {
     Comment cmnt(masm(), ";; Load from this");
     if (FLAG_print_ir) {
       SmartPointer<char> name_string = name->ToCString();
-      PrintF("%d: t%d = Load(this, \"%s\")\n",
-             expr->num(), expr->num(), *name_string);
+      PrintF("%d: t%d = Load(this, \"%s\")  // last_use(this) = %d\n",
+             expr->num(), expr->num(), *name_string,
+             expr->var_def()->last_use()->num());
     }
     EmitThisPropertyLoad(name);
   }

@@ -32,17 +32,11 @@ namespace v8 {
 namespace internal {
 
 
-// The fast double-to-(unsigned-)int conversion routine does not guarantee
+// The fast double-to-int conversion routine does not guarantee
 // rounding towards zero.
 // The result is unspecified if x is infinite or NaN, or if the rounded
 // integer value is outside the range of type int.
-static inline int FastD2I(double x) {
-  // The static_cast convertion from double to int used to be slow, but
-  // as new benchmarks show, now it is much faster than lrint().
-  return static_cast<int>(x);
-}
-
-static inline unsigned int FastD2UI(double x);
+static inline int FastD2I(double x);
 
 
 static inline double FastI2D(int x) {
@@ -100,7 +94,8 @@ double StringToDouble(const char* str, int flags, double empty_string_val = 0);
 double StringToDouble(String* str, int flags, double empty_string_val = 0);
 
 // Converts a string into an integer.
-double StringToInt(String* str, int radix);
+int StringToInt(String* str, int index, int radix, double* value);
+int StringToInt(const char* str, int index, int radix, double* value);
 
 // Converts a double to a string value according to ECMA-262 9.8.1.
 // The buffer should be large enough for any floating point number.

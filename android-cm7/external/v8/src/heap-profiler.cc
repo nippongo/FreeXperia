@@ -31,7 +31,6 @@
 #include "frames-inl.h"
 #include "global-handles.h"
 #include "string-stream.h"
-#include "zone-inl.h"
 
 namespace v8 {
 namespace internal {

@@ -31,7 +31,7 @@
 namespace v8 {
 namespace internal {
 
-#ifndef V8_INTERPRETED_REGEXP
+#ifdef V8_NATIVE_REGEXP
 
 class RegExpMacroAssemblerX64: public NativeRegExpMacroAssembler {
  public:
@@ -173,9 +173,10 @@ class RegExpMacroAssemblerX64: public NativeRegExpMacroAssembler {
   // the frame in GetCode.
   static const int kInputStartMinusOne =
       kLastCalleeSaveRegister - kPointerSize;
+  static const int kAtStart = kInputStartMinusOne - kPointerSize;
 
   // First register address. Following registers are below it on the stack.
-  static const int kRegisterZero = kInputStartMinusOne - kPointerSize;
+  static const int kRegisterZero = kAtStart - kPointerSize;
 
   // Initial size of code buffer.
   static const size_t kRegExpCodeSize = 1024;
@@ -270,7 +271,7 @@ class RegExpMacroAssemblerX64: public NativeRegExpMacroAssembler {
   Label stack_overflow_label_;
 };
 
-#endif  // V8_INTERPRETED_REGEXP
+#endif  // V8_NATIVE_REGEXP
 
 }}  // namespace v8::internal
 

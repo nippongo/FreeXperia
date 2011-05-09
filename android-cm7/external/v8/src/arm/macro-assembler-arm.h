@@ -52,21 +52,6 @@ enum InvokeJSFlags {
 };
 
 
-// Flags used for the AllocateInNewSpace functions.
-enum AllocationFlags {
-  // No special flags.
-  NO_ALLOCATION_FLAGS = 0,
-  // Return the pointer to the allocated already tagged as a heap object.
-  TAG_OBJECT = 1 << 0,
-  // The content of the result register already contains the allocation top in
-  // new space.
-  RESULT_CONTAINS_TOP = 1 << 1,
-  // Specify that the requested size of the space to allocate is specified in
-  // words instead of bytes.
-  SIZE_IN_WORDS = 1 << 2
-};
-
-
 // MacroAssembler implements a collection of frequently used macros.
 class MacroAssembler: public Assembler {
  public:
@@ -85,39 +70,14 @@ class MacroAssembler: public Assembler {
   // from the stack, clobbering only the sp register.
   void Drop(int count, Condition cond = al);
 
-
-  // Swap two registers.  If the scratch register is omitted then a slightly
-  // less efficient form using xor instead of mov is emitted.
-  void Swap(Register reg1, Register reg2, Register scratch = no_reg);
-
   void Call(Label* target);
   void Move(Register dst, Handle<Object> value);
-  // May do nothing if the registers are identical.
-  void Move(Register dst, Register src);
   // Jumps to the label at the index given by the Smi in "index".
   void SmiJumpTable(Register index, Vector<Label*> targets);
   // Load an object from the root table.
   void LoadRoot(Register destination,
                 Heap::RootListIndex index,
                 Condition cond = al);
-  // Store an object to the root table.
-  void StoreRoot(Register source,
-                 Heap::RootListIndex index,
-                 Condition cond = al);
-
-
-  // Check if object is in new space.
-  // scratch can be object itself, but it will be clobbered.
-  void InNewSpace(Register object,
-                  Register scratch,
-                  Condition cc,  // eq for new space, ne otherwise
-                  Label* branch);
-
-
-  // Set the remebered set bit for an offset into an
-  // object. RecordWriteHelper only works if the object is not in new
-  // space.
-  void RecordWriteHelper(Register object, Register offset, Register scracth);
 
   // Sets the remembered set bit for [address+offset], where address is the
   // address of the heap object 'object'.  The address must be in the first 8K
@@ -125,65 +85,6 @@ class MacroAssembler: public Assembler {
   // implementation and all 3 registers are clobbered by the operation, as
   // well as the ip register.
   void RecordWrite(Register object, Register offset, Register scratch);
-
-  // Push two registers.  Pushes leftmost register first (to highest address).
-  void Push(Register src1, Register src2, Condition cond = al) {
-    ASSERT(!src1.is(src2));
-    if (src1.code() > src2.code()) {
-      stm(db_w, sp, src1.bit() | src2.bit(), cond);
-    } else {
-      str(src1, MemOperand(sp, 4, NegPreIndex), cond);
-      str(src2, MemOperand(sp, 4, NegPreIndex), cond);
-    }
-  }
-
-  // Push three registers.  Pushes leftmost register first (to highest address).
-  void Push(Register src1, Register src2, Register src3, Condition cond = al) {
-    ASSERT(!src1.is(src2));
-    ASSERT(!src2.is(src3));
-    ASSERT(!src1.is(src3));
-    if (src1.code() > src2.code()) {
-      if (src2.code() > src3.code()) {
-        stm(db_w, sp, src1.bit() | src2.bit() | src3.bit(), cond);
-      } else {
-        stm(db_w, sp, src1.bit() | src2.bit(), cond);
-        str(src3, MemOperand(sp, 4, NegPreIndex), cond);
-      }
-    } else {
-      str(src1, MemOperand(sp, 4, NegPreIndex), cond);
-      Push(src2, src3, cond);
-    }
-  }
-
-  // Push four registers.  Pushes leftmost register first (to highest address).
-  void Push(Register src1, Register src2,
-            Register src3, Register src4, Condition cond = al) {
-    ASSERT(!src1.is(src2));
-    ASSERT(!src2.is(src3));
-    ASSERT(!src1.is(src3));
-    ASSERT(!src1.is(src4));
-    ASSERT(!src2.is(src4));
-    ASSERT(!src3.is(src4));
-    if (src1.code() > src2.code()) {
-      if (src2.code() > src3.code()) {
-        if (src3.code() > src4.code()) {
-          stm(db_w,
-              sp,
-              src1.bit() | src2.bit() | src3.bit() | src4.bit(),
-              cond);
-        } else {
-          stm(db_w, sp, src1.bit() | src2.bit() | src3.bit(), cond);
-          str(src4, MemOperand(sp, 4, NegPreIndex), cond);
-        }
-      } else {
-        stm(db_w, sp, src1.bit() | src2.bit(), cond);
-        Push(src3, src4, cond);
-      }
-    } else {
-      str(src1, MemOperand(sp, 4, NegPreIndex), cond);
-      Push(src2, src3, src4, cond);
-    }
-  }
 
   // ---------------------------------------------------------------------------
   // Stack limit support
@@ -208,8 +109,8 @@ class MacroAssembler: public Assembler {
   // Leave the current exit frame. Expects the return value in r0.
   void LeaveExitFrame(ExitFrame::Mode mode);
 
-  // Get the actual activation frame alignment for target environment.
-  static int ActivationFrameAlignment();
+  // Align the stack by optionally pushing a Smi zero.
+  void AlignStack(int offset);
 
   void LoadContext(Register dst, int context_chain_length);
 
@@ -276,14 +177,9 @@ class MacroAssembler: public Assembler {
   // clobbered if it the same as the holder register. The function
   // returns a register containing the holder - either object_reg or
   // holder_reg.
-  // The function can optionally (when save_at_depth !=
-  // kInvalidProtoDepth) save the object at the given depth by moving
-  // it to [sp].
   Register CheckMaps(JSObject* object, Register object_reg,
                      JSObject* holder, Register holder_reg,
-                     Register scratch,
-                     int save_at_depth,
-                     Label* miss);
+                     Register scratch, Label* miss);
 
   // Generate code for checking access rights - used for security checks
   // on access to global objects across environments. The holder register
@@ -299,9 +195,7 @@ class MacroAssembler: public Assembler {
   // Allocate an object in new space. The object_size is specified in words (not
   // bytes). If the new space is exhausted control continues at the gc_required
   // label. The allocated object is returned in result. If the flag
-  // tag_allocated_object is true the result is tagged as as a heap object. All
-  // registers are clobbered also when control continues at the gc_required
-  // label.
+  // tag_allocated_object is true the result is tagged as as a heap object.
   void AllocateInNewSpace(int object_size,
                           Register result,
                           Register scratch1,
@@ -345,13 +239,6 @@ class MacroAssembler: public Assembler {
                                Register scratch2,
                                Label* gc_required);
 
-  // Allocates a heap number or jumps to the gc_required label if the young
-  // space is full and a scavenge is needed. All registers are clobbered also
-  // when control continues at the gc_required label.
-  void AllocateHeapNumber(Register result,
-                          Register scratch1,
-                          Register scratch2,
-                          Label* gc_required);
 
   // ---------------------------------------------------------------------------
   // Support functions.
@@ -432,12 +319,6 @@ class MacroAssembler: public Assembler {
                                          Register outHighReg,
                                          Register outLowReg);
 
-  // Count leading zeros in a 32 bit word.  On ARM5 and later it uses the clz
-  // instruction.  On pre-ARM5 hardware this routine gives the wrong answer
-  // for 0 (31 instead of 32).
-  void CountLeadingZeros(Register source,
-                         Register scratch,
-                         Register zeros);
 
   // ---------------------------------------------------------------------------
   // Runtime calls
@@ -452,6 +333,7 @@ class MacroAssembler: public Assembler {
   void StubReturn(int argc);
 
   // Call a runtime routine.
+  // Eventually this should be used for all C calls.
   void CallRuntime(Runtime::Function* f, int num_arguments);
 
   // Convenience function: Same as above, but takes the fid instead.
@@ -462,37 +344,14 @@ class MacroAssembler: public Assembler {
                              int num_arguments);
 
   // Tail call of a runtime routine (jump).
-  // Like JumpToExternalReference, but also takes care of passing the number
+  // Like JumpToRuntime, but also takes care of passing the number
   // of parameters.
-  void TailCallExternalReference(const ExternalReference& ext,
-                                 int num_arguments,
-                                 int result_size);
-
-  // Convenience function: tail call a runtime routine (jump).
-  void TailCallRuntime(Runtime::FunctionId fid,
+  void TailCallRuntime(const ExternalReference& ext,
                        int num_arguments,
                        int result_size);
 
-  // Before calling a C-function from generated code, align arguments on stack.
-  // After aligning the frame, non-register arguments must be stored in
-  // sp[0], sp[4], etc., not pushed. The argument count assumes all arguments
-  // are word sized.
-  // Some compilers/platforms require the stack to be aligned when calling
-  // C++ code.
-  // Needs a scratch register to do some arithmetic. This register will be
-  // trashed.
-  void PrepareCallCFunction(int num_arguments, Register scratch);
-
-  // Calls a C function and cleans up the space for arguments allocated
-  // by PrepareCallCFunction. The called function is not allowed to trigger a
-  // garbage collection, since that might move the code and invalidate the
-  // return address (unless this is somehow accounted for by the called
-  // function).
-  void CallCFunction(ExternalReference function, int num_arguments);
-  void CallCFunction(Register function, int num_arguments);
-
   // Jump to a runtime routine.
-  void JumpToExternalReference(const ExternalReference& builtin);
+  void JumpToRuntime(const ExternalReference& builtin);
 
   // Invoke specified builtin JavaScript function. Adds an entry to
   // the unresolved list if the name does not resolve.
@@ -552,7 +411,7 @@ class MacroAssembler: public Assembler {
                                                   Register object2,
                                                   Register scratch1,
                                                   Register scratch2,
-                                                  Label* failure);
+                                                  Label *failure);
 
   // Checks if both objects are sequential ASCII strings and jumps to label
   // if either is not.
@@ -561,22 +420,6 @@ class MacroAssembler: public Assembler {
                                            Register scratch1,
                                            Register scratch2,
                                            Label* not_flat_ascii_strings);
-
-  // Checks if both instance types are sequential ASCII strings and jumps to
-  // label if either is not.
-  void JumpIfBothInstanceTypesAreNotSequentialAscii(
-      Register first_object_instance_type,
-      Register second_object_instance_type,
-      Register scratch1,
-      Register scratch2,
-      Label* failure);
-
-  // Check if instance type is sequential ASCII string and jump to label if
-  // it is not.
-  void JumpIfInstanceTypeIsNotSequentialAscii(Register type,
-                                              Register scratch,
-                                              Label* failure);
-
 
  private:
   void Jump(intptr_t target, RelocInfo::Mode rmode, Condition cond = al);
@@ -593,12 +436,6 @@ class MacroAssembler: public Assembler {
   // Activation support.
   void EnterFrame(StackFrame::Type type);
   void LeaveFrame(StackFrame::Type type);
-
-  void InitializeNewString(Register string,
-                           Register length,
-                           Heap::RootListIndex map_index,
-                           Register scratch1,
-                           Register scratch2);
 
   bool generating_stub_;
   bool allow_stub_calls_;

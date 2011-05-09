@@ -28,10 +28,9 @@
 #ifndef V8_X64_VIRTUAL_FRAME_X64_H_
 #define V8_X64_VIRTUAL_FRAME_X64_H_
 
-#include "type-info.h"
+#include "number-info.h"
 #include "register-allocator.h"
 #include "scopes.h"
-#include "codegen.h"
 
 namespace v8 {
 namespace internal {
@@ -74,17 +73,17 @@ class VirtualFrame : public ZoneObject {
   static const int kIllegalIndex = -1;
 
   // Construct an initial virtual frame on entry to a JS function.
-  inline VirtualFrame();
+  VirtualFrame();
 
   // Construct a virtual frame as a clone of an existing one.
-  explicit inline VirtualFrame(VirtualFrame* original);
+  explicit VirtualFrame(VirtualFrame* original);
 
   CodeGenerator* cgen() { return CodeGeneratorScope::Current(); }
   MacroAssembler* masm() { return cgen()->masm(); }
 
   // Create a duplicate of an existing valid frame element.
   FrameElement CopyElementAt(int index,
-    TypeInfo info = TypeInfo::Uninitialized());
+    NumberInfo::Type info = NumberInfo::kUninitialized);
 
   // The number of elements on the virtual frame.
   int element_count() { return elements_.length(); }
@@ -99,16 +98,23 @@ class VirtualFrame : public ZoneObject {
     return register_locations_[num];
   }
 
-  inline int register_location(Register reg);
+  int register_location(Register reg) {
+    return register_locations_[RegisterAllocator::ToNumber(reg)];
+  }
 
-  inline void set_register_location(Register reg, int index);
+  void set_register_location(Register reg, int index) {
+    register_locations_[RegisterAllocator::ToNumber(reg)] = index;
+  }
 
   bool is_used(int num) {
     ASSERT(num >= 0 && num < RegisterAllocator::kNumRegisters);
     return register_locations_[num] != kIllegalIndex;
   }
 
-  inline bool is_used(Register reg);
+  bool is_used(Register reg) {
+    return register_locations_[RegisterAllocator::ToNumber(reg)]
+        != kIllegalIndex;
+  }
 
   // Add extra in-memory elements to the top of the frame to match an actual
   // frame (eg, the frame after an exception handler is pushed).  No code is
@@ -133,7 +139,7 @@ class VirtualFrame : public ZoneObject {
   void ForgetElements(int count);
 
   // Spill all values from the frame to memory.
-  inline void SpillAll();
+  void SpillAll();
 
   // Spill all occurrences of a specific register from the frame.
   void Spill(Register reg) {
@@ -144,9 +150,6 @@ class VirtualFrame : public ZoneObject {
   // register spilled or no_reg if it was not possible to free any register
   // (ie, they all have frame-external references).
   Register SpillAnyRegister();
-
-  // Spill the top element of the frame to memory.
-  void SpillTop() { SpillElementAt(element_count() - 1); }
 
   // Sync the range of elements in [begin, end] with memory.
   void SyncRange(int begin, int end);
@@ -197,7 +200,7 @@ class VirtualFrame : public ZoneObject {
   // Prepare for returning from the frame by spilling locals.  This
   // avoids generating unnecessary merge code when jumping to the
   // shared return site.  Emits code for spills.
-  inline void PrepareForReturn();
+  void PrepareForReturn();
 
   // Number of local variables after when we use a loop for allocating.
   static const int kLocalVarBound = 7;
@@ -215,7 +218,10 @@ class VirtualFrame : public ZoneObject {
   void SetElementAt(int index, Result* value);
 
   // Set a frame element to a constant.  The index is frame-top relative.
-  inline void SetElementAt(int index, Handle<Object> value);
+  void SetElementAt(int index, Handle<Object> value) {
+    Result temp(value);
+    SetElementAt(index, &temp);
+  }
 
   void PushElementAt(int index) {
     PushFrameSlotAt(element_count() - index - 1);
@@ -296,7 +302,10 @@ class VirtualFrame : public ZoneObject {
 
   // Call stub given the number of arguments it expects on (and
   // removes from) the stack.
-  inline Result CallStub(CodeStub* stub, int arg_count);
+  Result CallStub(CodeStub* stub, int arg_count) {
+    PrepareForCall(arg_count, arg_count);
+    return RawCallStub(stub);
+  }
 
   // Call stub that takes a single argument passed in eax.  The
   // argument is given as a result which does not have to be eax or
@@ -308,10 +317,6 @@ class VirtualFrame : public ZoneObject {
   // to be in the proper registers or even in registers.  The
   // arguments are consumed by the call.
   Result CallStub(CodeStub* stub, Result* arg0, Result* arg1);
-
-  // Call JS function from top of the stack with arguments
-  // taken from the stack.
-  Result CallJSFunction(int arg_count);
 
   // Call runtime given the number of arguments expected on (and
   // removed from) the stack.
@@ -336,33 +341,13 @@ class VirtualFrame : public ZoneObject {
   // frame.  They are not dropped.
   Result CallKeyedLoadIC(RelocInfo::Mode mode);
 
-
-  // Calling a store IC and a keyed store IC differ only by which ic is called
-  // and by the order of the three arguments on the frame.
-  Result CallCommonStoreIC(Handle<Code> ic,
-                           Result* value,
-                           Result *key,
-                           Result* receiver);
-
-  // Call store IC.  Name, value, and receiver are found on top
-  // of the frame.  All are dropped.
-  Result CallStoreIC() {
-    Handle<Code> ic(Builtins::builtin(Builtins::StoreIC_Initialize));
-    Result name = Pop();
-    Result value = Pop();
-    Result receiver = Pop();
-    return CallCommonStoreIC(ic, &value, &name, &receiver);
-  }
+  // Call store IC.  Name, value, and receiver are found on top of the
+  // frame.  Receiver is not dropped.
+  Result CallStoreIC();
 
   // Call keyed store IC.  Value, key, and receiver are found on top
-  // of the frame.  All are dropped.
-  Result CallKeyedStoreIC() {
-    Handle<Code> ic(Builtins::builtin(Builtins::KeyedStoreIC_Initialize));
-    Result value = Pop();
-    Result key = Pop();
-    Result receiver = Pop();
-    return CallCommonStoreIC(ic, &value, &key, &receiver);
-  }
+  // of the frame.  Key and receiver are not dropped.
+  Result CallKeyedStoreIC();
 
   // Call call IC.  Function name, arguments, and receiver are found on top
   // of the frame and dropped by the call.
@@ -398,27 +383,27 @@ class VirtualFrame : public ZoneObject {
   // Push an element on top of the expression stack and emit a
   // corresponding push instruction.
   void EmitPush(Register reg,
-                TypeInfo info = TypeInfo::Unknown());
+                NumberInfo::Type info = NumberInfo::kUnknown);
   void EmitPush(const Operand& operand,
-                TypeInfo info = TypeInfo::Unknown());
+                NumberInfo::Type info = NumberInfo::kUnknown);
   void EmitPush(Heap::RootListIndex index,
-                TypeInfo info = TypeInfo::Unknown());
+                NumberInfo::Type info = NumberInfo::kUnknown);
   void EmitPush(Immediate immediate,
-                TypeInfo info = TypeInfo::Unknown());
+                NumberInfo::Type info = NumberInfo::kUnknown);
   void EmitPush(Smi* value);
   // Uses kScratchRegister, emits appropriate relocation info.
   void EmitPush(Handle<Object> value);
 
   // Push an element on the virtual frame.
-  inline void Push(Register reg, TypeInfo info = TypeInfo::Unknown());
-  inline void Push(Handle<Object> value);
-  inline void Push(Smi* value);
+  void Push(Register reg, NumberInfo::Type info = NumberInfo::kUnknown);
+  void Push(Handle<Object> value);
+  void Push(Smi* value) { Push(Handle<Object>(value)); }
 
   // Pushing a result invalidates it (its contents become owned by the
   // frame).
   void Push(Result* result) {
     if (result->is_register()) {
-      Push(result->reg(), result->type_info());
+      Push(result->reg(), result->number_info());
     } else {
       ASSERT(result->is_constant());
       Push(result->handle());
@@ -426,17 +411,10 @@ class VirtualFrame : public ZoneObject {
     result->Unuse();
   }
 
-  // Pushing an expression expects that the expression is trivial (according
-  // to Expression::IsTrivial).
-  void Push(Expression* expr);
-
   // Nip removes zero or more elements from immediately below the top
   // of the frame, leaving the previous top-of-frame value on top of
   // the frame.  Nip(k) is equivalent to x = Pop(), Drop(k), Push(x).
-  inline void Nip(int num_dropped);
-
-  inline void SetTypeForLocalAt(int index, TypeInfo info);
-  inline void SetTypeForParamAt(int index, TypeInfo info);
+  void Nip(int num_dropped);
 
  private:
   static const int kLocal0Offset = JavaScriptFrameConstants::kLocal0Offset;
@@ -457,8 +435,8 @@ class VirtualFrame : public ZoneObject {
   int register_locations_[RegisterAllocator::kNumRegisters];
 
   // The number of frame-allocated locals and parameters respectively.
-  inline int parameter_count();
-  inline int local_count();
+  int parameter_count() { return cgen()->scope()->num_parameters(); }
+  int local_count() { return cgen()->scope()->num_stack_slots(); }
 
   // The index of the element that is at the processor's frame pointer
   // (the ebp register).  The parameters, receiver, and return address
@@ -528,7 +506,7 @@ class VirtualFrame : public ZoneObject {
 
   // Push a copy of a frame slot (typically a local or parameter) on top of
   // the frame.
-  inline void PushFrameSlotAt(int index);
+  void PushFrameSlotAt(int index);
 
   // Push a the value of a frame slot (typically a local or parameter) on
   // top of the frame and invalidate the slot.
@@ -571,14 +549,6 @@ class VirtualFrame : public ZoneObject {
   // Register counts are correctly updated.
   int InvalidateFrameSlotAt(int index);
 
-  // This function assumes that a and b are the only results that could be in
-  // the registers a_reg or b_reg.  Other results can be live, but must not
-  //  be in the registers a_reg or b_reg.  The results a and b are invalidated.
-  void MoveResultsToRegisters(Result* a,
-                              Result* b,
-                              Register a_reg,
-                              Register b_reg);
-
   // Call a code stub that has already been prepared for calling (via
   // PrepareForCall).
   Result RawCallStub(CodeStub* stub);
@@ -587,7 +557,7 @@ class VirtualFrame : public ZoneObject {
   // (via PrepareForCall).
   Result RawCallCodeObject(Handle<Code> code, RelocInfo::Mode rmode);
 
-  inline bool Equals(VirtualFrame* other);
+  bool Equals(VirtualFrame* other);
 
   // Classes that need raw access to the elements_ array.
   friend class DeferredCode;

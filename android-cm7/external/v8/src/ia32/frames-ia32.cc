@@ -27,8 +27,6 @@
 
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_IA32)
-
 #include "frames-inl.h"
 
 namespace v8 {
@@ -111,5 +109,3 @@ Address InternalFrame::GetCallerStackPointer() const {
 
 
 } }  // namespace v8::internal
-
-#endif  // V8_TARGET_ARCH_IA32

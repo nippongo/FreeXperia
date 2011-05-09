@@ -93,7 +93,6 @@ class FastCodeGenerator: public AstVisitor {
   Register accumulator1();
   Register scratch0();
   Register scratch1();
-  Register scratch2();
   Register receiver_reg();
   Register context_reg();
 

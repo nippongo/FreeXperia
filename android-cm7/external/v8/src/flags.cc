@@ -470,12 +470,12 @@ static char* SkipBlackSpace(char* p) {
 // static
 int FlagList::SetFlagsFromString(const char* str, int len) {
   // make a 0-terminated copy of str
-  ScopedVector<char> copy0(len + 1);
-  memcpy(copy0.start(), str, len);
+  char* copy0 = NewArray<char>(len + 1);
+  memcpy(copy0, str, len);
   copy0[len] = '\0';
 
   // strip leading white space
-  char* copy = SkipWhiteSpace(copy0.start());
+  char* copy = SkipWhiteSpace(copy0);
 
   // count the number of 'arguments'
   int argc = 1;  // be compatible with SetFlagsFromCommandLine()
@@ -485,7 +485,7 @@ int FlagList::SetFlagsFromString(const char* str, int len) {
   }
 
   // allocate argument array
-  ScopedVector<char*> argv(argc);
+  char** argv = NewArray<char*>(argc);
 
   // split the flags string into arguments
   argc = 1;  // be compatible with SetFlagsFromCommandLine()
@@ -497,7 +497,11 @@ int FlagList::SetFlagsFromString(const char* str, int len) {
   }
 
   // set the flags
-  int result = SetFlagsFromCommandLine(&argc, argv.start(), false);
+  int result = SetFlagsFromCommandLine(&argc, argv, false);
+
+  // cleanup
+  DeleteArray(argv);
+  DeleteArray(copy0);
 
   return result;
 }

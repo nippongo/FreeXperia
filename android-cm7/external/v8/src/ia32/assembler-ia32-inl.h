@@ -159,6 +159,11 @@ Immediate::Immediate(const ExternalReference& ext) {
   rmode_ = RelocInfo::EXTERNAL_REFERENCE;
 }
 
+Immediate::Immediate(const char* s) {
+  x_ = reinterpret_cast<int32_t>(s);
+  rmode_ = RelocInfo::EMBEDDED_STRING;
+}
+
 
 Immediate::Immediate(Label* internal_offset) {
   x_ = reinterpret_cast<int32_t>(internal_offset);
@@ -305,12 +310,6 @@ void Operand::set_dispr(int32_t disp, RelocInfo::Mode rmode) {
 
 Operand::Operand(Register reg) {
   // reg
-  set_modrm(3, reg);
-}
-
-
-Operand::Operand(XMMRegister xmm_reg) {
-  Register reg = { xmm_reg.code() };
   set_modrm(3, reg);
 }
 

@@ -133,8 +133,7 @@ Object* Heap::AllocateRawMap() {
 #ifdef DEBUG
   if (!result->IsFailure()) {
     // Maps have their own alignment.
-    CHECK((reinterpret_cast<intptr_t>(result) & kMapAlignmentMask) ==
-          static_cast<intptr_t>(kHeapObjectTag));
+    CHECK((OffsetFrom(result) & kMapAlignmentMask) == kHeapObjectTag);
   }
 #endif
   return result;
@@ -188,18 +187,6 @@ void Heap::RecordWrite(Address address, int offset) {
 }
 
 
-void Heap::RecordWrites(Address address, int start, int len) {
-  if (new_space_.Contains(address)) return;
-  ASSERT(!new_space_.FromSpaceContains(address));
-  for (int offset = start;
-       offset < start + len * kPointerSize;
-       offset += kPointerSize) {
-    SLOW_ASSERT(Contains(address + offset));
-    Page::SetRSet(address, offset);
-  }
-}
-
-
 OldSpace* Heap::TargetSpace(HeapObject* object) {
   InstanceType type = object->map()->instance_type();
   AllocationSpace space = TargetSpaceId(type);
@@ -236,27 +223,19 @@ AllocationSpace Heap::TargetSpaceId(InstanceType type) {
 
 void Heap::CopyBlock(Object** dst, Object** src, int byte_size) {
   ASSERT(IsAligned(byte_size, kPointerSize));
-  CopyWords(dst, src, byte_size / kPointerSize);
-}
 
+  // Use block copying memcpy if the segment we're copying is
+  // enough to justify the extra call/setup overhead.
+  static const int kBlockCopyLimit = 16 * kPointerSize;
 
-void Heap::MoveBlock(Object** dst, Object** src, int byte_size) {
-  ASSERT(IsAligned(byte_size, kPointerSize));
-
-  int size_in_words = byte_size / kPointerSize;
-
-  if ((dst < src) || (dst >= (src + size_in_words))) {
-    ASSERT((dst >= (src + size_in_words)) ||
-           ((OffsetFrom(reinterpret_cast<Address>(src)) -
-             OffsetFrom(reinterpret_cast<Address>(dst))) >= kPointerSize));
-
-    Object** end = src + size_in_words;
-
-    while (src != end) {
-      *dst++ = *src++;
-    }
+  if (byte_size >= kBlockCopyLimit) {
+    memcpy(dst, src, byte_size);
   } else {
-    memmove(dst, src, byte_size);
+    int remaining = byte_size / kPointerSize;
+    do {
+      remaining--;
+      *dst++ = *src++;
+    } while (remaining > 0);
   }
 }
 
@@ -279,25 +258,6 @@ void Heap::ScavengeObject(HeapObject** p, HeapObject* object) {
 
   // Call the slow part of scavenge object.
   return ScavengeObjectSlow(p, object);
-}
-
-
-Object* Heap::PrepareForCompare(String* str) {
-  // Always flatten small strings and force flattening of long strings
-  // after we have accumulated a certain amount we failed to flatten.
-  static const int kMaxAlwaysFlattenLength = 32;
-  static const int kFlattenLongThreshold = 16*KB;
-
-  const int length = str->length();
-  Object* obj = str->TryFlatten();
-  if (length <= kMaxAlwaysFlattenLength ||
-      unflattened_strings_length_ >= kFlattenLongThreshold) {
-    return obj;
-  }
-  if (obj->IsFailure()) {
-    unflattened_strings_length_ += length;
-  }
-  return str;
 }
 
 

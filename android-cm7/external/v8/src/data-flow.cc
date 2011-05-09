@@ -28,26 +28,9 @@
 #include "v8.h"
 
 #include "data-flow.h"
-#include "scopes.h"
 
 namespace v8 {
 namespace internal {
-
-
-#ifdef DEBUG
-void BitVector::Print() {
-  bool first = true;
-  PrintF("{");
-  for (int i = 0; i < length(); i++) {
-    if (Contains(i)) {
-      if (!first) PrintF(",");
-      first = false;
-      PrintF("%d");
-    }
-  }
-  PrintF("}");
-}
-#endif
 
 
 void AstLabeler::Label(CompilationInfo* info) {
@@ -162,8 +145,8 @@ void AstLabeler::VisitFunctionLiteral(FunctionLiteral* expr) {
 }
 
 
-void AstLabeler::VisitSharedFunctionInfoLiteral(
-    SharedFunctionInfoLiteral* expr) {
+void AstLabeler::VisitFunctionBoilerplateLiteral(
+    FunctionBoilerplateLiteral* expr) {
   UNREACHABLE();
 }
 
@@ -221,9 +204,6 @@ void AstLabeler::VisitAssignment(Assignment* expr) {
   USE(proxy);
   ASSERT(proxy != NULL && proxy->var()->is_this());
   info()->set_has_this_properties(true);
-
-  prop->obj()->set_num(AstNode::kNoNumber);
-  prop->key()->set_num(AstNode::kNoNumber);
   Visit(expr->value());
   expr->set_num(next_number_++);
 }
@@ -240,9 +220,6 @@ void AstLabeler::VisitProperty(Property* expr) {
   USE(proxy);
   ASSERT(proxy != NULL && proxy->var()->is_this());
   info()->set_has_this_properties(true);
-
-  expr->obj()->set_num(AstNode::kNoNumber);
-  expr->key()->set_num(AstNode::kNoNumber);
   expr->set_num(next_number_++);
 }
 
@@ -294,460 +271,289 @@ void AstLabeler::VisitDeclaration(Declaration* decl) {
 }
 
 
-AssignedVariablesAnalyzer::AssignedVariablesAnalyzer(FunctionLiteral* fun)
-    : fun_(fun),
-      av_(fun->scope()->num_parameters() + fun->scope()->num_stack_slots()) {}
-
-
-void AssignedVariablesAnalyzer::Analyze() {
-  ASSERT(av_.length() > 0);
-  VisitStatements(fun_->body());
+ZoneList<Expression*>* VarUseMap::Lookup(Variable* var) {
+  HashMap::Entry* entry = HashMap::Lookup(var, var->name()->Hash(), true);
+  if (entry->value == NULL) {
+    entry->value = new ZoneList<Expression*>(1);
+  }
+  return reinterpret_cast<ZoneList<Expression*>*>(entry->value);
 }
 
 
-Variable* AssignedVariablesAnalyzer::FindSmiLoopVariable(ForStatement* stmt) {
-  // The loop must have all necessary parts.
-  if (stmt->init() == NULL || stmt->cond() == NULL || stmt->next() == NULL) {
-    return NULL;
-  }
-  // The initialization statement has to be a simple assignment.
-  Assignment* init = stmt->init()->StatementAsSimpleAssignment();
-  if (init == NULL) return NULL;
+void LivenessAnalyzer::Analyze(FunctionLiteral* fun) {
+  // Process the function body.
+  VisitStatements(fun->body());
 
-  // We only deal with local variables.
-  Variable* loop_var = init->target()->AsVariableProxy()->AsVariable();
-  if (loop_var == NULL || !loop_var->IsStackAllocated()) return NULL;
-
-  // The initial value has to be a smi.
-  Literal* init_lit = init->value()->AsLiteral();
-  if (init_lit == NULL || !init_lit->handle()->IsSmi()) return NULL;
-  int init_value = Smi::cast(*init_lit->handle())->value();
-
-  // The condition must be a compare of variable with <, <=, >, or >=.
-  CompareOperation* cond = stmt->cond()->AsCompareOperation();
-  if (cond == NULL) return NULL;
-  if (cond->op() != Token::LT
-      && cond->op() != Token::LTE
-      && cond->op() != Token::GT
-      && cond->op() != Token::GTE) return NULL;
-
-  // The lhs must be the same variable as in the init expression.
-  if (cond->left()->AsVariableProxy()->AsVariable() != loop_var) return NULL;
-
-  // The rhs must be a smi.
-  Literal* term_lit = cond->right()->AsLiteral();
-  if (term_lit == NULL || !term_lit->handle()->IsSmi()) return NULL;
-  int term_value = Smi::cast(*term_lit->handle())->value();
-
-  // The count operation updates the same variable as in the init expression.
-  CountOperation* update = stmt->next()->StatementAsCountOperation();
-  if (update == NULL) return NULL;
-  if (update->expression()->AsVariableProxy()->AsVariable() != loop_var) {
-    return NULL;
-  }
-
-  // The direction of the count operation must agree with the start and the end
-  // value. We currently do not allow the initial value to be the same as the
-  // terminal value. This _would_ be ok as long as the loop body never executes
-  // or executes exactly one time.
-  if (init_value == term_value) return NULL;
-  if (init_value < term_value && update->op() != Token::INC) return NULL;
-  if (init_value > term_value && update->op() != Token::DEC) return NULL;
-
-  // Check that the update operation cannot overflow the smi range. This can
-  // occur in the two cases where the loop bound is equal to the largest or
-  // smallest smi.
-  if (update->op() == Token::INC && term_value == Smi::kMaxValue) return NULL;
-  if (update->op() == Token::DEC && term_value == Smi::kMinValue) return NULL;
-
-  // Found a smi loop variable.
-  return loop_var;
-}
-
-int AssignedVariablesAnalyzer::BitIndex(Variable* var) {
-  ASSERT(var != NULL);
-  ASSERT(var->IsStackAllocated());
-  Slot* slot = var->slot();
-  if (slot->type() == Slot::PARAMETER) {
-    return slot->index();
-  } else {
-    return fun_->scope()->num_parameters() + slot->index();
+  // All variables are implicitly defined at the function start.
+  // Record a definition of all variables live at function entry.
+  for (HashMap::Entry* p = live_vars_.Start();
+       p != NULL;
+       p = live_vars_.Next(p)) {
+    Variable* var = reinterpret_cast<Variable*>(p->key);
+    RecordDef(var, fun);
   }
 }
 
 
-void AssignedVariablesAnalyzer::RecordAssignedVar(Variable* var) {
-  ASSERT(var != NULL);
-  if (var->IsStackAllocated()) {
-    av_.Add(BitIndex(var));
+void LivenessAnalyzer::VisitStatements(ZoneList<Statement*>* stmts) {
+  // Visit statements right-to-left.
+  for (int i = stmts->length() - 1; i >= 0; i--) {
+    Visit(stmts->at(i));
   }
 }
 
 
-void AssignedVariablesAnalyzer::MarkIfTrivial(Expression* expr) {
-  Variable* var = expr->AsVariableProxy()->AsVariable();
-  if (var != NULL &&
-      var->IsStackAllocated() &&
-      !var->is_arguments() &&
-      var->mode() != Variable::CONST &&
-      (var->is_this() || !av_.Contains(BitIndex(var)))) {
-    expr->AsVariableProxy()->set_is_trivial(true);
+void LivenessAnalyzer::RecordUse(Variable* var, Expression* expr) {
+  ASSERT(var->is_global() || var->is_this());
+  ZoneList<Expression*>* uses = live_vars_.Lookup(var);
+  uses->Add(expr);
+}
+
+
+void LivenessAnalyzer::RecordDef(Variable* var, Expression* expr) {
+  ASSERT(var->is_global() || var->is_this());
+
+  // We do not support other expressions that can define variables.
+  ASSERT(expr->AsFunctionLiteral() != NULL);
+
+  // Add the variable to the list of defined variables.
+  if (expr->defined_vars() == NULL) {
+    expr->set_defined_vars(new ZoneList<DefinitionInfo*>(1));
   }
-}
+  DefinitionInfo* def = new DefinitionInfo();
+  expr->AsFunctionLiteral()->defined_vars()->Add(def);
 
-
-void AssignedVariablesAnalyzer::ProcessExpression(Expression* expr) {
-  BitVector saved_av(av_);
-  av_.Clear();
-  Visit(expr);
-  av_.Union(saved_av);
-}
-
-void AssignedVariablesAnalyzer::VisitBlock(Block* stmt) {
-  VisitStatements(stmt->statements());
-}
-
-
-void AssignedVariablesAnalyzer::VisitExpressionStatement(
-    ExpressionStatement* stmt) {
-  ProcessExpression(stmt->expression());
-}
-
-
-void AssignedVariablesAnalyzer::VisitEmptyStatement(EmptyStatement* stmt) {
-  // Do nothing.
-}
-
-
-void AssignedVariablesAnalyzer::VisitIfStatement(IfStatement* stmt) {
-  ProcessExpression(stmt->condition());
-  Visit(stmt->then_statement());
-  Visit(stmt->else_statement());
-}
-
-
-void AssignedVariablesAnalyzer::VisitContinueStatement(
-    ContinueStatement* stmt) {
-  // Nothing to do.
-}
-
-
-void AssignedVariablesAnalyzer::VisitBreakStatement(BreakStatement* stmt) {
-  // Nothing to do.
-}
-
-
-void AssignedVariablesAnalyzer::VisitReturnStatement(ReturnStatement* stmt) {
-  ProcessExpression(stmt->expression());
-}
-
-
-void AssignedVariablesAnalyzer::VisitWithEnterStatement(
-    WithEnterStatement* stmt) {
-  ProcessExpression(stmt->expression());
-}
-
-
-void AssignedVariablesAnalyzer::VisitWithExitStatement(
-    WithExitStatement* stmt) {
-  // Nothing to do.
-}
-
-
-void AssignedVariablesAnalyzer::VisitSwitchStatement(SwitchStatement* stmt) {
-  BitVector result(av_);
-  av_.Clear();
-  Visit(stmt->tag());
-  result.Union(av_);
-  for (int i = 0; i < stmt->cases()->length(); i++) {
-    CaseClause* clause = stmt->cases()->at(i);
-    if (!clause->is_default()) {
-      av_.Clear();
-      Visit(clause->label());
-      result.Union(av_);
+  // Compute the last use of the definition. The variable uses are
+  // inserted in reversed evaluation order. The first element
+  // in the list of live uses is the last use.
+  ZoneList<Expression*>* uses = live_vars_.Lookup(var);
+  while (uses->length() > 0) {
+    Expression* use_site = uses->RemoveLast();
+    use_site->set_var_def(def);
+    if (uses->length() == 0) {
+      def->set_last_use(use_site);
     }
-    VisitStatements(clause->statements());
   }
-  av_.Union(result);
 }
 
 
-void AssignedVariablesAnalyzer::VisitDoWhileStatement(DoWhileStatement* stmt) {
-  ProcessExpression(stmt->cond());
-  Visit(stmt->body());
-}
-
-
-void AssignedVariablesAnalyzer::VisitWhileStatement(WhileStatement* stmt) {
-  ProcessExpression(stmt->cond());
-  Visit(stmt->body());
-}
-
-
-void AssignedVariablesAnalyzer::VisitForStatement(ForStatement* stmt) {
-  if (stmt->init() != NULL) Visit(stmt->init());
-
-  if (stmt->cond() != NULL) ProcessExpression(stmt->cond());
-
-  if (stmt->next() != NULL) Visit(stmt->next());
-
-  // Process loop body. After visiting the loop body av_ contains
-  // the assigned variables of the loop body.
-  BitVector saved_av(av_);
-  av_.Clear();
-  Visit(stmt->body());
-
-  Variable* var = FindSmiLoopVariable(stmt);
-  if (var != NULL && !av_.Contains(BitIndex(var))) {
-    stmt->set_loop_variable(var);
-  }
-
-  av_.Union(saved_av);
-}
-
-
-void AssignedVariablesAnalyzer::VisitForInStatement(ForInStatement* stmt) {
-  ProcessExpression(stmt->each());
-  ProcessExpression(stmt->enumerable());
-  Visit(stmt->body());
-}
-
-
-void AssignedVariablesAnalyzer::VisitTryCatchStatement(
-    TryCatchStatement* stmt) {
-  Visit(stmt->try_block());
-  Visit(stmt->catch_block());
-}
-
-
-void AssignedVariablesAnalyzer::VisitTryFinallyStatement(
-    TryFinallyStatement* stmt) {
-  Visit(stmt->try_block());
-  Visit(stmt->finally_block());
-}
-
-
-void AssignedVariablesAnalyzer::VisitDebuggerStatement(
-    DebuggerStatement* stmt) {
-  // Nothing to do.
-}
-
-
-void AssignedVariablesAnalyzer::VisitFunctionLiteral(FunctionLiteral* expr) {
-  // Nothing to do.
-  ASSERT(av_.IsEmpty());
-}
-
-
-void AssignedVariablesAnalyzer::VisitSharedFunctionInfoLiteral(
-    SharedFunctionInfoLiteral* expr) {
-  // Nothing to do.
-  ASSERT(av_.IsEmpty());
-}
-
-
-void AssignedVariablesAnalyzer::VisitConditional(Conditional* expr) {
-  ASSERT(av_.IsEmpty());
-
-  Visit(expr->condition());
-
-  BitVector result(av_);
-  av_.Clear();
-  Visit(expr->then_expression());
-  result.Union(av_);
-
-  av_.Clear();
-  Visit(expr->else_expression());
-  av_.Union(result);
-}
-
-
-void AssignedVariablesAnalyzer::VisitSlot(Slot* expr) {
+// Visitor functions for live variable analysis.
+void LivenessAnalyzer::VisitDeclaration(Declaration* decl) {
   UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitVariableProxy(VariableProxy* expr) {
-  // Nothing to do.
-  ASSERT(av_.IsEmpty());
+void LivenessAnalyzer::VisitBlock(Block* stmt) {
+  VisitStatements(stmt->statements());
 }
 
 
-void AssignedVariablesAnalyzer::VisitLiteral(Literal* expr) {
-  // Nothing to do.
-  ASSERT(av_.IsEmpty());
+void LivenessAnalyzer::VisitExpressionStatement(
+    ExpressionStatement* stmt) {
+  Visit(stmt->expression());
 }
 
 
-void AssignedVariablesAnalyzer::VisitRegExpLiteral(RegExpLiteral* expr) {
-  // Nothing to do.
-  ASSERT(av_.IsEmpty());
+void LivenessAnalyzer::VisitEmptyStatement(EmptyStatement* stmt) {
+  // Do nothing.
 }
 
 
-void AssignedVariablesAnalyzer::VisitObjectLiteral(ObjectLiteral* expr) {
-  ASSERT(av_.IsEmpty());
-  BitVector result(av_.length());
-  for (int i = 0; i < expr->properties()->length(); i++) {
-    Visit(expr->properties()->at(i)->value());
-    result.Union(av_);
-    av_.Clear();
-  }
-  av_ = result;
+void LivenessAnalyzer::VisitIfStatement(IfStatement* stmt) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitArrayLiteral(ArrayLiteral* expr) {
-  ASSERT(av_.IsEmpty());
-  BitVector result(av_.length());
-  for (int i = 0; i < expr->values()->length(); i++) {
-    Visit(expr->values()->at(i));
-    result.Union(av_);
-    av_.Clear();
-  }
-  av_ = result;
+void LivenessAnalyzer::VisitContinueStatement(ContinueStatement* stmt) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitCatchExtensionObject(
+void LivenessAnalyzer::VisitBreakStatement(BreakStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitReturnStatement(ReturnStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitWithEnterStatement(
+    WithEnterStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitWithExitStatement(WithExitStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitSwitchStatement(SwitchStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitDoWhileStatement(DoWhileStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitWhileStatement(WhileStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitForStatement(ForStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitForInStatement(ForInStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitTryCatchStatement(TryCatchStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitTryFinallyStatement(
+    TryFinallyStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitDebuggerStatement(
+    DebuggerStatement* stmt) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitFunctionLiteral(FunctionLiteral* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitFunctionBoilerplateLiteral(
+    FunctionBoilerplateLiteral* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitConditional(Conditional* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitSlot(Slot* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitVariableProxy(VariableProxy* expr) {
+  Variable* var = expr->var();
+  ASSERT(var->is_global());
+  ASSERT(!var->is_this());
+  RecordUse(var, expr);
+}
+
+
+void LivenessAnalyzer::VisitLiteral(Literal* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitRegExpLiteral(RegExpLiteral* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitObjectLiteral(ObjectLiteral* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitArrayLiteral(ArrayLiteral* expr) {
+  UNREACHABLE();
+}
+
+
+void LivenessAnalyzer::VisitCatchExtensionObject(
     CatchExtensionObject* expr) {
-  ASSERT(av_.IsEmpty());
-  Visit(expr->key());
-  ProcessExpression(expr->value());
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitAssignment(Assignment* expr) {
-  ASSERT(av_.IsEmpty());
-
-  // There are three kinds of assignments: variable assignments, property
-  // assignments, and reference errors (invalid left-hand sides).
-  Variable* var = expr->target()->AsVariableProxy()->AsVariable();
+void LivenessAnalyzer::VisitAssignment(Assignment* expr) {
   Property* prop = expr->target()->AsProperty();
-  ASSERT(var == NULL || prop == NULL);
+  ASSERT(prop != NULL);
+  ASSERT(prop->key()->IsPropertyName());
+  VariableProxy* proxy = prop->obj()->AsVariableProxy();
+  ASSERT(proxy != NULL && proxy->var()->is_this());
 
-  if (var != NULL) {
-    MarkIfTrivial(expr->value());
-    Visit(expr->value());
-    if (expr->is_compound()) {
-      // Left-hand side occurs also as an rvalue.
-      MarkIfTrivial(expr->target());
-      ProcessExpression(expr->target());
-    }
-    RecordAssignedVar(var);
+  // Record use of this at the assignment node. Assignments to
+  // this-properties are treated like unary operations.
+  RecordUse(proxy->var(), expr);
 
-  } else if (prop != NULL) {
-    MarkIfTrivial(expr->value());
-    Visit(expr->value());
-    if (!prop->key()->IsPropertyName()) {
-      MarkIfTrivial(prop->key());
-      ProcessExpression(prop->key());
-    }
-    MarkIfTrivial(prop->obj());
-    ProcessExpression(prop->obj());
-
-  } else {
-    Visit(expr->target());
-  }
+  // Visit right-hand side.
+  Visit(expr->value());
 }
 
 
-void AssignedVariablesAnalyzer::VisitThrow(Throw* expr) {
-  ASSERT(av_.IsEmpty());
-  Visit(expr->exception());
+void LivenessAnalyzer::VisitThrow(Throw* expr) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitProperty(Property* expr) {
-  ASSERT(av_.IsEmpty());
-  if (!expr->key()->IsPropertyName()) {
-    MarkIfTrivial(expr->key());
-    Visit(expr->key());
-  }
-  MarkIfTrivial(expr->obj());
-  ProcessExpression(expr->obj());
+void LivenessAnalyzer::VisitProperty(Property* expr) {
+  ASSERT(expr->key()->IsPropertyName());
+  VariableProxy* proxy = expr->obj()->AsVariableProxy();
+  ASSERT(proxy != NULL && proxy->var()->is_this());
+  RecordUse(proxy->var(), expr);
 }
 
 
-void AssignedVariablesAnalyzer::VisitCall(Call* expr) {
-  ASSERT(av_.IsEmpty());
-  Visit(expr->expression());
-  BitVector result(av_);
-  for (int i = 0; i < expr->arguments()->length(); i++) {
-    av_.Clear();
-    Visit(expr->arguments()->at(i));
-    result.Union(av_);
-  }
-  av_ = result;
+void LivenessAnalyzer::VisitCall(Call* expr) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitCallNew(CallNew* expr) {
-  ASSERT(av_.IsEmpty());
-  Visit(expr->expression());
-  BitVector result(av_);
-  for (int i = 0; i < expr->arguments()->length(); i++) {
-    av_.Clear();
-    Visit(expr->arguments()->at(i));
-    result.Union(av_);
-  }
-  av_ = result;
+void LivenessAnalyzer::VisitCallNew(CallNew* expr) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitCallRuntime(CallRuntime* expr) {
-  ASSERT(av_.IsEmpty());
-  BitVector result(av_);
-  for (int i = 0; i < expr->arguments()->length(); i++) {
-    av_.Clear();
-    Visit(expr->arguments()->at(i));
-    result.Union(av_);
-  }
-  av_ = result;
+void LivenessAnalyzer::VisitCallRuntime(CallRuntime* expr) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitUnaryOperation(UnaryOperation* expr) {
-  ASSERT(av_.IsEmpty());
-  Visit(expr->expression());
+void LivenessAnalyzer::VisitUnaryOperation(UnaryOperation* expr) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitCountOperation(CountOperation* expr) {
-  ASSERT(av_.IsEmpty());
-
-  Visit(expr->expression());
-
-  Variable* var = expr->expression()->AsVariableProxy()->AsVariable();
-  if (var != NULL) RecordAssignedVar(var);
+void LivenessAnalyzer::VisitCountOperation(CountOperation* expr) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitBinaryOperation(BinaryOperation* expr) {
-  ASSERT(av_.IsEmpty());
-  MarkIfTrivial(expr->right());
+void LivenessAnalyzer::VisitBinaryOperation(BinaryOperation* expr) {
+  // Visit child nodes in reverse evaluation order.
   Visit(expr->right());
-  MarkIfTrivial(expr->left());
-  ProcessExpression(expr->left());
+  Visit(expr->left());
 }
 
 
-void AssignedVariablesAnalyzer::VisitCompareOperation(CompareOperation* expr) {
-  ASSERT(av_.IsEmpty());
-  MarkIfTrivial(expr->right());
-  Visit(expr->right());
-  MarkIfTrivial(expr->left());
-  ProcessExpression(expr->left());
+void LivenessAnalyzer::VisitCompareOperation(CompareOperation* expr) {
+  UNREACHABLE();
 }
 
 
-void AssignedVariablesAnalyzer::VisitThisFunction(ThisFunction* expr) {
-  // Nothing to do.
-  ASSERT(av_.IsEmpty());
-}
-
-
-void AssignedVariablesAnalyzer::VisitDeclaration(Declaration* decl) {
+void LivenessAnalyzer::VisitThisFunction(ThisFunction* expr) {
   UNREACHABLE();
 }
 

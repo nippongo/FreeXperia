@@ -8,7 +8,7 @@
 	>
 	<Tool
 		Name="VCCLCompilerTool"
-		PreprocessorDefinitions="V8_TARGET_ARCH_X64"
+		PreprocessorDefinitions="V8_TARGET_ARCH_X64;V8_NATIVE_REGEXP"
 	/>
 	<Tool
 		Name="VCLinkerTool"

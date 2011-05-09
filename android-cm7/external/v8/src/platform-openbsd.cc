@@ -542,7 +542,7 @@ static void ProfilerSignalHandler(int signal, siginfo_t* info, void* context) {
   TickSample sample;
 
   // We always sample the VM state.
-  sample.state = VMState::current_state();
+  sample.state = Logger::state();
 
   active_sampler_->Tick(&sample);
 }

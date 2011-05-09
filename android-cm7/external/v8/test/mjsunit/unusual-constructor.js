@@ -25,9 +25,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+var obj = new (Function.__proto__)();
+
+
 var threw = false;
 try {
-  var obj = new (Function.__proto__)();
+  obj.toString();
 } catch (e) {
   assertInstanceof(e, TypeError);
   threw = true;

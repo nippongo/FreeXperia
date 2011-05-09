@@ -27,11 +27,8 @@
 
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_IA32)
-
 #include "codegen-inl.h"
 #include "register-allocator-inl.h"
-#include "virtual-frame-inl.h"
 
 namespace v8 {
 namespace internal {
@@ -44,40 +41,13 @@ void Result::ToRegister() {
   if (is_constant()) {
     Result fresh = CodeGeneratorScope::Current()->allocator()->Allocate();
     ASSERT(fresh.is_valid());
-    if (is_untagged_int32()) {
-      fresh.set_untagged_int32(true);
-      if (handle()->IsSmi()) {
-      CodeGeneratorScope::Current()->masm()->Set(
-          fresh.reg(),
-          Immediate(Smi::cast(*handle())->value()));
-      } else if (handle()->IsHeapNumber()) {
-        double double_value = HeapNumber::cast(*handle())->value();
-        int32_t value = DoubleToInt32(double_value);
-        if (double_value == 0 && signbit(double_value)) {
-          // Negative zero must not be converted to an int32 unless
-          // the context allows it.
-          CodeGeneratorScope::Current()->unsafe_bailout_->Branch(equal);
-          CodeGeneratorScope::Current()->unsafe_bailout_->Branch(not_equal);
-        } else if (double_value == value) {
-          CodeGeneratorScope::Current()->masm()->Set(
-              fresh.reg(), Immediate(value));
-        } else {
-          CodeGeneratorScope::Current()->unsafe_bailout_->Branch(equal);
-          CodeGeneratorScope::Current()->unsafe_bailout_->Branch(not_equal);
-        }
-      } else {
-        // Constant is not a number.  This was not predicted by AST analysis.
-        CodeGeneratorScope::Current()->unsafe_bailout_->Branch(equal);
-        CodeGeneratorScope::Current()->unsafe_bailout_->Branch(not_equal);
-      }
-    } else if (CodeGeneratorScope::Current()->IsUnsafeSmi(handle())) {
+    if (CodeGeneratorScope::Current()->IsUnsafeSmi(handle())) {
       CodeGeneratorScope::Current()->MoveUnsafeSmi(fresh.reg(), handle());
     } else {
       CodeGeneratorScope::Current()->masm()->Set(fresh.reg(),
                                                  Immediate(handle()));
     }
     // This result becomes a copy of the fresh one.
-    fresh.set_type_info(type_info());
     *this = fresh;
   }
   ASSERT(is_register());
@@ -93,39 +63,13 @@ void Result::ToRegister(Register target) {
       CodeGeneratorScope::Current()->masm()->mov(fresh.reg(), reg());
     } else {
       ASSERT(is_constant());
-      if (is_untagged_int32()) {
-        if (handle()->IsSmi()) {
-          CodeGeneratorScope::Current()->masm()->Set(
-              fresh.reg(),
-              Immediate(Smi::cast(*handle())->value()));
-        } else {
-          ASSERT(handle()->IsHeapNumber());
-          double double_value = HeapNumber::cast(*handle())->value();
-          int32_t value = DoubleToInt32(double_value);
-          if (double_value == 0 && signbit(double_value)) {
-            // Negative zero must not be converted to an int32 unless
-            // the context allows it.
-            CodeGeneratorScope::Current()->unsafe_bailout_->Branch(equal);
-            CodeGeneratorScope::Current()->unsafe_bailout_->Branch(not_equal);
-          } else if (double_value == value) {
-            CodeGeneratorScope::Current()->masm()->Set(
-                fresh.reg(), Immediate(value));
-          } else {
-            CodeGeneratorScope::Current()->unsafe_bailout_->Branch(equal);
-            CodeGeneratorScope::Current()->unsafe_bailout_->Branch(not_equal);
-          }
-        }
+      if (CodeGeneratorScope::Current()->IsUnsafeSmi(handle())) {
+        CodeGeneratorScope::Current()->MoveUnsafeSmi(fresh.reg(), handle());
       } else {
-        if (CodeGeneratorScope::Current()->IsUnsafeSmi(handle())) {
-          CodeGeneratorScope::Current()->MoveUnsafeSmi(fresh.reg(), handle());
-        } else {
-          CodeGeneratorScope::Current()->masm()->Set(fresh.reg(),
-                                                     Immediate(handle()));
-        }
+        CodeGeneratorScope::Current()->masm()->Set(fresh.reg(),
+                                                   Immediate(handle()));
       }
     }
-    fresh.set_type_info(type_info());
-    fresh.set_untagged_int32(is_untagged_int32());
     *this = fresh;
   } else if (is_register() && reg().is(target)) {
     ASSERT(CodeGeneratorScope::Current()->has_valid_frame());
@@ -153,5 +97,3 @@ Result RegisterAllocator::AllocateByteRegisterWithoutSpilling() {
 
 
 } }  // namespace v8::internal
-
-#endif  // V8_TARGET_ARCH_IA32

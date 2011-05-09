@@ -29,8 +29,6 @@
 #ifndef V8_ARM_CODEGEN_ARM_INL_H_
 #define V8_ARM_CODEGEN_ARM_INL_H_
 
-#include "virtual-frame-arm.h"
-
 namespace v8 {
 namespace internal {
 
@@ -45,7 +43,6 @@ void CodeGenerator::LoadConditionAndSpill(Expression* expression,
 
 
 void CodeGenerator::LoadAndSpill(Expression* expression) {
-  ASSERT(VirtualFrame::SpilledScope::is_spilled());
   Load(expression);
 }
 
@@ -57,6 +54,11 @@ void CodeGenerator::VisitAndSpill(Statement* statement) {
 
 void CodeGenerator::VisitStatementsAndSpill(ZoneList<Statement*>* statements) {
   VisitStatements(statements);
+}
+
+
+void Reference::GetValueAndSpill() {
+  GetValue();
 }
 
 

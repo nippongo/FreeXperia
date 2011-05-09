@@ -37,6 +37,7 @@
 
 #include "runtime.h"
 #include "top.h"
+#include "zone-inl.h"
 #include "token.h"
 
 namespace v8 {
@@ -121,6 +122,7 @@ class RelocInfo BASE_EMBEDDED {
     DEBUG_BREAK,
     CODE_TARGET,         // code target which is not any of the above.
     EMBEDDED_OBJECT,
+    EMBEDDED_STRING,
 
     // Everything after runtime_entry (inclusive) is not GC'ed.
     RUNTIME_ENTRY,
@@ -136,7 +138,7 @@ class RelocInfo BASE_EMBEDDED {
     NUMBER_OF_MODES,  // must be no greater than 14 - see RelocInfoWriter
     NONE,  // never recorded
     LAST_CODE_ENUM = CODE_TARGET,
-    LAST_GCED_ENUM = EMBEDDED_OBJECT
+    LAST_GCED_ENUM = EMBEDDED_STRING
   };
 
 
@@ -183,11 +185,6 @@ class RelocInfo BASE_EMBEDDED {
 
   // Apply a relocation by delta bytes
   INLINE(void apply(intptr_t delta));
-
-  // Is the pointer this relocation info refers to coded like a plain pointer
-  // or is it strange in some way (eg relative or patched into a series of
-  // instructions).
-  bool IsCodedSpecially();
 
   // Read/modify the code target in the branch/call instruction
   // this relocation applies to;
@@ -402,8 +399,7 @@ class ExternalReference BASE_EMBEDDED {
   // ExternalReferenceTable in serialize.cc manually.
 
   static ExternalReference perform_gc_function();
-  static ExternalReference fill_heap_number_with_random_function();
-  static ExternalReference random_uint32_function();
+  static ExternalReference random_positive_smi_function();
   static ExternalReference transcendental_cache_array_address();
 
   // Static data in the keyed lookup cache.
@@ -458,7 +454,7 @@ class ExternalReference BASE_EMBEDDED {
   static ExternalReference debug_step_in_fp_address();
 #endif
 
-#ifndef V8_INTERPRETED_REGEXP
+#ifdef V8_NATIVE_REGEXP
   // C functions called from RegExp generated code.
 
   // Function NativeRegExpMacroAssembler::CaseInsensitiveCompareUC16()

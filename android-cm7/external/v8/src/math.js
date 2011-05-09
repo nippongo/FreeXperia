@@ -45,8 +45,7 @@ $Math.__proto__ = global.Object.prototype;
 function MathAbs(x) {
   if (%_IsSmi(x)) return x >= 0 ? x : -x;
   if (!IS_NUMBER(x)) x = ToNumber(x);
-  if (x === 0) return 0;  // To handle -0.
-  return x > 0 ? x : -x;
+  return %Math_abs(x);
 }
 
 // ECMA 262 - 15.8.2.2
@@ -85,7 +84,7 @@ function MathCeil(x) {
 // ECMA 262 - 15.8.2.7
 function MathCos(x) {
   if (!IS_NUMBER(x)) x = ToNumber(x);
-  return %_MathCos(x);
+  return %_Math_cos(x);
 }
 
 // ECMA 262 - 15.8.2.8
@@ -160,30 +159,30 @@ function MathMin(arg1, arg2) {  // length == 2
 function MathPow(x, y) {
   if (!IS_NUMBER(x)) x = ToNumber(x);
   if (!IS_NUMBER(y)) y = ToNumber(y);
-  return %_MathPow(x, y);
+  return %Math_pow(x, y);
 }
 
 // ECMA 262 - 15.8.2.14
 function MathRandom() {
-  return %_RandomHeapNumber();
+  return %_RandomPositiveSmi() / 0x40000000;
 }
 
 // ECMA 262 - 15.8.2.15
 function MathRound(x) {
   if (!IS_NUMBER(x)) x = ToNumber(x);
-  return %RoundNumber(x);
+  return %Math_round(x);
 }
 
 // ECMA 262 - 15.8.2.16
 function MathSin(x) {
   if (!IS_NUMBER(x)) x = ToNumber(x);
-  return %_MathSin(x);
+  return %_Math_sin(x);
 }
 
 // ECMA 262 - 15.8.2.17
 function MathSqrt(x) {
   if (!IS_NUMBER(x)) x = ToNumber(x);
-  return %_MathSqrt(x);
+  return %Math_sqrt(x);
 }
 
 // ECMA 262 - 15.8.2.18

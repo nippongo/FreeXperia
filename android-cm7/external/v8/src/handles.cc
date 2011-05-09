@@ -174,6 +174,13 @@ void SetExpectedNofPropertiesFromEstimate(Handle<SharedFunctionInfo> shared,
 }
 
 
+void SetExpectedNofPropertiesFromEstimate(Handle<JSFunction> func,
+                                          int estimate) {
+  SetExpectedNofProperties(
+      func, ExpectedNofPropertiesFromEstimate(estimate));
+}
+
+
 void NormalizeProperties(Handle<JSObject> object,
                          PropertyNormalizationMode mode,
                          int expected_additional_properties) {
@@ -196,14 +203,13 @@ void TransformToFastProperties(Handle<JSObject> object,
 
 
 void FlattenString(Handle<String> string) {
-  CALL_HEAP_FUNCTION_VOID(string->TryFlatten());
+  CALL_HEAP_FUNCTION_VOID(string->TryFlattenIfNotFlat());
   ASSERT(string->IsFlat());
 }
 
 
 Handle<Object> SetPrototype(Handle<JSFunction> function,
                             Handle<Object> prototype) {
-  ASSERT(function->should_have_prototype());
   CALL_HEAP_FUNCTION(Accessors::FunctionSetPrototype(*function,
                                                      *prototype,
                                                      NULL),
@@ -286,12 +292,6 @@ Handle<Object> GetProperty(Handle<Object> obj,
 }
 
 
-Handle<Object> GetElement(Handle<Object> obj,
-                          uint32_t index) {
-  CALL_HEAP_FUNCTION(Runtime::GetElement(obj, index), Object);
-}
-
-
 Handle<Object> GetPropertyWithInterceptor(Handle<JSObject> receiver,
                                           Handle<JSObject> holder,
                                           Handle<String> name,
@@ -371,11 +371,8 @@ Handle<Object> LookupSingleCharacterStringFromCode(uint32_t index) {
 }
 
 
-Handle<String> SubString(Handle<String> str,
-                         int start,
-                         int end,
-                         PretenureFlag pretenure) {
-  CALL_HEAP_FUNCTION(str->SubString(start, end, pretenure), String);
+Handle<String> SubString(Handle<String> str, int start, int end) {
+  CALL_HEAP_FUNCTION(str->SubString(start, end), String);
 }
 
 
@@ -458,16 +455,6 @@ void InitScriptLineEnds(Handle<Script> script) {
   }
 
   Handle<String> src(String::cast(script->source()));
-
-  Handle<FixedArray> array = CalculateLineEnds(src, true);
-
-  script->set_line_ends(*array);
-  ASSERT(script->line_ends()->IsFixedArray());
-}
-
-
-Handle<FixedArray> CalculateLineEnds(Handle<String> src,
-                                     bool with_imaginary_last_new_line) {
   const int src_len = src->length();
   Handle<String> new_line = Factory::NewStringFromAscii(CStrVector("\n"));
 
@@ -479,12 +466,8 @@ Handle<FixedArray> CalculateLineEnds(Handle<String> src,
     if (position != -1) {
       position++;
     }
-    if (position != -1) {
-      line_count++;
-    } else if (with_imaginary_last_new_line) {
-      // Even if the last line misses a line end, it is counted.
-      line_count++;
-    }
+    // Even if the last line misses a line end, it is counted.
+    line_count++;
   }
 
   // Pass 2: Fill in line ends positions
@@ -493,17 +476,15 @@ Handle<FixedArray> CalculateLineEnds(Handle<String> src,
   position = 0;
   while (position != -1 && position < src_len) {
     position = Runtime::StringMatch(src, new_line, position);
-    if (position != -1) {
-      array->set(array_index++, Smi::FromInt(position++));
-    } else if (with_imaginary_last_new_line) {
-      // If the script does not end with a line ending add the final end
-      // position as just past the last line ending.
-      array->set(array_index++, Smi::FromInt(src_len));
-    }
+    // If the script does not end with a line ending add the final end
+    // position as just past the last line ending.
+    array->set(array_index++,
+               Smi::FromInt(position != -1 ? position++ : src_len));
   }
   ASSERT(array_index == line_count);
 
-  return array;
+  script->set_line_ends(*array);
+  ASSERT(script->line_ends()->IsFixedArray());
 }
 
 
@@ -533,32 +514,8 @@ int GetScriptLineNumber(Handle<Script> script, int code_pos) {
 }
 
 
-int GetScriptLineNumberSafe(Handle<Script> script, int code_pos) {
-  AssertNoAllocation no_allocation;
-  if (!script->line_ends()->IsUndefined()) {
-    return GetScriptLineNumber(script, code_pos);
-  }
-  // Slow mode: we do not have line_ends. We have to iterate through source.
-  if (!script->source()->IsString()) {
-    return -1;
-  }
-  String* source = String::cast(script->source());
-  int line = 0;
-  int len = source->length();
-  for (int pos = 0; pos < len; pos++) {
-    if (pos == code_pos) {
-      break;
-    }
-    if (source->Get(pos) == '\n') {
-      line++;
-    }
-  }
-  return line;
-}
-
-
 void CustomArguments::IterateInstance(ObjectVisitor* v) {
-  v->VisitPointers(values_, values_ + ARRAY_SIZE(values_));
+  v->VisitPointers(values_, values_ + 4);
 }
 
 
@@ -754,7 +711,7 @@ bool CompileLazy(Handle<JSFunction> function,
                  ClearExceptionFlag flag) {
   CompilationInfo info(function, 0, receiver);
   bool result = CompileLazyHelper(&info, flag);
-  PROFILE(FunctionCreateEvent(*function));
+  LOG(FunctionCreateEvent(*function));
   return result;
 }
 
@@ -764,7 +721,7 @@ bool CompileLazyInLoop(Handle<JSFunction> function,
                        ClearExceptionFlag flag) {
   CompilationInfo info(function, 1, receiver);
   bool result = CompileLazyHelper(&info, flag);
-  PROFILE(FunctionCreateEvent(*function));
+  LOG(FunctionCreateEvent(*function));
   return result;
 }
 

@@ -116,8 +116,6 @@ function listener(event, exec_state, event_data, data) {
     mirror = debug.MakeMirror(o.a);
     testArguments(dcp, '{"type":"handle","target":' + mirror.handle() + '}', true, false);
 
-    testArguments(dcp, '{"type":"script","target":"sourceUrlScript","line":1}', true, true);
-
     // Indicate that all was processed.
     listenerComplete = true;
   }
@@ -138,7 +136,6 @@ function g() {
 };
 
 eval('function h(){}');
-eval('function sourceUrlFunc() { a = 2; }\n//@ sourceURL=sourceUrlScript');
 
 o = {a:function(){},b:function(){}}
 
@@ -146,12 +143,9 @@ o = {a:function(){},b:function(){}}
 f_script_id = Debug.findScript(f).id;
 g_script_id = Debug.findScript(g).id;
 h_script_id = Debug.findScript(h).id;
-sourceURL_script_id = Debug.findScript(sourceUrlFunc).id;
-
 assertTrue(f_script_id > 0, "invalid script id for f");
 assertTrue(g_script_id > 0, "invalid script id for g");
 assertTrue(h_script_id > 0, "invalid script id for h");
-assertTrue(sourceURL_script_id > 0, "invalid script id for sourceUrlFunc");
 assertEquals(f_script_id, g_script_id);
 
 // Get the source line for the test functions.
@@ -167,20 +161,5 @@ assertEquals(h_line, 0, "invalid line for h");
 Debug.setBreakPoint(g, 0, 0);
 g();
 
-// Make sure that the debug event listener was invoked.
+// Make sure that the debug event listener vas invoked.
 assertTrue(listenerComplete, "listener did not run to completion: " + exception);
-
-// Try setting breakpoint by url specified in sourceURL
-
-var breakListenerCalled = false;
-
-function breakListener(event) {
-  if (event == Debug.DebugEvent.Break)
-    breakListenerCalled = true;
-}
-
-Debug.setListener(breakListener);
-
-sourceUrlFunc();
-
-assertTrue(breakListenerCalled, "Break listener not called on breakpoint set by sourceURL");

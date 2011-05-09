@@ -74,11 +74,15 @@ class Bootstrapper : public AllStatic {
   // Traverses the pointers for memory management.
   static void Iterate(ObjectVisitor* v);
 
-  // Accessor for the native scripts source code.
+  // Accessors for the native scripts cache. Used in lazy loading.
   static Handle<String> NativesSourceLookup(int index);
 
   // Tells whether bootstrapping is active.
   static bool IsActive() { return BootstrapperActive::IsActive(); }
+
+  // Encoding/decoding support for fixup flags.
+  class FixupFlagsUseCodeObject: public BitField<bool, 0, 1> {};
+  class FixupFlagsArgumentsCount: public BitField<uint32_t, 1, 32-1> {};
 
   // Support for thread preemption.
   static int ArchiveSpacePerThread();

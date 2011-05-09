@@ -84,34 +84,32 @@ class UTF8Buffer {
 };
 
 
-// Interface through which the scanner reads characters from the input source.
 class UTF16Buffer {
  public:
   UTF16Buffer();
   virtual ~UTF16Buffer() {}
 
   virtual void PushBack(uc32 ch) = 0;
-  // Returns a value < 0 when the buffer end is reached.
+  // returns a value < 0 when the buffer end is reached
   virtual uc32 Advance() = 0;
   virtual void SeekForward(int pos) = 0;
 
   int pos() const { return pos_; }
+  int size() const { return size_; }
+  Handle<String> SubString(int start, int end);
 
  protected:
-  int pos_;  // Current position in the buffer.
-  int end_;  // Position where scanning should stop (EOF).
+  Handle<String> data_;
+  int pos_;
+  int size_;
 };
 
 
-// UTF16 buffer to read characters from a character stream.
 class CharacterStreamUTF16Buffer: public UTF16Buffer {
  public:
   CharacterStreamUTF16Buffer();
   virtual ~CharacterStreamUTF16Buffer() {}
-  void Initialize(Handle<String> data,
-                  unibrow::CharacterStream* stream,
-                  int start_position,
-                  int end_position);
+  void Initialize(Handle<String> data, unibrow::CharacterStream* stream);
   virtual void PushBack(uc32 ch);
   virtual uc32 Advance();
   virtual void SeekForward(int pos);
@@ -125,21 +123,17 @@ class CharacterStreamUTF16Buffer: public UTF16Buffer {
 };
 
 
-// UTF16 buffer to read characters from an external string.
-template <typename StringType, typename CharType>
-class ExternalStringUTF16Buffer: public UTF16Buffer {
+class TwoByteStringUTF16Buffer: public UTF16Buffer {
  public:
-  ExternalStringUTF16Buffer();
-  virtual ~ExternalStringUTF16Buffer() {}
-  void Initialize(Handle<StringType> data,
-                  int start_position,
-                  int end_position);
+  TwoByteStringUTF16Buffer();
+  virtual ~TwoByteStringUTF16Buffer() {}
+  void Initialize(Handle<ExternalTwoByteString> data);
   virtual void PushBack(uc32 ch);
   virtual uc32 Advance();
   virtual void SeekForward(int pos);
 
  private:
-  const CharType* raw_data_;  // Pointer to the actual array of characters.
+  const uint16_t* raw_data_;
 };
 
 
@@ -269,15 +263,11 @@ class Scanner {
   // Construction
   explicit Scanner(ParserMode parse_mode);
 
-  // Initialize the Scanner to scan source.
-  void Initialize(Handle<String> source,
-                  ParserLanguage language);
-  void Initialize(Handle<String> source,
-                  unibrow::CharacterStream* stream,
-                  ParserLanguage language);
-  void Initialize(Handle<String> source,
-                  int start_position, int end_position,
-                  ParserLanguage language);
+  // Initialize the Scanner to scan source:
+  void Init(Handle<String> source,
+            unibrow::CharacterStream* stream,
+            int position,
+            ParserLanguage language);
 
   // Returns the next token.
   Token::Value Next();
@@ -345,6 +335,7 @@ class Scanner {
   // tokens, which is what it is used for.
   void SeekForward(int pos);
 
+  Handle<String> SubString(int start_pos, int end_pos);
   bool stack_overflow() { return stack_overflow_; }
 
   static StaticResource<Utf8Decoder>* utf8_decoder() { return &utf8_decoder_; }
@@ -359,28 +350,14 @@ class Scanner {
   static unibrow::Predicate<unibrow::WhiteSpace, 128> kIsWhiteSpace;
 
   static const int kCharacterLookaheadBufferSize = 1;
-  static const int kNoEndPosition = 1;
 
  private:
-  void Init(Handle<String> source,
-            unibrow::CharacterStream* stream,
-            int start_position, int end_position,
-            ParserLanguage language);
-
-
-  // Different UTF16 buffers used to pull characters from. Based on input one of
-  // these will be initialized as the actual data source.
   CharacterStreamUTF16Buffer char_stream_buffer_;
-  ExternalStringUTF16Buffer<ExternalTwoByteString, uint16_t>
-      two_byte_string_buffer_;
-  ExternalStringUTF16Buffer<ExternalAsciiString, char> ascii_string_buffer_;
+  TwoByteStringUTF16Buffer two_byte_string_buffer_;
 
-  // Source. Will point to one of the buffers declared above.
+  // Source.
   UTF16Buffer* source_;
-
-  // Used to convert the source string into a character stream when a stream
-  // is not passed to the scanner.
-  SafeStringInputBuffer safe_string_input_buffer_;
+  int position_;
 
   // Buffer to hold literal values (identifiers, strings, numbers)
   // using 0-terminated UTF-8 encoding.
@@ -483,7 +460,7 @@ class Scanner {
 
   // Return the current source position.
   int source_pos() {
-    return source_->pos() - kCharacterLookaheadBufferSize;
+    return source_->pos() - kCharacterLookaheadBufferSize + position_;
   }
 
   // Decodes a unicode escape-sequence which is part of an identifier.

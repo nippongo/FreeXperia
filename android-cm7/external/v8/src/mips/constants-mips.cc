@@ -26,9 +26,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "v8.h"
-
-#if defined(V8_TARGET_ARCH_MIPS)
-
 #include "constants-mips.h"
 
 namespace assembler {
@@ -324,5 +321,3 @@ Instruction::Type Instruction::InstructionType() const {
 }
 
 } }   // namespace assembler::mips
-
-#endif  // V8_TARGET_ARCH_MIPS

@@ -227,10 +227,10 @@ void PrettyPrinter::VisitFunctionLiteral(FunctionLiteral* node) {
 }
 
 
-void PrettyPrinter::VisitSharedFunctionInfoLiteral(
-    SharedFunctionInfoLiteral* node) {
+void PrettyPrinter::VisitFunctionBoilerplateLiteral(
+    FunctionBoilerplateLiteral* node) {
   Print("(");
-  PrintLiteral(node->shared_function_info(), true);
+  PrintLiteral(node->boilerplate(), true);
   Print(")");
 }
 
@@ -604,7 +604,7 @@ class IndentedScope BASE_EMBEDDED {
         ast_printer_->Print(StaticType::Type2String(expr->type()));
         printed_first = true;
       }
-      if (expr->num() != AstNode::kNoNumber) {
+      if (expr->num() != Expression::kNoLabel) {
         ast_printer_->Print(printed_first ? ", num = " : " (num = ");
         ast_printer_->Print("%d", expr->num());
         printed_first = true;
@@ -668,8 +668,7 @@ void AstPrinter::PrintLiteralWithModeIndented(const char* info,
                                               Variable* var,
                                               Handle<Object> value,
                                               StaticType* type,
-                                              int num,
-                                              bool is_primitive) {
+                                              int num) {
   if (var == NULL) {
     PrintLiteralIndented(info, value, true);
   } else {
@@ -680,11 +679,9 @@ void AstPrinter::PrintLiteralWithModeIndented(const char* info,
       pos += OS::SNPrintF(buf + pos, ", type = %s",
                           StaticType::Type2String(type));
     }
-    if (num != AstNode::kNoNumber) {
+    if (num != Expression::kNoLabel) {
       pos += OS::SNPrintF(buf + pos, ", num = %d", num);
     }
-    pos += OS::SNPrintF(buf + pos,
-                        is_primitive ? ", primitive" : ", non-primitive");
     OS::SNPrintF(buf + pos, ")");
     PrintLiteralIndented(buf.start(), value, true);
   }
@@ -743,8 +740,7 @@ void AstPrinter::PrintParameters(Scope* scope) {
       PrintLiteralWithModeIndented("VAR", scope->parameter(i),
                                    scope->parameter(i)->name(),
                                    scope->parameter(i)->type(),
-                                   AstNode::kNoNumber,
-                                   false);
+                                   Expression::kNoLabel);
     }
   }
 }
@@ -790,8 +786,7 @@ void AstPrinter::VisitDeclaration(Declaration* node) {
                                  node->proxy()->AsVariable(),
                                  node->proxy()->name(),
                                  node->proxy()->AsVariable()->type(),
-                                 AstNode::kNoNumber,
-                                 node->proxy()->IsPrimitive());
+                                 Expression::kNoLabel);
   } else {
     // function declarations
     PrintIndented("FUNCTION ");
@@ -923,10 +918,10 @@ void AstPrinter::VisitFunctionLiteral(FunctionLiteral* node) {
 }
 
 
-void AstPrinter::VisitSharedFunctionInfoLiteral(
-    SharedFunctionInfoLiteral* node) {
+void AstPrinter::VisitFunctionBoilerplateLiteral(
+    FunctionBoilerplateLiteral* node) {
   IndentedScope indent("FUNC LITERAL");
-  PrintLiteralIndented("SHARED INFO", node->shared_function_info(), true);
+  PrintLiteralIndented("BOILERPLATE", node->boilerplate(), true);
 }
 
 
@@ -1027,7 +1022,7 @@ void AstPrinter::VisitSlot(Slot* node) {
 
 void AstPrinter::VisitVariableProxy(VariableProxy* node) {
   PrintLiteralWithModeIndented("VAR PROXY", node->AsVariable(), node->name(),
-                               node->type(), node->num(), node->IsPrimitive());
+                               node->type(), node->num());
   Variable* var = node->var();
   if (var != NULL && var->rewrite() != NULL) {
     IndentedScope indent;
@@ -1331,9 +1326,9 @@ void JsonAstBuilder::VisitFunctionLiteral(FunctionLiteral* expr) {
 }
 
 
-void JsonAstBuilder::VisitSharedFunctionInfoLiteral(
-    SharedFunctionInfoLiteral* expr) {
-  TagScope tag(this, "SharedFunctionInfoLiteral");
+void JsonAstBuilder::VisitFunctionBoilerplateLiteral(
+    FunctionBoilerplateLiteral* expr) {
+  TagScope tag(this, "FunctionBoilerplateLiteral");
 }
 
 

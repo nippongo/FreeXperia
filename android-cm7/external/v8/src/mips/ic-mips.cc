@@ -29,8 +29,6 @@
 
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_MIPS)
-
 #include "codegen-inl.h"
 #include "ic-inl.h"
 #include "runtime.h"
@@ -76,47 +74,6 @@ void CallIC::GenerateNormal(MacroAssembler* masm, int argc) {
 
 void CallIC::GenerateMiss(MacroAssembler* masm, int argc) {
   UNIMPLEMENTED_MIPS();
-    // Registers:
-    // a2: name
-    // ra: return address
-
-  // Get the receiver of the function from the stack.
-  __ lw(a3, MemOperand(sp, argc*kPointerSize));
-
-  __ EnterInternalFrame();
-
-  // Push the receiver and the name of the function.
-  __ MultiPush(a2.bit() | a3.bit());
-
-  // Call the entry.
-  __ li(a0, Operand(2));
-  __ li(a1, Operand(ExternalReference(IC_Utility(kCallIC_Miss))));
-
-  CEntryStub stub(1);
-  __ CallStub(&stub);
-
-  // Move result to r1 and leave the internal frame.
-  __ mov(a1, v0);
-  __ LeaveInternalFrame();
-
-  // Check if the receiver is a global object of some sort.
-  Label invoke, global;
-  __ lw(a2, MemOperand(sp, argc * kPointerSize));
-  __ andi(t0, a2, kSmiTagMask);
-  __ Branch(eq, &invoke, t0, Operand(zero_reg));
-  __ GetObjectType(a2, a3, a3);
-  __ Branch(eq, &global, a3, Operand(JS_GLOBAL_OBJECT_TYPE));
-  __ Branch(ne, &invoke, a3, Operand(JS_BUILTINS_OBJECT_TYPE));
-
-  // Patch the receiver on the stack.
-  __ bind(&global);
-  __ lw(a2, FieldMemOperand(a2, GlobalObject::kGlobalReceiverOffset));
-  __ sw(a2, MemOperand(sp, argc * kPointerSize));
-
-  // Invoke the function.
-  ParameterCount actual(argc);
-  __ bind(&invoke);
-  __ InvokeFunction(a1, actual, JUMP_FUNCTION);
 }
 
 // Defined in ic.cc.
@@ -133,6 +90,11 @@ void LoadIC::GenerateNormal(MacroAssembler* masm) {
 
 
 void LoadIC::GenerateMiss(MacroAssembler* masm) {
+  Generate(masm, ExternalReference(IC_Utility(kLoadIC_Miss)));
+}
+
+
+void LoadIC::Generate(MacroAssembler* masm, const ExternalReference& f) {
   UNIMPLEMENTED_MIPS();
 }
 
@@ -158,6 +120,11 @@ Object* KeyedLoadIC_Miss(Arguments args);
 
 
 void KeyedLoadIC::GenerateMiss(MacroAssembler* masm) {
+  Generate(masm, ExternalReference(IC_Utility(kKeyedLoadIC_Miss)));
+}
+
+
+void KeyedLoadIC::Generate(MacroAssembler* masm, const ExternalReference& f) {
   UNIMPLEMENTED_MIPS();
 }
 
@@ -178,6 +145,12 @@ void KeyedLoadIC::GenerateExternalArray(MacroAssembler* masm,
 }
 
 
+void KeyedStoreIC::Generate(MacroAssembler* masm,
+                            const ExternalReference& f) {
+  UNIMPLEMENTED_MIPS();
+}
+
+
 void KeyedStoreIC::GenerateGeneric(MacroAssembler* masm) {
   UNIMPLEMENTED_MIPS();
 }
@@ -189,12 +162,7 @@ void KeyedStoreIC::GenerateExternalArray(MacroAssembler* masm,
 }
 
 
-void KeyedLoadIC::GenerateIndexedInterceptor(MacroAssembler* masm) {
-  UNIMPLEMENTED_MIPS();
-}
-
-
-void KeyedStoreIC::GenerateMiss(MacroAssembler* masm) {
+void KeyedStoreIC::GenerateExtendStorage(MacroAssembler* masm) {
   UNIMPLEMENTED_MIPS();
 }
 
@@ -204,12 +172,12 @@ void StoreIC::GenerateMegamorphic(MacroAssembler* masm) {
 }
 
 
-void StoreIC::GenerateMiss(MacroAssembler* masm) {
+void StoreIC::GenerateExtendStorage(MacroAssembler* masm) {
   UNIMPLEMENTED_MIPS();
 }
 
 
-void StoreIC::GenerateArrayLength(MacroAssembler* masm) {
+void StoreIC::GenerateMiss(MacroAssembler* masm) {
   UNIMPLEMENTED_MIPS();
 }
 
@@ -217,4 +185,3 @@ void StoreIC::GenerateArrayLength(MacroAssembler* masm) {
 
 } }  // namespace v8::internal
 
-#endif  // V8_TARGET_ARCH_MIPS

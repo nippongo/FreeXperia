@@ -73,7 +73,7 @@ namespace internal {
 
 #define EXPRESSION_NODE_LIST(V)                 \
   V(FunctionLiteral)                            \
-  V(SharedFunctionInfoLiteral)                  \
+  V(FunctionBoilerplateLiteral)                 \
   V(Conditional)                                \
   V(Slot)                                       \
   V(VariableProxy)                              \
@@ -103,7 +103,6 @@ namespace internal {
 class TargetCollector;
 class MaterializedLiteral;
 class DefinitionInfo;
-class BitVector;
 
 #define DEF_FORWARD_DECLARATION(type) class type;
 AST_NODE_LIST(DEF_FORWARD_DECLARATION)
@@ -118,18 +117,11 @@ typedef ZoneList<Handle<Object> > ZoneObjectList;
 
 class AstNode: public ZoneObject {
  public:
-  static const int kNoNumber = -1;
-
-  AstNode() : num_(kNoNumber) {}
-
-  explicit AstNode(AstNode* other);
-
   virtual ~AstNode() { }
   virtual void Accept(AstVisitor* v) = 0;
 
   // Type testing & conversion.
   virtual Statement* AsStatement() { return NULL; }
-  virtual Block* AsBlock() { return NULL; }
   virtual ExpressionStatement* AsExpressionStatement() { return NULL; }
   virtual EmptyStatement* AsEmptyStatement() { return NULL; }
   virtual Expression* AsExpression() { return NULL; }
@@ -141,9 +133,7 @@ class AstNode: public ZoneObject {
   virtual TargetCollector* AsTargetCollector() { return NULL; }
   virtual BreakableStatement* AsBreakableStatement() { return NULL; }
   virtual IterationStatement* AsIterationStatement() { return NULL; }
-  virtual ForStatement* AsForStatement() { return NULL; }
   virtual UnaryOperation* AsUnaryOperation() { return NULL; }
-  virtual CountOperation* AsCountOperation() { return NULL; }
   virtual BinaryOperation* AsBinaryOperation() { return NULL; }
   virtual Assignment* AsAssignment() { return NULL; }
   virtual FunctionLiteral* AsFunctionLiteral() { return NULL; }
@@ -151,20 +141,6 @@ class AstNode: public ZoneObject {
   virtual ObjectLiteral* AsObjectLiteral() { return NULL; }
   virtual ArrayLiteral* AsArrayLiteral() { return NULL; }
   virtual CompareOperation* AsCompareOperation() { return NULL; }
-
-  // True if the AST node is critical (its execution is needed or externally
-  // visible in some way).
-  virtual bool IsCritical() {
-    UNREACHABLE();
-    return true;
-  }
-
-  int num() { return num_; }
-  void set_num(int n) { num_ = n; }
-
- private:
-  // Support for ast node numbering.
-  int num_;
 };
 
 
@@ -172,13 +148,8 @@ class Statement: public AstNode {
  public:
   Statement() : statement_pos_(RelocInfo::kNoPosition) {}
 
-  explicit Statement(Statement* other);
-
   virtual Statement* AsStatement()  { return this; }
   virtual ReturnStatement* AsReturnStatement() { return NULL; }
-
-  virtual Assignment* StatementAsSimpleAssignment() { return NULL; }
-  virtual CountOperation* StatementAsCountOperation() { return NULL; }
 
   bool IsEmpty() { return AsEmptyStatement() != NULL; }
 
@@ -210,15 +181,13 @@ class Expression: public AstNode {
     kTestValue
   };
 
-  Expression() : bitfields_(0) {}
+  static const int kNoLabel = -1;
 
-  explicit Expression(Expression* other);
+  Expression() : num_(kNoLabel), def_(NULL), defined_vars_(NULL) {}
 
   virtual Expression* AsExpression()  { return this; }
 
   virtual bool IsValidLeftHandSide() { return false; }
-
-  virtual Variable* AssignedVariable() { return NULL; }
 
   // Symbols that cannot be parsed as array indices are considered property
   // names.  We do not treat symbols that can be array indexes as property
@@ -234,10 +203,6 @@ class Expression: public AstNode {
   // evaluate out of order.
   virtual bool IsTrivial() { return false; }
 
-  // True if the expression always has one of the non-Object JS types
-  // (Undefined, Null, Boolean, String, or Number).
-  virtual bool IsPrimitive() = 0;
-
   // Mark the expression as being compiled as an expression
   // statement. This is used to transform postfix increments to
   // (faster) prefix increments.
@@ -246,66 +211,25 @@ class Expression: public AstNode {
   // Static type information for this expression.
   StaticType* type() { return &type_; }
 
-  // True if the expression is a loop condition.
-  bool is_loop_condition() const {
-    return LoopConditionField::decode(bitfields_);
-  }
-  void set_is_loop_condition(bool flag) {
-    bitfields_ = (bitfields_ & ~LoopConditionField::mask()) |
-        LoopConditionField::encode(flag);
-  }
+  int num() { return num_; }
 
-  // The value of the expression is guaranteed to be a smi, because the
-  // top operation is a bit operation with a mask, or a shift.
-  bool GuaranteedSmiResult();
+  // AST node numbering ordered by evaluation order.
+  void set_num(int n) { num_ = n; }
 
-  // AST analysis results
+  // Data flow information.
+  DefinitionInfo* var_def() { return def_; }
+  void set_var_def(DefinitionInfo* def) { def_ = def; }
 
-  // True if the expression rooted at this node can be compiled by the
-  // side-effect free compiler.
-  bool side_effect_free() { return SideEffectFreeField::decode(bitfields_); }
-  void set_side_effect_free(bool is_side_effect_free) {
-    bitfields_ &= ~SideEffectFreeField::mask();
-    bitfields_ |= SideEffectFreeField::encode(is_side_effect_free);
-  }
-
-  // Will the use of this expression treat -0 the same as 0 in all cases?
-  // If so, we can return 0 instead of -0 if we want to, to optimize code.
-  bool no_negative_zero() { return NoNegativeZeroField::decode(bitfields_); }
-  void set_no_negative_zero(bool no_negative_zero) {
-    bitfields_ &= ~NoNegativeZeroField::mask();
-    bitfields_ |= NoNegativeZeroField::encode(no_negative_zero);
-  }
-
-  // Will ToInt32 (ECMA 262-3 9.5) or ToUint32 (ECMA 262-3 9.6)
-  // be applied to the value of this expression?
-  // If so, we may be able to optimize the calculation of the value.
-  bool to_int32() { return ToInt32Field::decode(bitfields_); }
-  void set_to_int32(bool to_int32) {
-    bitfields_ &= ~ToInt32Field::mask();
-    bitfields_ |= ToInt32Field::encode(to_int32);
-  }
-
-  // How many bitwise logical or shift operators are used in this expression?
-  int num_bit_ops() { return NumBitOpsField::decode(bitfields_); }
-  void set_num_bit_ops(int num_bit_ops) {
-    bitfields_ &= ~NumBitOpsField::mask();
-    num_bit_ops = Min(num_bit_ops, kMaxNumBitOps);
-    bitfields_ |= NumBitOpsField::encode(num_bit_ops);
+  ZoneList<DefinitionInfo*>* defined_vars() { return defined_vars_; }
+  void set_defined_vars(ZoneList<DefinitionInfo*>* defined_vars) {
+    defined_vars_ = defined_vars;
   }
 
  private:
-  static const int kMaxNumBitOps = (1 << 5) - 1;
-
-  uint32_t bitfields_;
   StaticType type_;
-
-  // Using template BitField<type, start, size>.
-  class SideEffectFreeField : public BitField<bool, 0, 1> {};
-  class NoNegativeZeroField : public BitField<bool, 1, 1> {};
-  class ToInt32Field : public BitField<bool, 2, 1> {};
-  class NumBitOpsField : public BitField<int, 3, 5> {};
-  class LoopConditionField: public BitField<bool, 8, 1> {};
+  int num_;
+  DefinitionInfo* def_;
+  ZoneList<DefinitionInfo*>* defined_vars_;
 };
 
 
@@ -319,12 +243,6 @@ class ValidLeftHandSideSentinel: public Expression {
   virtual bool IsValidLeftHandSide() { return true; }
   virtual void Accept(AstVisitor* v) { UNREACHABLE(); }
   static ValidLeftHandSideSentinel* instance() { return &instance_; }
-
-  virtual bool IsPrimitive() {
-    UNREACHABLE();
-    return false;
-  }
-
  private:
   static ValidLeftHandSideSentinel instance_;
 };
@@ -351,9 +269,10 @@ class BreakableStatement: public Statement {
   bool is_target_for_anonymous() const { return type_ == TARGET_FOR_ANONYMOUS; }
 
  protected:
-  inline BreakableStatement(ZoneStringList* labels, Type type);
-
-  explicit BreakableStatement(BreakableStatement* other);
+  BreakableStatement(ZoneStringList* labels, Type type)
+      : labels_(labels), type_(type) {
+    ASSERT(labels == NULL || labels->length() > 0);
+  }
 
  private:
   ZoneStringList* labels_;
@@ -364,25 +283,12 @@ class BreakableStatement: public Statement {
 
 class Block: public BreakableStatement {
  public:
-  inline Block(ZoneStringList* labels, int capacity, bool is_initializer_block);
-
-  // Construct a clone initialized from the original block and
-  // a deep copy of all statements of the original block.
-  Block(Block* other, ZoneList<Statement*>* statements);
+  Block(ZoneStringList* labels, int capacity, bool is_initializer_block)
+      : BreakableStatement(labels, TARGET_FOR_NAMED_ONLY),
+        statements_(capacity),
+        is_initializer_block_(is_initializer_block) { }
 
   virtual void Accept(AstVisitor* v);
-
-  virtual Block* AsBlock() { return this; }
-
-  virtual Assignment* StatementAsSimpleAssignment() {
-    if (statements_.length() != 1) return NULL;
-    return statements_[0]->StatementAsSimpleAssignment();
-  }
-
-  virtual CountOperation* StatementAsCountOperation() {
-    if (statements_.length() != 1) return NULL;
-    return statements_[0]->StatementAsCountOperation();
-  }
 
   void AddStatement(Statement* statement) { statements_.Add(statement); }
 
@@ -425,17 +331,13 @@ class IterationStatement: public BreakableStatement {
   virtual IterationStatement* AsIterationStatement() { return this; }
 
   Statement* body() const { return body_; }
-  void set_body(Statement* stmt) { body_ = stmt; }
 
   // Code generation
   BreakTarget* continue_target()  { return &continue_target_; }
 
  protected:
-  explicit inline IterationStatement(ZoneStringList* labels);
-
-  // Construct a clone initialized from  original and
-  // a deep copy of the original body.
-  IterationStatement(IterationStatement* other, Statement* body);
+  explicit IterationStatement(ZoneStringList* labels)
+      : BreakableStatement(labels, TARGET_FOR_ANONYMOUS), body_(NULL) { }
 
   void Initialize(Statement* body) {
     body_ = body;
@@ -449,7 +351,9 @@ class IterationStatement: public BreakableStatement {
 
 class DoWhileStatement: public IterationStatement {
  public:
-  explicit inline DoWhileStatement(ZoneStringList* labels);
+  explicit DoWhileStatement(ZoneStringList* labels)
+      : IterationStatement(labels), cond_(NULL), condition_position_(-1) {
+  }
 
   void Initialize(Expression* cond, Statement* body) {
     IterationStatement::Initialize(body);
@@ -473,7 +377,11 @@ class DoWhileStatement: public IterationStatement {
 
 class WhileStatement: public IterationStatement {
  public:
-  explicit WhileStatement(ZoneStringList* labels);
+  explicit WhileStatement(ZoneStringList* labels)
+      : IterationStatement(labels),
+        cond_(NULL),
+        may_have_function_literal_(true) {
+  }
 
   void Initialize(Expression* cond, Statement* body) {
     IterationStatement::Initialize(body);
@@ -498,17 +406,13 @@ class WhileStatement: public IterationStatement {
 
 class ForStatement: public IterationStatement {
  public:
-  explicit inline ForStatement(ZoneStringList* labels);
-
-  // Construct a for-statement initialized from another for-statement
-  // and deep copies of all parts of the original statement.
-  ForStatement(ForStatement* other,
-               Statement* init,
-               Expression* cond,
-               Statement* next,
-               Statement* body);
-
-  virtual ForStatement* AsForStatement() { return this; }
+  explicit ForStatement(ZoneStringList* labels)
+      : IterationStatement(labels),
+        init_(NULL),
+        cond_(NULL),
+        next_(NULL),
+        may_have_function_literal_(true) {
+  }
 
   void Initialize(Statement* init,
                   Expression* cond,
@@ -523,21 +427,11 @@ class ForStatement: public IterationStatement {
   virtual void Accept(AstVisitor* v);
 
   Statement* init() const  { return init_; }
-  void set_init(Statement* stmt) { init_ = stmt; }
   Expression* cond() const  { return cond_; }
-  void set_cond(Expression* expr) { cond_ = expr; }
   Statement* next() const  { return next_; }
-  void set_next(Statement* stmt) { next_ = stmt; }
   bool may_have_function_literal() const {
     return may_have_function_literal_;
   }
-
-  bool is_fast_smi_loop() { return loop_variable_ != NULL; }
-  Variable* loop_variable() { return loop_variable_; }
-  void set_loop_variable(Variable* var) { loop_variable_ = var; }
-
-  bool peel_this_loop() { return peel_this_loop_; }
-  void set_peel_this_loop(bool b) { peel_this_loop_ = b; }
 
  private:
   Statement* init_;
@@ -545,8 +439,6 @@ class ForStatement: public IterationStatement {
   Statement* next_;
   // True if there is a function literal subexpression in the condition.
   bool may_have_function_literal_;
-  Variable* loop_variable_;
-  bool peel_this_loop_;
 
   friend class AstOptimizer;
 };
@@ -554,7 +446,8 @@ class ForStatement: public IterationStatement {
 
 class ForInStatement: public IterationStatement {
  public:
-  explicit inline ForInStatement(ZoneStringList* labels);
+  explicit ForInStatement(ZoneStringList* labels)
+      : IterationStatement(labels), each_(NULL), enumerable_(NULL) { }
 
   void Initialize(Expression* each, Expression* enumerable, Statement* body) {
     IterationStatement::Initialize(body);
@@ -578,17 +471,10 @@ class ExpressionStatement: public Statement {
   explicit ExpressionStatement(Expression* expression)
       : expression_(expression) { }
 
-  // Construct an expression statement initialized from another
-  // expression statement and a deep copy of the original expression.
-  ExpressionStatement(ExpressionStatement* other, Expression* expression);
-
   virtual void Accept(AstVisitor* v);
 
   // Type testing & conversion.
   virtual ExpressionStatement* AsExpressionStatement() { return this; }
-
-  virtual Assignment* StatementAsSimpleAssignment();
-  virtual CountOperation* StatementAsCountOperation();
 
   void set_expression(Expression* e) { expression_ = e; }
   Expression* expression() { return expression_; }
@@ -670,7 +556,8 @@ class WithExitStatement: public Statement {
 
 class CaseClause: public ZoneObject {
  public:
-  CaseClause(Expression* label, ZoneList<Statement*>* statements);
+  CaseClause(Expression* label, ZoneList<Statement*>* statements)
+      : label_(label), statements_(statements) { }
 
   bool is_default() const  { return label_ == NULL; }
   Expression* label() const  {
@@ -689,7 +576,9 @@ class CaseClause: public ZoneObject {
 
 class SwitchStatement: public BreakableStatement {
  public:
-  explicit inline SwitchStatement(ZoneStringList* labels);
+  explicit SwitchStatement(ZoneStringList* labels)
+      : BreakableStatement(labels, TARGET_FOR_ANONYMOUS),
+        tag_(NULL), cases_(NULL) { }
 
   void Initialize(Expression* tag, ZoneList<CaseClause*>* cases) {
     tag_ = tag;
@@ -721,13 +610,6 @@ class IfStatement: public Statement {
         then_statement_(then_statement),
         else_statement_(else_statement) { }
 
-  // Construct an if-statement initialized from another if-statement
-  // and deep copies of all parts of the original.
-  IfStatement(IfStatement* other,
-              Expression* condition,
-              Statement* then_statement,
-              Statement* else_statement);
-
   virtual void Accept(AstVisitor* v);
 
   bool HasThenStatement() const { return !then_statement()->IsEmpty(); }
@@ -735,9 +617,7 @@ class IfStatement: public Statement {
 
   Expression* condition() const { return condition_; }
   Statement* then_statement() const { return then_statement_; }
-  void set_then_statement(Statement* stmt) { then_statement_ = stmt; }
   Statement* else_statement() const { return else_statement_; }
-  void set_else_statement(Statement* stmt) { else_statement_ = stmt; }
 
  private:
   Expression* condition_;
@@ -832,10 +712,6 @@ class DebuggerStatement: public Statement {
 
 class EmptyStatement: public Statement {
  public:
-  EmptyStatement() {}
-
-  explicit EmptyStatement(EmptyStatement* other);
-
   virtual void Accept(AstVisitor* v);
 
   // Type testing & conversion.
@@ -867,8 +743,6 @@ class Literal: public Expression {
 
   virtual bool IsLeaf() { return true; }
   virtual bool IsTrivial() { return true; }
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
 
   // Identity testers.
   bool IsNull() const { return handle_.is_identical_to(Factory::null_value()); }
@@ -944,31 +818,24 @@ class ObjectLiteral: public MaterializedLiteral {
                 ZoneList<Property*>* properties,
                 int literal_index,
                 bool is_simple,
-                bool fast_elements,
                 int depth)
       : MaterializedLiteral(literal_index, is_simple, depth),
         constant_properties_(constant_properties),
-        properties_(properties),
-        fast_elements_(fast_elements) {}
+        properties_(properties) {}
 
   virtual ObjectLiteral* AsObjectLiteral() { return this; }
   virtual void Accept(AstVisitor* v);
 
   virtual bool IsLeaf() { return properties()->is_empty(); }
 
-  virtual bool IsPrimitive();
-
   Handle<FixedArray> constant_properties() const {
     return constant_properties_;
   }
   ZoneList<Property*>* properties() const { return properties_; }
 
-  bool fast_elements() const { return fast_elements_; }
-
  private:
   Handle<FixedArray> constant_properties_;
   ZoneList<Property*>* properties_;
-  bool fast_elements_;
 };
 
 
@@ -985,8 +852,6 @@ class RegExpLiteral: public MaterializedLiteral {
   virtual void Accept(AstVisitor* v);
 
   virtual bool IsLeaf() { return true; }
-
-  virtual bool IsPrimitive();
 
   Handle<String> pattern() const { return pattern_; }
   Handle<String> flags() const { return flags_; }
@@ -1014,8 +879,6 @@ class ArrayLiteral: public MaterializedLiteral {
 
   virtual bool IsLeaf() { return values()->is_empty(); }
 
-  virtual bool IsPrimitive();
-
   Handle<FixedArray> constant_elements() const { return constant_elements_; }
   ZoneList<Expression*>* values() const { return values_; }
 
@@ -1035,8 +898,6 @@ class CatchExtensionObject: public Expression {
   }
 
   virtual void Accept(AstVisitor* v);
-
-  virtual bool IsPrimitive();
 
   Literal* key() const { return key_; }
   VariableProxy* value() const { return value_; }
@@ -1072,12 +933,7 @@ class VariableProxy: public Expression {
 
   // Reading from a mutable variable is a side effect, but 'this' is
   // immutable.
-  virtual bool IsTrivial() { return is_trivial_; }
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
-
-  void SetIsPrimitive(bool value) { is_primitive_ = value; }
+  virtual bool IsTrivial() { return is_this(); }
 
   bool IsVariable(Handle<String> n) {
     return !is_this() && name().is_identical_to(n);
@@ -1090,13 +946,10 @@ class VariableProxy: public Expression {
 
   Handle<String> name() const  { return name_; }
   Variable* var() const  { return var_; }
+  UseCount* var_uses()  { return &var_uses_; }
+  UseCount* obj_uses()  { return &obj_uses_; }
   bool is_this() const  { return is_this_; }
   bool inside_with() const  { return inside_with_; }
-  bool is_trivial() { return is_trivial_; }
-  void set_is_trivial(bool b) { is_trivial_ = b; }
-
-  BitVector* reaching_definitions() { return reaching_definitions_; }
-  void set_reaching_definitions(BitVector* rd) { reaching_definitions_ = rd; }
 
   // Bind this proxy to the variable var.
   void BindTo(Variable* var);
@@ -1106,9 +959,10 @@ class VariableProxy: public Expression {
   Variable* var_;  // resolved variable, or NULL
   bool is_this_;
   bool inside_with_;
-  bool is_trivial_;
-  BitVector* reaching_definitions_;
-  bool is_primitive_;
+
+  // VariableProxy usage info.
+  UseCount var_uses_;  // uses of the variable value
+  UseCount obj_uses_;  // uses of the object the variable points to
 
   VariableProxy(Handle<String> name, bool is_this, bool inside_with);
   explicit VariableProxy(bool is_this);
@@ -1123,11 +977,6 @@ class VariableProxySentinel: public VariableProxy {
   static VariableProxySentinel* this_proxy() { return &this_proxy_; }
   static VariableProxySentinel* identifier_proxy() {
     return &identifier_proxy_;
-  }
-
-  virtual bool IsPrimitive() {
-    UNREACHABLE();
-    return false;
   }
 
  private:
@@ -1173,13 +1022,6 @@ class Slot: public Expression {
 
   virtual bool IsLeaf() { return true; }
 
-  virtual bool IsPrimitive() {
-    UNREACHABLE();
-    return false;
-  }
-
-  bool IsStackAllocated() { return type_ == PARAMETER || type_ == LOCAL; }
-
   // Accessors
   Variable* var() const { return var_; }
   Type type() const { return type_; }
@@ -1203,17 +1045,12 @@ class Property: public Expression {
   Property(Expression* obj, Expression* key, int pos, Type type = NORMAL)
       : obj_(obj), key_(key), pos_(pos), type_(type) { }
 
-  Property(Property* other, Expression* obj, Expression* key);
-
   virtual void Accept(AstVisitor* v);
 
   // Type testing & conversion
   virtual Property* AsProperty() { return this; }
 
   virtual bool IsValidLeftHandSide() { return true; }
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
 
   Expression* obj() const { return obj_; }
   Expression* key() const { return key_; }
@@ -1240,15 +1077,10 @@ class Call: public Expression {
   Call(Expression* expression, ZoneList<Expression*>* arguments, int pos)
       : expression_(expression), arguments_(arguments), pos_(pos) { }
 
-  Call(Call* other, Expression* expression, ZoneList<Expression*>* arguments);
-
   virtual void Accept(AstVisitor* v);
 
   // Type testing and conversion.
   virtual Call* AsCall() { return this; }
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
 
   Expression* expression() const { return expression_; }
   ZoneList<Expression*>* arguments() const { return arguments_; }
@@ -1271,8 +1103,6 @@ class CallNew: public Expression {
       : expression_(expression), arguments_(arguments), pos_(pos) { }
 
   virtual void Accept(AstVisitor* v);
-
-  virtual bool IsPrimitive();
 
   Expression* expression() const { return expression_; }
   ZoneList<Expression*>* arguments() const { return arguments_; }
@@ -1298,8 +1128,6 @@ class CallRuntime: public Expression {
 
   virtual void Accept(AstVisitor* v);
 
-  virtual bool IsPrimitive();
-
   Handle<String> name() const { return name_; }
   Runtime::Function* function() const { return function_; }
   ZoneList<Expression*>* arguments() const { return arguments_; }
@@ -1319,15 +1147,10 @@ class UnaryOperation: public Expression {
     ASSERT(Token::IsUnaryOp(op));
   }
 
-  UnaryOperation(UnaryOperation* other, Expression* expression);
-
   virtual void Accept(AstVisitor* v);
 
   // Type testing & conversion
   virtual UnaryOperation* AsUnaryOperation() { return this; }
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
 
   Token::Value op() const { return op_; }
   Expression* expression() const { return expression_; }
@@ -1345,21 +1168,10 @@ class BinaryOperation: public Expression {
     ASSERT(Token::IsBinaryOp(op));
   }
 
-  // Construct a binary operation with a given operator and left and right
-  // subexpressions.  The rest of the expression state is copied from
-  // another expression.
-  BinaryOperation(Expression* other,
-                  Token::Value op,
-                  Expression* left,
-                  Expression* right);
-
   virtual void Accept(AstVisitor* v);
 
   // Type testing & conversion
   virtual BinaryOperation* AsBinaryOperation() { return this; }
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
 
   // True iff the result can be safely overwritten (to avoid allocation).
   // False for operations that can return one of their operands.
@@ -1405,18 +1217,7 @@ class CountOperation: public Expression {
     ASSERT(Token::IsCountOp(op));
   }
 
-  CountOperation(CountOperation* other, Expression* expression);
-
   virtual void Accept(AstVisitor* v);
-
-  virtual CountOperation* AsCountOperation() { return this; }
-
-  virtual Variable* AssignedVariable() {
-    return expression()->AsVariableProxy()->AsVariable();
-  }
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
 
   bool is_prefix() const { return is_prefix_; }
   bool is_postfix() const { return !is_prefix_; }
@@ -1438,22 +1239,19 @@ class CountOperation: public Expression {
 class CompareOperation: public Expression {
  public:
   CompareOperation(Token::Value op, Expression* left, Expression* right)
-      : op_(op), left_(left), right_(right) {
+      : op_(op), left_(left), right_(right), is_for_loop_condition_(false) {
     ASSERT(Token::IsCompareOp(op));
   }
 
-  CompareOperation(CompareOperation* other,
-                   Expression* left,
-                   Expression* right);
-
   virtual void Accept(AstVisitor* v);
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
 
   Token::Value op() const { return op_; }
   Expression* left() const { return left_; }
   Expression* right() const { return right_; }
+
+  // Accessors for flag whether this compare operation is hanging of a for loop.
+  bool is_for_loop_condition() const { return is_for_loop_condition_; }
+  void set_is_for_loop_condition() { is_for_loop_condition_ = true; }
 
   // Type testing & conversion
   virtual CompareOperation* AsCompareOperation() { return this; }
@@ -1462,6 +1260,7 @@ class CompareOperation: public Expression {
   Token::Value op_;
   Expression* left_;
   Expression* right_;
+  bool is_for_loop_condition_;
 };
 
 
@@ -1475,8 +1274,6 @@ class Conditional: public Expression {
         else_expression_(else_expression) { }
 
   virtual void Accept(AstVisitor* v);
-
-  virtual bool IsPrimitive();
 
   Expression* condition() const { return condition_; }
   Expression* then_expression() const { return then_expression_; }
@@ -1497,19 +1294,8 @@ class Assignment: public Expression {
     ASSERT(Token::IsAssignmentOp(op));
   }
 
-  Assignment(Assignment* other, Expression* target, Expression* value);
-
   virtual void Accept(AstVisitor* v);
   virtual Assignment* AsAssignment() { return this; }
-
-  virtual bool IsPrimitive();
-  virtual bool IsCritical();
-
-  Assignment* AsSimpleAssignment() { return !is_compound() ? this : NULL; }
-
-  virtual Variable* AssignedVariable() {
-    return target()->AsVariableProxy()->AsVariable();
-  }
 
   Token::Value binary_op() const;
 
@@ -1545,9 +1331,6 @@ class Throw: public Expression {
       : exception_(exception), pos_(pos) {}
 
   virtual void Accept(AstVisitor* v);
-
-  virtual bool IsPrimitive();
-
   Expression* exception() const { return exception_; }
   int position() const { return pos_; }
 
@@ -1596,8 +1379,6 @@ class FunctionLiteral: public Expression {
   virtual FunctionLiteral* AsFunctionLiteral()  { return this; }
 
   virtual bool IsLeaf() { return true; }
-
-  virtual bool IsPrimitive();
 
   Handle<String> name() const  { return name_; }
   Scope* scope() const  { return scope_; }
@@ -1656,24 +1437,21 @@ class FunctionLiteral: public Expression {
 };
 
 
-class SharedFunctionInfoLiteral: public Expression {
+class FunctionBoilerplateLiteral: public Expression {
  public:
-  explicit SharedFunctionInfoLiteral(
-      Handle<SharedFunctionInfo> shared_function_info)
-      : shared_function_info_(shared_function_info) { }
-
-  Handle<SharedFunctionInfo> shared_function_info() const {
-    return shared_function_info_;
+  explicit FunctionBoilerplateLiteral(Handle<JSFunction> boilerplate)
+      : boilerplate_(boilerplate) {
+    ASSERT(boilerplate->IsBoilerplate());
   }
+
+  Handle<JSFunction> boilerplate() const { return boilerplate_; }
 
   virtual bool IsLeaf() { return true; }
 
   virtual void Accept(AstVisitor* v);
 
-  virtual bool IsPrimitive();
-
  private:
-  Handle<SharedFunctionInfo> shared_function_info_;
+  Handle<JSFunction> boilerplate_;
 };
 
 
@@ -1681,7 +1459,6 @@ class ThisFunction: public Expression {
  public:
   virtual void Accept(AstVisitor* v);
   virtual bool IsLeaf() { return true; }
-  virtual bool IsPrimitive();
 };
 
 
@@ -2042,22 +1819,28 @@ class AstVisitor BASE_EMBEDDED {
   AstVisitor() : stack_overflow_(false) { }
   virtual ~AstVisitor() { }
 
-  // Stack overflow check and dynamic dispatch.
-  void Visit(AstNode* node) { if (!CheckStackOverflow()) node->Accept(this); }
+  // Dispatch
+  void Visit(AstNode* node) { node->Accept(this); }
 
-  // Iteration left-to-right.
+  // Iteration
   virtual void VisitDeclarations(ZoneList<Declaration*>* declarations);
   virtual void VisitStatements(ZoneList<Statement*>* statements);
   virtual void VisitExpressions(ZoneList<Expression*>* expressions);
 
   // Stack overflow tracking support.
   bool HasStackOverflow() const { return stack_overflow_; }
-  bool CheckStackOverflow();
+  bool CheckStackOverflow() {
+    if (stack_overflow_) return true;
+    StackLimitCheck check;
+    if (!check.HasOverflowed()) return false;
+    return (stack_overflow_ = true);
+  }
 
   // If a stack-overflow exception is encountered when visiting a
   // node, calling SetStackOverflow will make sure that the visitor
   // bails out without visiting more nodes.
   void SetStackOverflow() { stack_overflow_ = true; }
+
 
   // Individual nodes
 #define DEF_VISIT(type)                         \
@@ -2069,28 +1852,6 @@ class AstVisitor BASE_EMBEDDED {
   bool stack_overflow_;
 };
 
-
-class CopyAstVisitor : public AstVisitor {
- public:
-  Expression* DeepCopyExpr(Expression* expr);
-
-  Statement* DeepCopyStmt(Statement* stmt);
-
- private:
-  ZoneList<Expression*>* DeepCopyExprList(ZoneList<Expression*>* expressions);
-
-  ZoneList<Statement*>* DeepCopyStmtList(ZoneList<Statement*>* statements);
-
-  // AST node visit functions.
-#define DECLARE_VISIT(type) virtual void Visit##type(type* node);
-  AST_NODE_LIST(DECLARE_VISIT)
-#undef DECLARE_VISIT
-
-  // Holds the result of copying an expression.
-  Expression* expr_;
-  // Holds the result of copying a statement.
-  Statement* stmt_;
-};
 
 } }  // namespace v8::internal
 

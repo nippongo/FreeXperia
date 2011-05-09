@@ -135,15 +135,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\date.js"
+				RelativePath="..\..\src\date-delay.js"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\debug-debugger.js"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\liveedit-debugger.js"
+				RelativePath="..\..\src\debug-delay.js"
 				>
 			</File>
 			<File
@@ -159,15 +155,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\mirror-debugger.js"
+				RelativePath="..\..\src\mirror-delay.js"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\regexp.js"
+				RelativePath="..\..\src\regexp-delay.js"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\json.js"
+				RelativePath="..\..\src\json-delay.js"
 				>
 			</File>
 			<File
@@ -192,7 +188,7 @@
 						Name="VCCustomBuildTool"
 						Description="Processing js files..."
 						CommandLine=".\js2c.cmd ..\..\src &quot;$(IntDir)\DerivedSources&quot;"
-						AdditionalDependencies="..\..\src\macros.py;..\..\src\runtime.js;..\..\src\v8natives.js;..\..\src\array.js;..\..\src\string.js;..\..\src\uri.js;..\..\src\math.js;..\..\src\messages.js;..\..\src\apinatives.js;..\..\src\debug-debugger.js;..\..\src\mirror-debugger.js;..\..\src\liveedit-debugger.js;..\..\src\date.js;..\..\src\regexp.js;..\..\src\json.js"
+						AdditionalDependencies="..\..\src\macros.py;..\..\src\runtime.js;..\..\src\v8natives.js;..\..\src\array.js;..\..\src\string.js;..\..\src\uri.js;..\..\src\math.js;..\..\src\messages.js;..\..\src\apinatives.js;..\..\src\debug-delay.js;..\..\src\mirror-delay.js;..\..\src\date-delay.js;..\..\src\regexp-delay.js;..\..\src\json-delay.js"
 						Outputs="$(IntDir)\DerivedSources\natives.cc;$(IntDir)\DerivedSources\natives-empty.cc"
 					/>
 				</FileConfiguration>
@@ -203,7 +199,7 @@
 						Name="VCCustomBuildTool"
 						Description="Processing js files..."
 						CommandLine=".\js2c.cmd ..\..\src &quot;$(IntDir)\DerivedSources&quot;"
-						AdditionalDependencies="..\..\src\macros.py;..\..\src\runtime.js;..\..\src\v8natives.js;..\..\src\array.js;..\..\src\string.js;..\..\src\uri.js;..\..\src\math.js;..\..\src\messages.js;..\..\src\apinatives.js;..\..\src\debug-debugger.js;..\..\src\mirror-debugger.js;..\..\src\liveedit-debugger.js;..\..\src\date.js;..\..\src\regexp.js;..\..\src\json.js"
+						AdditionalDependencies="..\..\src\macros.py;..\..\src\runtime.js;..\..\src\v8natives.js;..\..\src\array.js;..\..\src\string.js;..\..\src\uri.js;..\..\src\math.js;..\..\src\messages.js;..\..\src\apinatives.js;..\..\src\debug-delay.js;..\..\src\mirror-delay.js;..\..\src\date-delay.js;..\..\src\regexp-delay.js;..\..\src\json-delay.js"
 						Outputs="$(IntDir)\DerivedSources\natives.cc;$(IntDir)\DerivedSources\natives-empty.cc"
 					/>
 				</FileConfiguration>

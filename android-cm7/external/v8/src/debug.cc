@@ -39,7 +39,6 @@
 #include "global-handles.h"
 #include "ic.h"
 #include "ic-inl.h"
-#include "messages.h"
 #include "natives.h"
 #include "stub-cache.h"
 #include "log.h"
@@ -52,13 +51,14 @@ namespace internal {
 #ifdef ENABLE_DEBUGGER_SUPPORT
 static void PrintLn(v8::Local<v8::Value> value) {
   v8::Local<v8::String> s = value->ToString();
-  ScopedVector<char> data(s->Length() + 1);
-  if (data.start() == NULL) {
+  char* data = NewArray<char>(s->Length() + 1);
+  if (data == NULL) {
     V8::FatalProcessOutOfMemory("PrintLn");
     return;
   }
-  s->WriteAscii(data.start(),-1,NULL,static_cast<v8::String::WriteHints>(0));
-  PrintF("%s\n", data.start());
+  s->WriteAscii(data);
+  PrintF("%s\n", data);
+  DeleteArray(data);
 }
 
 
@@ -69,17 +69,6 @@ static Handle<Code> ComputeCallDebugBreak(int argc) {
 
 static Handle<Code> ComputeCallDebugPrepareStepIn(int argc) {
   CALL_HEAP_FUNCTION(StubCache::ComputeCallDebugPrepareStepIn(argc), Code);
-}
-
-
-static v8::Handle<v8::Context> GetDebugEventContext() {
-  Handle<Context> context = Debug::debugger_entry()->GetContext();
-  // Top::context() may have been NULL when "script collected" event occured.
-  if (*context == NULL) {
-    return v8::Local<v8::Context>();
-  }
-  Handle<Context> global_context(context->global_context());
-  return v8::Utils::ToLocal(global_context);
 }
 
 
@@ -134,9 +123,7 @@ void BreakLocationIterator::Next() {
     if (RelocInfo::IsCodeTarget(rmode())) {
       Address target = original_rinfo()->target_address();
       Code* code = Code::GetCodeFromTargetAddress(target);
-      if ((code->is_inline_cache_stub() &&
-           code->kind() != Code::BINARY_OP_IC) ||
-          RelocInfo::IsConstructCall(rmode())) {
+      if (code->is_inline_cache_stub() || RelocInfo::IsConstructCall(rmode())) {
         break_point_++;
         return;
       }
@@ -441,13 +428,8 @@ void BreakLocationIterator::SetDebugBreakAtIC() {
     // is set the patching performed by the runtime system will take place in
     // the code copy and will therefore have no effect on the running code
     // keeping it from using the inlined code.
-    if (code->is_keyed_load_stub()) {
-      KeyedLoadIC::ClearInlinedVersion(pc());
-    } else if (code->is_keyed_store_stub()) {
-      KeyedStoreIC::ClearInlinedVersion(pc());
-    } else if (code->is_load_stub()) {
-      LoadIC::ClearInlinedVersion(pc());
-    }
+    if (code->is_keyed_load_stub()) KeyedLoadIC::ClearInlinedVersion(pc());
+    if (code->is_keyed_store_stub()) KeyedStoreIC::ClearInlinedVersion(pc());
   }
 }
 
@@ -700,26 +682,29 @@ bool Debug::CompileDebuggerScript(int index) {
   // Compile the script.
   bool allow_natives_syntax = FLAG_allow_natives_syntax;
   FLAG_allow_natives_syntax = true;
-  Handle<SharedFunctionInfo> function_info;
-  function_info = Compiler::Compile(source_code,
-                                    script_name,
-                                    0, 0, NULL, NULL,
-                                    Handle<String>::null(),
-                                    NATIVES_CODE);
+  Handle<JSFunction> boilerplate;
+  boilerplate = Compiler::Compile(source_code,
+                                  script_name,
+                                  0,
+                                  0,
+                                  NULL,
+                                  NULL,
+                                  Handle<String>::null(),
+                                  NATIVES_CODE);
   FLAG_allow_natives_syntax = allow_natives_syntax;
 
   // Silently ignore stack overflows during compilation.
-  if (function_info.is_null()) {
+  if (boilerplate.is_null()) {
     ASSERT(Top::has_pending_exception());
     Top::clear_pending_exception();
     return false;
   }
 
-  // Execute the shared function in the debugger context.
+  // Execute the boilerplate function in the debugger context.
   Handle<Context> context = Top::global_context();
   bool caught_exception = false;
   Handle<JSFunction> function =
-      Factory::NewFunctionFromSharedFunctionInfo(function_info, context);
+      Factory::NewFunctionFromBoilerplate(boilerplate, context);
   Handle<Object> result =
       Execution::TryCall(function, Handle<Object>(context->global()),
                          0, NULL, &caught_exception);
@@ -735,7 +720,6 @@ bool Debug::CompileDebuggerScript(int index) {
 
   // Mark this script as native and return successfully.
   Handle<Script> script(Script::cast(function->shared()->script()));
-  script->set_type(Smi::FromInt(Script::TYPE_NATIVE));
   return true;
 }
 
@@ -776,12 +760,6 @@ bool Debug::Load() {
   bool caught_exception =
       !CompileDebuggerScript(Natives::GetIndex("mirror")) ||
       !CompileDebuggerScript(Natives::GetIndex("debug"));
-
-  if (FLAG_enable_liveedit) {
-    caught_exception = caught_exception ||
-        !CompileDebuggerScript(Natives::GetIndex("liveedit"));
-  }
-
   Debugger::set_compiling_natives(false);
 
   // Make sure we mark the debugger as not loading before we might
@@ -821,15 +799,13 @@ void Debug::PreemptionWhileInDebugger() {
 
 
 void Debug::Iterate(ObjectVisitor* v) {
-  v->VisitPointer(BitCast<Object**, Code**>(&(debug_break_return_)));
+  v->VisitPointer(bit_cast<Object**, Code**>(&(debug_break_return_)));
 }
 
 
 Object* Debug::Break(Arguments args) {
   HandleScope scope;
   ASSERT(args.length() == 0);
-
-  thread_local_.frames_are_dropped_ = false;
 
   // Get the top-most JavaScript frame.
   JavaScriptFrameIterator it;
@@ -907,13 +883,8 @@ Object* Debug::Break(Arguments args) {
     PrepareStep(step_action, step_count);
   }
 
-  if (thread_local_.frames_are_dropped_) {
-    // We must have been calling IC stub. Do not return there anymore.
-    Code* plain_return = Builtins::builtin(Builtins::PlainReturn_LiveEdit);
-    thread_local_.after_break_target_ = plain_return->entry();
-  } else {
-    SetAfterBreakTarget(frame);
-  }
+  // Install jump to the call address which was overwritten.
+  SetAfterBreakTarget(frame);
 
   return Heap::undefined_value();
 }
@@ -1371,26 +1342,24 @@ Handle<Code> Debug::FindDebugBreak(Handle<Code> code, RelocInfo::Mode mode) {
   // Find the builtin debug break function matching the calling convention
   // used by the call site.
   if (code->is_inline_cache_stub()) {
-    switch (code->kind()) {
-      case Code::CALL_IC:
-        return ComputeCallDebugBreak(code->arguments_count());
-
-      case Code::LOAD_IC:
-        return Handle<Code>(Builtins::builtin(Builtins::LoadIC_DebugBreak));
-
-      case Code::STORE_IC:
-        return Handle<Code>(Builtins::builtin(Builtins::StoreIC_DebugBreak));
-
-      case Code::KEYED_LOAD_IC:
-        return Handle<Code>(
-            Builtins::builtin(Builtins::KeyedLoadIC_DebugBreak));
-
-      case Code::KEYED_STORE_IC:
-        return Handle<Code>(
-            Builtins::builtin(Builtins::KeyedStoreIC_DebugBreak));
-
-      default:
-        UNREACHABLE();
+    if (code->is_call_stub()) {
+      return ComputeCallDebugBreak(code->arguments_count());
+    }
+    if (code->is_load_stub()) {
+      return Handle<Code>(Builtins::builtin(Builtins::LoadIC_DebugBreak));
+    }
+    if (code->is_store_stub()) {
+      return Handle<Code>(Builtins::builtin(Builtins::StoreIC_DebugBreak));
+    }
+    if (code->is_keyed_load_stub()) {
+      Handle<Code> result =
+          Handle<Code>(Builtins::builtin(Builtins::KeyedLoadIC_DebugBreak));
+      return result;
+    }
+    if (code->is_keyed_store_stub()) {
+      Handle<Code> result =
+          Handle<Code>(Builtins::builtin(Builtins::KeyedStoreIC_DebugBreak));
+      return result;
     }
   }
   if (RelocInfo::IsConstructCall(mode)) {
@@ -1674,12 +1643,6 @@ void Debug::SetAfterBreakTarget(JavaScriptFrame* frame) {
     // call which was overwritten by the call to DebugBreakXXX.
     thread_local_.after_break_target_ = Assembler::target_address_at(addr);
   }
-}
-
-
-void Debug::FramesHaveBeenDropped(StackFrame::Id new_break_frame_id) {
-  thread_local_.frames_are_dropped_ = true;
-  thread_local_.break_frame_id_ = new_break_frame_id;
 }
 
 
@@ -2001,8 +1964,7 @@ void Debugger::OnBeforeCompile(Handle<Script> script) {
 
 
 // Handle debugger actions when a new script is compiled.
-void Debugger::OnAfterCompile(Handle<Script> script,
-                              AfterCompileFlags after_compile_flags) {
+void Debugger::OnAfterCompile(Handle<Script> script, Handle<JSFunction> fun) {
   HandleScope scope;
 
   // Add the newly compiled script to the script cache.
@@ -2049,7 +2011,7 @@ void Debugger::OnAfterCompile(Handle<Script> script,
     return;
   }
   // Bail out based on state or if there is no listener for this event
-  if (in_debugger && (after_compile_flags & SEND_WHEN_DEBUGGING) == 0) return;
+  if (in_debugger) return;
   if (!Debugger::EventActive(v8::AfterCompile)) return;
 
   // Create the compile state object.
@@ -2064,6 +2026,31 @@ void Debugger::OnAfterCompile(Handle<Script> script,
   ProcessDebugEvent(v8::AfterCompile,
                     Handle<JSObject>::cast(event_data),
                     true);
+}
+
+
+void Debugger::OnNewFunction(Handle<JSFunction> function) {
+  return;
+  HandleScope scope;
+
+  // Bail out based on state or if there is no listener for this event
+  if (Debug::InDebugger()) return;
+  if (compiling_natives()) return;
+  if (!Debugger::EventActive(v8::NewFunction)) return;
+
+  // Enter the debugger.
+  EnterDebugger debugger;
+  if (debugger.FailedToEnter()) return;
+
+  // Create the event object.
+  bool caught_exception = false;
+  Handle<Object> event_data = MakeNewFunctionEvent(function, &caught_exception);
+  // Bail out and don't call debugger if exception.
+  if (caught_exception) {
+    return;
+  }
+  // Process debug event.
+  ProcessDebugEvent(v8::NewFunction, Handle<JSObject>::cast(event_data), true);
 }
 
 
@@ -2123,14 +2110,12 @@ void Debugger::ProcessDebugEvent(v8::DebugEvent event,
     if (event_listener_->IsProxy()) {
       // C debug event listener.
       Handle<Proxy> callback_obj(Handle<Proxy>::cast(event_listener_));
-      v8::Debug::EventCallback2 callback =
-            FUNCTION_CAST<v8::Debug::EventCallback2>(callback_obj->proxy());
-      EventDetailsImpl event_details(
-          event,
-          Handle<JSObject>::cast(exec_state),
-          event_data,
-          event_listener_data_);
-      callback(event_details);
+      v8::Debug::EventCallback callback =
+            FUNCTION_CAST<v8::Debug::EventCallback>(callback_obj->proxy());
+      callback(event,
+               v8::Utils::ToLocal(Handle<JSObject>::cast(exec_state)),
+               v8::Utils::ToLocal(event_data),
+               v8::Utils::ToLocal(Handle<Object>::cast(event_listener_data_)));
     } else {
       // JavaScript debug event listener.
       ASSERT(event_listener_->IsJSFunction());
@@ -2147,13 +2132,6 @@ void Debugger::ProcessDebugEvent(v8::DebugEvent event,
       // Silently ignore exceptions from debug event listeners.
     }
   }
-}
-
-
-Handle<Context> Debugger::GetDebugContext() {
-    never_unload_debugger_ = true;
-    EnterDebugger debugger;
-    return Debug::debug_context();
 }
 
 
@@ -2485,7 +2463,7 @@ Handle<Object> Debugger::Call(Handle<JSFunction> fun,
 
   // Enter the debugger.
   EnterDebugger debugger;
-  if (debugger.FailedToEnter()) {
+  if (debugger.FailedToEnter() || !debugger.HasJavaScriptFrames()) {
     return Factory::undefined_value();
   }
 
@@ -2498,12 +2476,8 @@ Handle<Object> Debugger::Call(Handle<JSFunction> fun,
 
   static const int kArgc = 2;
   Object** argv[kArgc] = { exec_state.location(), data.location() };
-  Handle<Object> result = Execution::Call(
-      fun,
-      Handle<Object>(Debug::debug_context_->global_proxy()),
-      kArgc,
-      argv,
-      pending_exception);
+  Handle<Object> result = Execution::Call(fun, Factory::undefined_value(),
+                                          kArgc, argv, pending_exception);
   return result;
 }
 
@@ -2656,50 +2630,19 @@ v8::Handle<v8::String> MessageImpl::GetJSON() const {
 
 
 v8::Handle<v8::Context> MessageImpl::GetEventContext() const {
-  v8::Handle<v8::Context> context = GetDebugEventContext();
-  // Top::context() may be NULL when "script collected" event occures.
-  ASSERT(!context.IsEmpty() || event_ == v8::ScriptCollected);
-  return GetDebugEventContext();
+  Handle<Context> context = Debug::debugger_entry()->GetContext();
+  // Top::context() may have been NULL when "script collected" event occured.
+  if (*context == NULL) {
+    ASSERT(event_ == v8::ScriptCollected);
+    return v8::Local<v8::Context>();
+  }
+  Handle<Context> global_context(context->global_context());
+  return v8::Utils::ToLocal(global_context);
 }
 
 
 v8::Debug::ClientData* MessageImpl::GetClientData() const {
   return client_data_;
-}
-
-
-EventDetailsImpl::EventDetailsImpl(DebugEvent event,
-                                   Handle<JSObject> exec_state,
-                                   Handle<JSObject> event_data,
-                                   Handle<Object> callback_data)
-    : event_(event),
-      exec_state_(exec_state),
-      event_data_(event_data),
-      callback_data_(callback_data) {}
-
-
-DebugEvent EventDetailsImpl::GetEvent() const {
-  return event_;
-}
-
-
-v8::Handle<v8::Object> EventDetailsImpl::GetExecutionState() const {
-  return v8::Utils::ToLocal(exec_state_);
-}
-
-
-v8::Handle<v8::Object> EventDetailsImpl::GetEventData() const {
-  return v8::Utils::ToLocal(event_data_);
-}
-
-
-v8::Handle<v8::Context> EventDetailsImpl::GetEventContext() const {
-  return GetDebugEventContext();
-}
-
-
-v8::Handle<v8::Value> EventDetailsImpl::GetCallbackData() const {
-  return v8::Utils::ToLocal(callback_data_);
 }
 
 

@@ -38,7 +38,7 @@
 namespace v8 {
 namespace internal {
 
-#ifdef V8_INTERPRETED_REGEXP
+#ifndef V8_NATIVE_REGEXP
 
 void RegExpMacroAssemblerIrregexp::Emit(uint32_t byte,
                                         uint32_t twenty_four_bits) {
@@ -71,7 +71,7 @@ void RegExpMacroAssemblerIrregexp::Emit32(uint32_t word) {
   pc_ += 4;
 }
 
-#endif  // V8_INTERPRETED_REGEXP
+#endif  // ! V8_NATIVE_REGEXP
 
 } }  // namespace v8::internal
 

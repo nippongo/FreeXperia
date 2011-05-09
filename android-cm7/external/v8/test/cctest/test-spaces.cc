@@ -77,7 +77,7 @@ TEST(Page) {
   CHECK(p->is_valid());
 
   p->opaque_header = 0;
-  p->SetIsLargeObjectPage(false);
+  p->is_normal_page = 0x1;
   CHECK(!p->next_page()->is_valid());
 
   CHECK(p->ObjectAreaStart() == page_start + Page::kObjectStartOffset);

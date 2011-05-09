@@ -34,11 +34,6 @@
 
 namespace v8 {
 
-void PrintPrompt() {
-  printf("dbg> ");
-  fflush(stdout);
-}
-
 
 void HandleDebugEvent(DebugEvent event,
                       Handle<Object> exec_state,
@@ -91,7 +86,7 @@ void HandleDebugEvent(DebugEvent event,
   bool running = false;
   while (!running) {
     char command[kBufferSize];
-    PrintPrompt();
+    printf("dbg> ");
     char* str = fgets(command, kBufferSize, stdin);
     if (str == NULL) break;
 
@@ -183,7 +178,6 @@ void RemoteDebugger::Run() {
   // Start the keyboard thread.
   KeyboardThread keyboard(this);
   keyboard.Start();
-  PrintPrompt();
 
   // Process events received from debugged VM and from the keyboard.
   bool terminate = false;
@@ -270,8 +264,7 @@ void RemoteDebugger::HandleMessageReceived(char* message) {
   Handle<Object> details =
       Shell::DebugMessageDetails(Handle<String>::Cast(String::New(message)));
   if (try_catch.HasCaught()) {
-    Shell::ReportException(&try_catch);
-    PrintPrompt();
+      Shell::ReportException(&try_catch);
     return;
   }
   String::Utf8Value str(details->Get(String::New("text")));
@@ -284,7 +277,7 @@ void RemoteDebugger::HandleMessageReceived(char* message) {
   } else {
     printf("???\n");
   }
-  PrintPrompt();
+  printf("dbg> ");
 }
 
 
@@ -296,17 +289,13 @@ void RemoteDebugger::HandleKeyboardCommand(char* command) {
   Handle<Value> request =
       Shell::DebugCommandToJSONRequest(String::New(command));
   if (try_catch.HasCaught()) {
-    v8::String::Utf8Value exception(try_catch.Exception());
-    const char* exception_string = Shell::ToCString(exception);
-    printf("%s\n", exception_string);
-    PrintPrompt();
+    Shell::ReportException(&try_catch);
     return;
   }
 
   // If undefined is returned the command was handled internally and there is
   // no JSON to send.
   if (request->IsUndefined()) {
-    PrintPrompt();
     return;
   }
 

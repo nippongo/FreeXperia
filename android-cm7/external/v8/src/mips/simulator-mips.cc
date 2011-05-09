@@ -29,11 +29,9 @@
 #include <cstdarg>
 #include "v8.h"
 
-#if defined(V8_TARGET_ARCH_MIPS)
-
 #include "disasm.h"
 #include "assembler.h"
-#include "globals.h"    // Need the BitCast
+#include "globals.h"    // Need the bit_cast
 #include "mips/constants-mips.h"
 #include "mips/simulator-mips.h"
 
@@ -141,7 +139,7 @@ void Debugger::Stop(Instruction* instr) {
   sim_->set_pc(sim_->get_pc() + Instruction::kInstructionSize);
   Debug();
 }
-#endif  // GENERATED_CODE_COVERAGE
+#endif  // def GENERATED_CODE_COVERAGE
 
 
 int32_t Debugger::GetRegisterValue(int regnum) {
@@ -606,7 +604,7 @@ void Simulator::set_fpu_register(int fpureg, int32_t value) {
 
 void Simulator::set_fpu_register_double(int fpureg, double value) {
   ASSERT((fpureg >= 0) && (fpureg < kNumFPURegisters) && ((fpureg % 2) == 0));
-  *v8i::BitCast<double*, int32_t*>(&FPUregisters_[fpureg]) = value;
+  *v8i::bit_cast<double*, int32_t*>(&FPUregisters_[fpureg]) = value;
 }
 
 
@@ -627,7 +625,7 @@ int32_t Simulator::get_fpu_register(int fpureg) const {
 
 double Simulator::get_fpu_register_double(int fpureg) const {
   ASSERT((fpureg >= 0) && (fpureg < kNumFPURegisters) && ((fpureg % 2) == 0));
-  return *v8i::BitCast<double*, int32_t*>(
+  return *v8i::bit_cast<double*, int32_t*>(
       const_cast<int32_t*>(&FPUregisters_[fpureg]));
 }
 
@@ -903,7 +901,7 @@ void Simulator::DecodeTypeRegister(Instruction* instr) {
           break;
         case MFHC1:
           fp_out = get_fpu_register_double(fs_reg);
-          alu_out = *v8i::BitCast<int32_t*, double*>(&fp_out);
+          alu_out = *v8i::bit_cast<int32_t*, double*>(&fp_out);
           break;
         case MTC1:
         case MTHC1:
@@ -1646,6 +1644,5 @@ uintptr_t Simulator::PopAddress() {
 
 } }  // namespace assembler::mips
 
-#endif  // __mips
+#endif  // !defined(__mips)
 
-#endif  // V8_TARGET_ARCH_MIPS
