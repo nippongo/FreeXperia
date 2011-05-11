@@ -84,3 +84,5 @@
 # video encoder on 720p-enabled 8k targets
 /dev/pmem_venc            0660   system     audio
 
+#proximity permissions
+/dev/es209ra_proximity    0777   system     system

@@ -63,18 +63,15 @@
 #define MSM_CLK_CTL_PHYS      0xA8600000
 #define MSM_CLK_CTL_SIZE      SZ_4K
 
-//#define MSM_SIRC_BASE         IOMEM(0xF9006000)
-#define MSM_SIRC_BASE         IOMEM(0xF8006000)
+#define MSM_SIRC_BASE         IOMEM(0xF9006000)
 #define MSM_SIRC_PHYS         0xAC200000
 #define MSM_SIRC_SIZE         SZ_4K
 
-//#define MSM_SCPLL_BASE        IOMEM(0xF9007000)
-#define MSM_SCPLL_BASE        IOMEM(0xF8007000)
+#define MSM_SCPLL_BASE        IOMEM(0xF9007000)
 #define MSM_SCPLL_PHYS        0xA8800000
 #define MSM_SCPLL_SIZE        SZ_4K
 
 #define MSM_SHARED_RAM_BASE   IOMEM(0xF8100000)
-#define MSM_SHARED_RAM_PHYS   (0x00000000 + 0xF8100000)
 #define MSM_SHARED_RAM_SIZE   SZ_1M
 
 #define MSM_UART1_PHYS        0xA9A00000
@@ -85,7 +82,6 @@
 
 #define MSM_UART3_PHYS        0xA9C00000
 #define MSM_UART3_SIZE        SZ_4K
-
 
 #ifdef CONFIG_MSM_DEBUG_UART
 #define MSM_DEBUG_UART_BASE   0xF9000000
@@ -106,8 +102,5 @@
 #define MSM_AD5_BASE          IOMEM(0xF8300000)
 #define MSM_AD5_PHYS          0xAC000000
 #define MSM_AD5_SIZE          (SZ_1M*13)
-
-#define MSM_VFE_PHYS          0xA0F00000
-#define MSM_VFE_SIZE          SZ_1M
 
 #endif

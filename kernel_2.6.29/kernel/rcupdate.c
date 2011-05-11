@@ -69,6 +69,8 @@ void wakeme_after_rcu(struct rcu_head  *head)
 	rcu = container_of(head, struct rcu_synchronize, head);
 	complete(&rcu->completion);
 }
+#ifndef CONFIG_TINY_RCU
+
 
 /**
  * synchronize_rcu - wait until a grace period has elapsed.
@@ -94,6 +96,7 @@ void synchronize_rcu(void)
 }
 EXPORT_SYMBOL_GPL(synchronize_rcu);
 
+#endif /* #ifndef CONFIG_TINY_RCU */
 static void rcu_barrier_callback(struct rcu_head *notused)
 {
 	if (atomic_dec_and_test(&rcu_barrier_cpu_count))

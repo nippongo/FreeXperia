@@ -52,9 +52,8 @@ on early-init
     device /dev/evrc* 0660 system audio
     device /dev/msm_voicememo* 0660 system audio
     device /dev/msm_voice 0660 system audio
-    device /dev/es209ra_proximity 0660 system system
-    device /dev/semc_imx046_camera 0660 system system
-    #radio Fix
+#    device /dev/es209ra_proximity 0660 system system
+#    device /dev/semc_imx046_camera 0660 system system
     chown radio system /dev/oncrpc/30000016:d6bb93e6
     chown radio system /dev/oncrpc/30000000:fd767954
     chown radio system /dev/oncrpc/30000019:821a1945
@@ -62,6 +61,7 @@ on early-init
     chown radio system /dev/oncrpc/30000003:d03123cc
     chown radio system /dev/oncrpc/3000000e:00040000
     chown radio system /dev/oncrpc/30000012:00010000
+
 
 on init
     exec /system/bin/isp_fw_update
@@ -106,10 +106,18 @@ on boot
     mkdir /data/misc/dhcp 0770 dhcp dhcp
     chown dhcp dhcp /data/misc/dhcp
     mkdir /data/system 0775 system system
+    mkdir /data/system/wpa_supplicant 0777 wifi wifi
 
     # Permission for ril
     chown radio system /dev/pm_monitor
     chmod 0770 /ddev/pm_monitor
+    mkdir /data/local
+    chmod 0777 /data/local
+    chown radio shell /data/local
+    mkdir /data/local/tmp
+    chmod 0777 /data/local/tmp
+    chown radio shell /data/local/tmp
+    #Duplicate for Uevent
     chown radio system /dev/oncrpc/30000016:d6bb93e6
     chown radio system /dev/oncrpc/30000000:fd767954
     chown radio system /dev/oncrpc/30000019:821a1945
@@ -117,12 +125,6 @@ on boot
     chown radio system /dev/oncrpc/30000003:d03123cc
     chown radio system /dev/oncrpc/3000000e:00040000
     chown radio system /dev/oncrpc/30000012:00010000
-    mkdir /data/local
-    chmod 0777 /data/local
-    chown radio shell /data/local
-    mkdir /data/local/tmp
-    chmod 0777 /data/local/tmp
-    chown radio shell /data/local/tmp
 
     # For qmuxd socket
     mkdir /data/radio 0770 radio radio

@@ -1,54 +1,31 @@
+/* SEMC:modified */
+/* 
+   ES209RA board specific file.   
+   Copyright (C) 2009 Sony Ericsson Mobile Communications Japan, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License, version 2, as
+   published by the Free Software Foundation.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+*/
 
 #ifndef _BOARD_ES209RA_H
 #define _BOARD_ES209RA_H
 
+#if defined(CONFIG_ARCH_QSD8X50)
 #include <mach/irqs-8x50.h>
 #include <mach/sirc.h>
-
-#define MSM_SMI_BASE		0x02B00000
-#define MSM_SMI_SIZE		0x01500000
-
-//#define MSM_PMEM_CAMERA_BASE    0xA0F00000 //0x02B00000
-//#define MSM_PMEM_CAMERA_SIZE    0x00100000 //0x00800000
-
-#define MSM_PMEM_VENC_BASE      0x02B00000
-#define MSM_PMEM_VENC_SIZE      0x00800000
-
-#define MSM_GPU_MEM_BASE        0x03300000 //0x03000000
-#define MSM_GPU_MEM_SIZE        0x00500000 //0x00200000
-
-#define MSM_GPU_REG_PHYS        0xA0000000 
-#define MSM_GPU_REG_SIZE        0x00200000 
-
-#define MSM_SPI_PHYS        	0xA1200000 
-#define MSM_SPI_SIZE        	0x00001000 
-
-#define MSM_RAM_CONSOLE_BASE	0x37FE0000  //0x03A00000
-#define MSM_RAM_CONSOLE_SIZE	0x00020000  //0x00040000
-
-#define MSM_FB_BASE		0x02B00000  //0x03B00000
-#define MSM_FB_SIZE		0x00500000  //0x00300000
-
-#define MSM_EBI1_BANK0_BASE     0x20000000  //ok
-#define MSM_EBI1_BANK0_SIZE     0x0E800000  //(232*1024*1024)
-
-#define MSM_EBI1_BANK1_BASE	0x30000000  //ok
-#define MSM_EBI1_BANK1_SIZE	0x07F00000  //(127*1024*1024)
-
-#define MSM_PMEM_MDP_BASE	0x3B700000  //?
-#define MSM_PMEM_MDP_SIZE	0x01C91000  //0x02000000
-
-#define MSM_PMEM_ADSP_BASE	0x3D700000  //??
-#define MSM_PMEM_ADSP_SIZE	0x02196000  //0x02900000
-
-
-//#define MSM_PMEM_SMIPOOL_BASE	0x03200000  //??
-//#define MSM_PMEM_SMIPOOL_SIZE	0x00E00000  //???
-
-
-
-#define PMIC_VREG_WLAN_LEVEL	2600
-#define PMIC_VREG_GP6_LEVEL	2850
+#else
+#include <mach/irqs-7xxx.h>
+#endif
 
 #define INT_ES209RA_GPIO_BATLOW			MSM_GPIO_TO_INT(145)
 #define INT_ES209RA_GPIO_LEDC			MSM_GPIO_TO_INT(144)
@@ -83,7 +60,6 @@
 /* software mode */
 #define STARTUP_REASON_TYPE_APPROVAL	(1 << 28)
 /* SEMC: add bit definition for startup_reason - end */
-
 
 extern struct max17040_device_data max17040_dev_data;
 
