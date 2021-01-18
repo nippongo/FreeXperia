@@ -54,11 +54,6 @@ module_param(use_spi_crc, bool, 0);
 static int mmc_schedule_delayed_work(struct delayed_work *work,
 				     unsigned long delay)
 {
-/* ATHENV */
-#if 0
-	wake_lock(&mmc_delayed_work_wake_lock);
-#endif
-/* ATHENV */
 	return queue_delayed_work(workqueue, work, delay);
 }
 
@@ -357,33 +352,18 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t *abort)
 	while (1) {
 		set_current_state(TASK_UNINTERRUPTIBLE);
 		stop = abort ? atomic_read(abort) : 0;
-/* ATHENV */
-#if 0
-		if (stop || !host->claimed)
-			break;
-#else
 		if (stop || !host->claimed || host->claimer == current)
 			break;
-#endif
-/* ATHENV */
 		spin_unlock_irqrestore(&host->lock, flags);
 		schedule();
 		spin_lock_irqsave(&host->lock, flags);
 	}
 	set_current_state(TASK_RUNNING);
-/* ATHENV */
-#if 0
-	if (!stop)
-		host->claimed = 1;
-	else
-#else
 	if (!stop) {
 		host->claimed = 1;
 		host->claimer = current;
 		host->claim_cnt += 1;
 	} else
-#endif
-/* ATHENV */
 		wake_up(&host->wq);
 	spin_unlock_irqrestore(&host->lock, flags);
 	remove_wait_queue(&host->wq, &wait);
@@ -406,13 +386,6 @@ void mmc_release_host(struct mmc_host *host)
 	WARN_ON(!host->claimed);
 
 	spin_lock_irqsave(&host->lock, flags);
-/* ATHENV */
-#if 0
-	host->claimed = 0;
-	spin_unlock_irqrestore(&host->lock, flags);
-
-	wake_up(&host->wq)
-#else
 	if (--host->claim_cnt) {
 		spin_unlock_irqrestore(&host->lock, flags);
 	} else {
@@ -421,8 +394,6 @@ void mmc_release_host(struct mmc_host *host)
 		spin_unlock_irqrestore(&host->lock, flags);
 		wake_up(&host->wq);
 	}
-#endif
-/* ATHENV */
 }
 
 EXPORT_SYMBOL(mmc_release_host);
@@ -696,9 +667,6 @@ static inline void mmc_bus_put(struct mmc_host *host)
 
 int mmc_resume_bus(struct mmc_host *host)
 {
-/* ATHENV */
-    int err = 0;
-/* ATHENV */
 	if (!mmc_bus_needs_resume(host))
 		return -EINVAL;
 
@@ -708,37 +676,15 @@ int mmc_resume_bus(struct mmc_host *host)
 	if (host->bus_ops && !host->bus_dead) {
 		mmc_power_up(host);
 		BUG_ON(!host->bus_ops->resume);
-/* ATHENV */
-#if 0
 		host->bus_ops->resume(host);
-#else
-		err = host->bus_ops->resume(host);
-		if (err) {
-			printk(KERN_WARNING "%s: error %d during resume "
-					"(card was removed?)\n",
-					mmc_hostname(host), err);
-			if (host->bus_ops->remove)
-				host->bus_ops->remove(host);
-			mmc_claim_host(host);
-			mmc_detach_bus(host);
-			mmc_release_host(host);
-			/* no need to bother upper layers */
-			err = 0;
-		}
-#endif
-/* ATHENV */
 	}
+
 	if (host->bus_ops->detect && !host->bus_dead)
 		host->bus_ops->detect(host);
 
 	mmc_bus_put(host);
 	printk("%s: Deferred resume completed\n", mmc_hostname(host));
-/* ATHENV */
-#if 0
 	return 0;
-#else
-	return err;
-#endif
 }
 
 EXPORT_SYMBOL(mmc_resume_bus);
@@ -816,6 +762,64 @@ void mmc_detect_change(struct mmc_host *host, unsigned long delay)
 
 EXPORT_SYMBOL(mmc_detect_change);
 
+#ifdef CONFIG_MMC_AUTO_SUSPEND
+void mmc_schedule_autosuspend(struct mmc_host *host, unsigned long delay)
+{
+	schedule_delayed_work(&host->auto_suspend, delay);
+}
+
+/* Return value = 0 when resume is done
+ * Return value = 1 when suspend is done
+ */
+int mmc_auto_suspend(struct mmc_host *host, int suspend)
+{
+	int	status = -1;
+	unsigned long next_timeout, timeout;
+	unsigned long j = jiffies;
+
+	if (host->card && mmc_card_sdio(host->card))
+		return -1;
+
+	mutex_lock(&host->auto_suspend_mutex);
+	if (suspend) {
+		if (host->auto_suspend_state)
+			goto out;
+
+		timeout = host->last_busy + host->idle_timeout;
+		if (time_after_eq(j, timeout)) {
+			host->auto_suspend_state = 1;
+			host->ops->auto_suspend(host, 1); /* suspend host */
+			status = 1;
+			goto out;
+		}
+	} else {
+		host->last_busy = j;
+		if (host->auto_suspend_state) {
+			host->ops->auto_suspend(host, 0); /* resume host */
+			host->auto_suspend_state = 0;
+			status = 0;
+		}
+	}
+
+	if (host->idle_timeout >= 0) {
+		next_timeout = host->idle_timeout - (j - host->last_busy);
+		mmc_schedule_autosuspend(host, next_timeout);
+	}
+out:
+	mutex_unlock(&host->auto_suspend_mutex);
+	return status;
+}
+EXPORT_SYMBOL(mmc_auto_suspend);
+
+void mmc_auto_suspend_work(struct work_struct *work)
+{
+	struct mmc_host *host =
+		container_of(work, struct mmc_host, auto_suspend.work);
+
+	/* Try suspending the host */
+	mmc_auto_suspend(host, 1);
+}
+#endif
 
 void mmc_rescan(struct work_struct *work)
 {
@@ -825,8 +829,16 @@ void mmc_rescan(struct work_struct *work)
 	int err;
 	int extend_wakelock = 0;
 
+	wake_lock(&mmc_delayed_work_wake_lock);
+
 	mmc_bus_get(host);
 
+#ifdef CONFIG_MMC_AUTO_SUSPEND
+	if (!mmc_auto_suspend(host, 0)) { /* i.e resumed */
+		mmc_bus_put(host);
+		goto out;
+	}
+#endif
 	/* if there is a card registered, check whether it is still present */
 	if ((host->bus_ops != NULL) &&
             host->bus_ops->detect && !host->bus_dead) {
@@ -841,9 +853,6 @@ void mmc_rescan(struct work_struct *work)
 	mmc_bus_put(host);
 
 
-/* ATHENV */
-	wake_lock(&mmc_delayed_work_wake_lock);
-/* ATHENV */
 	mmc_bus_get(host);
 
 	/* if there still is a card present, stop here */
@@ -930,6 +939,9 @@ void mmc_stop_host(struct mmc_host *host)
 #endif
 
 	cancel_delayed_work(&host->detect);
+#ifdef CONFIG_MMC_AUTO_SUSPEND
+	cancel_delayed_work(&host->auto_suspend);
+#endif
 	mmc_flush_scheduled_work();
 
 	mmc_bus_get(host);
@@ -957,9 +969,12 @@ void mmc_stop_host(struct mmc_host *host)
  */
 int mmc_suspend_host(struct mmc_host *host, pm_message_t state)
 {
-/* ATHENV */
 	int err = 0;
-/* ATHENV */
+
+	cancel_delayed_work(&host->detect);
+#ifdef CONFIG_MMC_AUTO_SUSPEND
+	cancel_delayed_work(&host->auto_suspend);
+#endif
 	if (mmc_bus_needs_resume(host))
 		return 0;
 
@@ -967,28 +982,10 @@ int mmc_suspend_host(struct mmc_host *host, pm_message_t state)
 	mmc_flush_scheduled_work();
 
 	mmc_bus_get(host);
-/* ATHENV */
-#if 0
-	if (host->bus_ops && !host->bus_dead) {
-		if (host->bus_ops->suspend)
-			host->bus_ops->suspend(host);
-		if (!host->bus_ops->resume) {
-			if (host->bus_ops->remove)
-				host->bus_ops->remove(host);
-
-			mmc_claim_host(host);
-			mmc_detach_bus(host);
-			mmc_release_host(host);
-		}
-#else
 	if (host->bus_ops && !host->bus_dead) {
 		if (host->bus_ops->suspend)
 			err = host->bus_ops->suspend(host);
 		if (err == -ENOSYS || !host->bus_ops->resume) {
-			/*
-			 * We simply "remove" the card in this case.
-			 * It will be redetected on resume.
-			 */
 			if (host->bus_ops->remove)
 				host->bus_ops->remove(host);
 
@@ -997,22 +994,13 @@ int mmc_suspend_host(struct mmc_host *host, pm_message_t state)
 			mmc_release_host(host);
 			err = 0;
 		}
-#endif
-/* ATHENV */
 	}
 	mmc_bus_put(host);
-/* ATHENV */
-#if 0
-	mmc_power_off(host);
-
-	return 0;
-#else
 	if (!err)
 		mmc_power_off(host);
 	host->last_suspend_error = err;
 
 	return err;
-#endif
 }
 
 EXPORT_SYMBOL(mmc_suspend_host);
@@ -1023,9 +1011,8 @@ EXPORT_SYMBOL(mmc_suspend_host);
  */
 int mmc_resume_host(struct mmc_host *host)
 {
-/* ATHENV */
 	int err = 0;
-/* ATHENV */
+
 	mmc_bus_get(host);
 	if (host->bus_resume_flags & MMC_BUSRESUME_MANUAL_RESUME) {
 		host->bus_resume_flags |= MMC_BUSRESUME_NEEDS_RESUME;
@@ -1037,10 +1024,7 @@ int mmc_resume_host(struct mmc_host *host)
 		mmc_power_up(host);
 		mmc_select_voltage(host, host->ocr);
 		BUG_ON(!host->bus_ops->resume);
-/* ATHENV */
-#if 0
-		host->bus_ops->resume(host);
-#else
+
 		err = host->bus_ops->resume(host);
 		if (err) {
 			printk(KERN_WARNING "%s: error %d during resume "
@@ -1051,11 +1035,8 @@ int mmc_resume_host(struct mmc_host *host)
 			mmc_claim_host(host);
 			mmc_detach_bus(host);
 			mmc_release_host(host);
-			/* no need to bother upper layers */
 			err = 0;
 		}
-#endif
-/* ATHENV */
 	}
 	mmc_bus_put(host);
 
@@ -1064,13 +1045,7 @@ int mmc_resume_host(struct mmc_host *host)
 	 * in parallel.
 	 */
 	mmc_detect_change(host, 1);
-/* ATHENV */
-#if 0
-	return 0;
-#else
 	return err;
-#endif
-/* ATHENV */
 }
 
 EXPORT_SYMBOL(mmc_resume_host);

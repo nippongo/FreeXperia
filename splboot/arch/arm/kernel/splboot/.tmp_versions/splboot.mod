@@ -1,2 +1,0 @@
-/home/user/xperia/kernel/arch/arm/kernel/splboot/splboot.ko
-/home/user/xperia/kernel/arch/arm/kernel/splboot/splload.o /home/user/xperia/kernel/arch/arm/kernel/splboot/proc-v7.o /home/user/xperia/kernel/arch/arm/kernel/splboot/tlb-v7.o /home/user/xperia/kernel/arch/arm/kernel/splboot/cache-v7.o /home/user/xperia/kernel/arch/arm/kernel/splboot/abort-ev7.o /home/user/xperia/kernel/arch/arm/kernel/splboot/mmu.o

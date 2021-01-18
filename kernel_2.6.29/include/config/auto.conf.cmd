@@ -278,12 +278,6 @@ deps_config := \
 	drivers/net/wireless/ipw2x00/Kconfig \
 	drivers/net/wireless/ath9k/Kconfig \
 	drivers/net/wireless/ath5k/Kconfig \
-	drivers/net/wireless/ath/ar9170/Kconfig \
-	drivers/net/wireless/ath/ath9k/Kconfig \
-	drivers/net/wireless/ath/ath6kl/Kconfig \
-	drivers/net/wireless/ath/ath5k/Kconfig \
-	drivers/net/wireless/ath/Kconfig \
-	drivers/net/wireless/ar6000/Kconfig \
 	drivers/net/wireless/p54/Kconfig \
 	drivers/net/wireless/Kconfig \
 	drivers/net/tokenring/Kconfig \
@@ -468,7 +462,7 @@ deps_config := \
 include/config/auto.conf: \
 	$(deps_config)
 
-ifneq "$(KERNELVERSION)" "2.6.29"
+ifneq "$(KERNELVERSION)" "2.6.29.6"
 include/config/auto.conf: FORCE
 endif
 ifneq "$(ARCH)" "arm"

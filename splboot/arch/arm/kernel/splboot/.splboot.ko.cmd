@@ -1,1 +1,0 @@
-cmd_/home/user/xperia/kernel/arch/arm/kernel/splboot/splboot.ko := arm-linux-ld -EL -r   --build-id -o /home/user/xperia/kernel/arch/arm/kernel/splboot/splboot.ko /home/user/xperia/kernel/arch/arm/kernel/splboot/splboot.o /home/user/xperia/kernel/arch/arm/kernel/splboot/splboot.mod.o

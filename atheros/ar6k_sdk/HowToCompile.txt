@@ -1,1 +1,0 @@
-make ATH_LINUXPATH=/home/binry/kernel_2.6.29/ ATH_CROSS_COMPILE_TYPE=arm-eabi-
